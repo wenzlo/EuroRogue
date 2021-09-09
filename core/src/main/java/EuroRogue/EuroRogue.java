@@ -150,7 +150,7 @@ public class EuroRogue extends ApplicationAdapter {
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Tleilax";
+    public String playerName = "Pipin";
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
@@ -346,9 +346,6 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new DeathSys());
         engine.addSystem(new StatusEffectRemovalSys());
         engine.addSystem(new SoundSys());
-
-
-
 
         Family actors = Family.all(AICmp.class).get();
         engine.addEntityListener(actors, new ActorListener(this));

@@ -150,7 +150,7 @@ public class MobFactory
             {
                 manaPool.spent.addAll(Arrays.asList(skill.prepCost));
                 manaPool.spent.addAll(Arrays.asList(skill.castingCost));
-                manaPool.spent.addAll(Arrays.asList(skill.castingCost));
+                //if(skill.skillType != Skill.SkillType.REACTION || skill.skillType != Skill.SkillType.BUFF) manaPool.spent.addAll(Arrays.asList(skill.castingCost));
                 codex.known.add(skill);
                 codex.prepared.add(skill);
                 for(School mana:skill.prepCost)
