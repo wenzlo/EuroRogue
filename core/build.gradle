@@ -1,0 +1,12 @@
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+eclipse.project.name = appName + '-core'
+
+dependencies {
+  api "com.badlogicgames.gdx:gdx:$gdxVersion"
+  api "com.badlogicgames.ashley:ashley:$ashleyVersion"
+  api "com.github.yellowstonegames.SquidLib:squidlib:$squidLibVersion"
+  api "com.github.yellowstonegames.SquidLib:squidlib-util:$squidLibUtilVersion"
+  api "com.github.tommyettinger:regexodus:$regExodusVersion"
+  api "com.github.tommyettinger:anim8-gdx:$anim8Version"
+  api "com.github.yellowstonegames.SquidLib:squidlib-extra:$squidLibExtraVersion"
+}
