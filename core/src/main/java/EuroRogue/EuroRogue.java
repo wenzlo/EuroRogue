@@ -178,7 +178,6 @@ public class EuroRogue extends ApplicationAdapter {
 
     public void newGame()
     {
-        System.out.println("testing remote repo sync");
         rng = new GWTRNG(playerName);
         mobFactory = new MobFactory(this, rng.nextInt());
         weaponFactory = new WeaponFactory(rng.nextInt());
