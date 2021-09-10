@@ -2,6 +2,7 @@ package EuroRogue;
 
 import com.badlogic.ashley.core.Entity;
 
+import EuroRogue.Components.ArmorCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.EquipmentSlot;
@@ -28,14 +29,16 @@ public class ArmorFactory
     public static StatusEffect[] onHitEffectsPool = new StatusEffect[]
             {StatusEffect.CHILLED, StatusEffect.CALESCENT, StatusEffect.EXHAUSTED};
     public static StatusEffect[] onEquipEffectsPool = new StatusEffect[]
-            { StatusEffect.ENLIGHTENED, StatusEffect.ENRAGED, StatusEffect.EXHAUSTED};
+            { StatusEffect.ENLIGHTENED, StatusEffect.ENRAGED, StatusEffect.EXHAUSTED, StatusEffect.WATER_WALKING};
+
 
     public Entity newBasicArmor(ArmorType armorType, Coord loc)
     {
         Entity armor = new Entity();
-        armor.add(new NameCmp(armorType.toString()));
+        armor.add(new NameCmp(armorType.name));
         armor.add(new ItemCmp(ItemType.ARMOR));
         armor.add(new CharCmp('Ω', armorType.color));
+        armor.add(new ArmorCmp(armorType));
         EquipmentCmp equipmentCmp = new EquipmentCmp(new EquipmentSlot[]{EquipmentSlot.CHEST});
         equipmentCmp.statusEffects.put(armorType.grantedEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER, DamageType.NONE));
         armor.add(equipmentCmp);

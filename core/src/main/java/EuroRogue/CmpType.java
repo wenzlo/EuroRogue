@@ -4,6 +4,7 @@ import EuroRogue.AbilityCmpSubSystems.Dodge;
 import EuroRogue.AbilityCmpSubSystems.MagicMissile;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
 import EuroRogue.Components.AICmp;
+import EuroRogue.Components.ArmorCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
@@ -25,7 +26,7 @@ import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
-import EuroRogue.Components.SoundMapCmp;
+import EuroRogue.Components.NoiseMap;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WeaponCmp;
@@ -52,6 +53,7 @@ public enum CmpType
     ACTION_EVT(ActionEvt.class),
     ANIM_GLYPH_EVT(AnimateGlyphEvt.class),
     AI(AICmp.class),
+    ARMOR(ArmorCmp.class),
     CAMP_EVT(CampEvt.class),
     CHAR(CharCmp.class),
     CODEX(CodexCmp.class),
@@ -90,7 +92,7 @@ public enum CmpType
     STATS(StatsCmp.class),
     STAT_EVT(StatEvt.class),
     STATUS_EFFECT_EVT(StatusEffectEvt.class),
-    SOUND_MAP(SoundMapCmp.class),
+    SOUND_MAP(NoiseMap.class),
     TICKER(TickerCmp.class),
     WEAPON(WeaponCmp.class),
     WINDOW(WindowCmp.class);

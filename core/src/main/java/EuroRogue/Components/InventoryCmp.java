@@ -1,6 +1,7 @@
 package EuroRogue.Components;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Entity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,13 +55,15 @@ public class InventoryCmp implements Component
         allItemIDs.addAll(inventory);
         allItemIDs.addAll(scrolls);
         allItemIDs.addAll(getEquippedIDs());
-        return inventory;
+
+        return allItemIDs;
     }
 
     public ArrayList<Integer> getFoodIDs()
     {return food;}
     public ArrayList<Integer> getScrollsIDs()
     {return scrolls;}
+
 
     public void put(Integer id)
     {

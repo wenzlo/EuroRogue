@@ -265,7 +265,7 @@ public class ItemSys extends MyEntitySystem
             case SCROLL:
                 ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
                 StatsCmp ownerStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
-                if(!codexCmp.known.contains(scrollCmp.skill) && Skill.qualify(scrollCmp.skill, ownerStats))
+                if(!codexCmp.known.contains(scrollCmp.skill) )
                 {
                     Entity eventEntity = new Entity();
                     eventEntity.add(new CodexEvt(actorEntity.hashCode(), Arrays.asList(scrollCmp.skill), null, null));

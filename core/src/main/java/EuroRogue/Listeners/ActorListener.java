@@ -9,7 +9,7 @@ import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.PositionCmp;
-import EuroRogue.Components.SoundMapCmp;
+import EuroRogue.Components.NoiseMap;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.Light;
@@ -48,8 +48,8 @@ public class ActorListener implements EntityListener {
 
         game.engine.getSystem(FOVSys.class).updatFOV(entity);
 
-        entity.remove(SoundMapCmp.class);
-        entity.add(new SoundMapCmp(level.bareDungeon));
+        entity.remove(NoiseMap.class);
+        entity.add(new NoiseMap(level.bareDungeon));
 
 
 

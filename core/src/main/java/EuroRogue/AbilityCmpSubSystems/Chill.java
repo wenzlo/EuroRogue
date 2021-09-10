@@ -158,7 +158,7 @@ public class Chill implements IAbilityCmpSubSys
 
     @Override
     public double getNoiseLvl(Entity performer) {
-        return 0;
+        return 10;
     }
 
     @Override

@@ -9,10 +9,10 @@ public enum ArmorType
     PLATE(StatusEffect.P_ARMOR_EFCT, SColor.LIGHT_GRAY, "Plate Armor", 25),
     MAIL(StatusEffect.M_ARMOR_EFCT, SColor.WILLOW_GREY, "Mail Armor", 20);
 
-    StatusEffect grantedEffect;
-    SColor color;
-    String name;
-    int soundLvl;
+    public StatusEffect grantedEffect;
+    public SColor color;
+    public String name;
+    public int soundLvl;
 
     ArmorType(StatusEffect grantedEffect, SColor color, String name, int soundLvl)
     {

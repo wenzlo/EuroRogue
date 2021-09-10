@@ -237,7 +237,7 @@ public class LevelSys extends MyEntitySystem
             getEngine().addEntity(getGame().foodFactory.generateFoodITem(itemLoc));
         }
 
-        getEngine().getSystem(SoundSys.class);
+        getEngine().getSystem(NoiseSys.class);
         Entity eventEntity = new Entity();
         eventEntity.add(new GameStateEvt(GameState.PLAYING));
         getEngine().addEntity(eventEntity);

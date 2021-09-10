@@ -25,7 +25,7 @@ import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
-import EuroRogue.Components.SoundMapCmp;
+import EuroRogue.Components.NoiseMap;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
@@ -356,11 +356,6 @@ public class AISys extends MyEntitySystem
         MoveEvt moveEvt = new MoveEvt(entity.hashCode(), direction, 1);
         ScheduledEvt scheduledEvt = new ScheduledEvt(scheduledTick,entity.hashCode(),moveEvt);
         ticker.actionQueue.add(scheduledEvt);
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-
-
-
-
 
         return scheduledTick;
     }
@@ -429,12 +424,12 @@ public class AISys extends MyEntitySystem
         ScheduledEvt scheduledEvt = new ScheduledEvt(scheduledTick,entity.hashCode(),campEvt);
         ticker.actionQueue.add(scheduledEvt);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        SoundMapCmp soundMapCmp = (SoundMapCmp) CmpMapper.getComp(CmpType.SOUND_MAP, entity);
-        soundMapCmp.soundMap.clearSounds();
+        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.SOUND_MAP, entity);
+        noiseMap.noiseMap.clearSounds();
 
-        soundMapCmp.soundMap.setSound(positionCmp.coord, 15);
-        soundMapCmp.soundMap.scan();
-        OrderedMap<Coord, Double> alerted = soundMapCmp.soundMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
+        noiseMap.noiseMap.setSound(positionCmp.coord, 15);
+        noiseMap.noiseMap.scan();
+        OrderedMap<Coord, Double> alerted = noiseMap.noiseMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
         alerted.remove(positionCmp.coord);
         for(Coord position : alerted.keySet())
         {

@@ -101,8 +101,11 @@ public class DeathSys extends MyEntitySystem
 
         Collections.shuffle(manaPoolCmp.attuned);
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
-        Entity manaItem = getGame().generateManaITem(null, manaPoolCmp.attuned.get(0));
-        inventoryCmp.put(manaItem.hashCode());
+
+
+
+        CodexCmp playerCodexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, getGame().getFocus());
+        CodexCmp entityCodexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
 
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Coord actorPosition = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
@@ -111,21 +114,47 @@ public class DeathSys extends MyEntitySystem
         ArrayList<Coord> dropLocations = new ArrayList<>();
         dropLocations.addAll(aoe.findArea().keySet());
         Collections.sort(dropLocations, new SortByDistance(actorPosition));
-        Coord location;
+
+
+
+        for(Skill skill : entityCodexCmp.known)
+        {
+            if(!playerCodexCmp.known.contains(skill))
+            {
+
+
+
+                for(Coord pos : dropLocations)
+                {
+                    if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
+                    {
+                        Entity scrollItem = getGame().generateScroll(pos, skill);
+                        getEngine().addEntity(scrollItem);
+
+                        dropLocations.remove(pos);
+
+                        System.out.println("Droping scroll");
+                        break;
+                    }
+
+                }
+                break;
+
+            }
+        }
+
         for(Coord pos : dropLocations)
         {
+
             if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
             {
-                location = Coord.get(pos.x, pos.y);
+                getEngine().addEntity(getGame().generateManaITem(pos, manaPoolCmp.attuned.get(0)));
 
-
-                manaItem.add(new PositionCmp(location));
-                dropLocations.remove(location);
+                dropLocations.remove(pos);
                 break;
             }
         }
 
-        getEngine().addEntity(manaItem);
         dropItems(entity, dropLocations);
         removelights(entity);
         removeGlyphs(entity, display);

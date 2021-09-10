@@ -93,7 +93,7 @@ import EuroRogue.Systems.GameStateSys;
 import EuroRogue.Systems.LevelSys;
 import EuroRogue.Systems.LightingSys;
 import EuroRogue.Systems.MenuUpdateSys;
-import EuroRogue.Systems.SoundSys;
+import EuroRogue.Systems.NoiseSys;
 import EuroRogue.Systems.StatSys;
 import EuroRogue.Systems.StatusEffectEvtSys;
 import EuroRogue.Systems.StatusEffectRemovalSys;
@@ -150,7 +150,7 @@ public class EuroRogue extends ApplicationAdapter {
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Pipin";
+    public String playerName = "RogueOne";
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
@@ -232,7 +232,7 @@ public class EuroRogue extends ApplicationAdapter {
         campWindow = new Entity();
         Stage campWinStage = buildStage(42,21,69,30,69,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
         campWindow.add(new WindowCmp((MySparseLayers) campWinStage.getActors().get(0),campWinStage, false));
-        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{1,25,40};
+        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{1,24,37, 55};
         campWindow.add(new MenuCmp());
         engine.addEntity(campWindow);
 
@@ -309,7 +309,6 @@ public class EuroRogue extends ApplicationAdapter {
     @Override
     public void create ()
     {
-
         currentSave = new SquidStorage("EuroRogue");
         ticker = new Entity();
         currentLevel = new Entity();
@@ -345,7 +344,7 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new LightingSys());
         engine.addSystem(new DeathSys());
         engine.addSystem(new StatusEffectRemovalSys());
-        engine.addSystem(new SoundSys());
+        engine.addSystem(new NoiseSys());
 
         Family actors = Family.all(AICmp.class).get();
         engine.addEntityListener(actors, new ActorListener(this));
@@ -454,11 +453,9 @@ public class EuroRogue extends ApplicationAdapter {
 
 
 
-       initializeWindows();
+        initializeWindows();
         SColor.LIMITED_PALETTE[3] = SColor.DB_GRAPHITE;
 
-
-        //newGame();
 
         startInput = new SquidInput((key, alt, ctrl, shift) -> {
             for(Character chr : engine.getSystem(MenuUpdateSys.class).keyLookup.keySet())
@@ -502,8 +499,11 @@ public class EuroRogue extends ApplicationAdapter {
 
             for(Character chr : engine.getSystem(MenuUpdateSys.class).keyLookup.keySet())
             {
+
                 if(chr == key)
                 {
+
+
                     engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
                     return;
                 }
