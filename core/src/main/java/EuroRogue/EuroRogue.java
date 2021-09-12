@@ -150,7 +150,7 @@ public class EuroRogue extends ApplicationAdapter {
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "RogueOne";
+    public String playerName = "Legend";
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;

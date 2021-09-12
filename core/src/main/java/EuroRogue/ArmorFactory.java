@@ -53,7 +53,7 @@ public class ArmorFactory
         ArmorType armorType = rng.getRandomElement(ArmorType.values());
         Entity armor = newBasicArmor(armorType, loc);
         //if(rng.nextInt()%5==0) addOnHitSERnd(armor, TargetType.ENEMY);
-        if(rng.nextInt()%5==0) addOnEquipSERnd(armor);
+        if(rng.nextInt()%20==0) addOnEquipSERnd(armor);
 
         return armor;
     }

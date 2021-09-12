@@ -424,7 +424,7 @@ public class AISys extends MyEntitySystem
         ScheduledEvt scheduledEvt = new ScheduledEvt(scheduledTick,entity.hashCode(),campEvt);
         ticker.actionQueue.add(scheduledEvt);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.SOUND_MAP, entity);
+        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.NOISE_MAP, entity);
         noiseMap.noiseMap.clearSounds();
 
         noiseMap.noiseMap.setSound(positionCmp.coord, 15);

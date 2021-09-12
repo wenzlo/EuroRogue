@@ -62,7 +62,7 @@ public class NoiseSys extends MyEntitySystem
 
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
         TerrainType terrainType = TerrainType.getTerrainTypeFromChar(levelCmp.decoDungeon[positionCmp.coord.x][positionCmp.coord.y]);
-        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.SOUND_MAP, actor);
+        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.NOISE_MAP, actor);
         noiseMap.noiseMap.clearSounds();
         double noiseLvl = statsCmp.getMoveSndLvl()*terrainType.noiseMult;
 
@@ -92,7 +92,7 @@ public class NoiseSys extends MyEntitySystem
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
 
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.SOUND_MAP, actor);
+        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.NOISE_MAP, actor);
         noiseMap.noiseMap.clearSounds();
         noiseMap.noiseMap.setSound(positionCmp.coord, statsCmp.getMoveSndLvl());
         noiseMap.noiseMap.scan();
@@ -128,7 +128,7 @@ public class NoiseSys extends MyEntitySystem
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performerEntity);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
 
-        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.SOUND_MAP, performerEntity);
+        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.NOISE_MAP, performerEntity);
         noiseMap.noiseMap.clearSounds();
         double noiseLvl = 0;
         try {
