@@ -121,6 +121,7 @@ public class RestIdleCampSys extends MyEntitySystem
             GameStateEvt gameStateEvt = new GameStateEvt(GameState.CAMPING);
             eventEntity.add(gameStateEvt);
             getEngine().addEntity(eventEntity);
+            getEngine().getSystem(MakeCampSys.class).setProcessing(false);
         }
 
     }

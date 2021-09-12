@@ -444,6 +444,7 @@ public class AISys extends MyEntitySystem
 
             }
         }
+        getEngine().getSystem(MakeCampSys.class).setProcessing(true);
 
 
 

@@ -5,23 +5,32 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
+import java.util.ArrayList;
+
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ManaPoolCmp;
+import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.EventComponents.StatEvt;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatType;
 import squidpony.squidmath.Coord;
+import squidpony.squidmath.OrderedSet;
 import sun.jvm.hotspot.debugger.win32.coff.COFFException;
 
-public class CampingSys extends MyEntitySystem
+public class MakeCampSys extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
+
+    public MakeCampSys(){
+        this.setProcessing(false);
+    }
 
 
 
@@ -46,14 +55,22 @@ public class CampingSys extends MyEntitySystem
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
 
+
         for(Entity entity:entities)
         {
             FOVCmp fovCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, entity);
+            PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
+            OrderedSet<Coord> positions = levelCmp.actors.positions();
             for(Coord coord : levelCmp.actors.positions())
             {
+                if(coord==positionCmp.coord)continue;
+                Entity visibleEnemy = getGame().getEntity(levelCmp.actors.get(coord));
+                String name = ((NameCmp) CmpMapper.getComp(CmpType.NAME, visibleEnemy)).name;
                 if(fovCmp.visible.contains(coord))
                 {
                     tickerCmp.actionQueue.removeAll(tickerCmp.getScheduledActions(entity));
+                    this.setProcessing(false);
+                    break;
                 }
             }
         }

@@ -86,6 +86,7 @@ import EuroRogue.StatusEffectListeners.WaterWalkingListener;
 import EuroRogue.StatusEffectListeners.WellFedListener;
 import EuroRogue.Systems.ActionSys;
 import EuroRogue.Systems.AnimationsSys;
+import EuroRogue.Systems.MakeCampSys;
 import EuroRogue.Systems.CodexSys;
 import EuroRogue.Systems.DamageApplicationSys;
 import EuroRogue.Systems.DeathSys;
@@ -345,6 +346,7 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new DeathSys());
         engine.addSystem(new StatusEffectRemovalSys());
         engine.addSystem(new NoiseSys());
+        engine.addSystem(new MakeCampSys());
 
         Family actors = Family.all(AICmp.class).get();
         engine.addEntityListener(actors, new ActorListener(this));
