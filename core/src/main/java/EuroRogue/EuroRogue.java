@@ -1115,6 +1115,21 @@ public class EuroRogue extends ApplicationAdapter {
         }
         return abilities;
     }
+    public ArrayList<Entity> getAvailableScrolls(Entity actor)
+    {
+        CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, actor);
+        ArrayList<Entity> scrolls = new ArrayList<>();
+
+        for(Integer scrollID:getScrollIDs(actor))
+        {
+            Entity scrollEntity = getEntity(scrollID);
+            ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL,scrollEntity);
+            IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
+            if(abilityCmp.isAvailable())scrolls.add(scrollEntity);
+
+        }
+        return scrolls;
+    }
     public Integer getGameTick()
     { return ticker.getComponent(TickerCmp.class).tick; }
     public Entity getFocus()

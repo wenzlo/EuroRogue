@@ -13,6 +13,7 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.AbilityCmpSubSystems.Skill;
@@ -92,8 +93,24 @@ public class ReactionSys extends MyEntitySystem
             IAbilityCmpSubSys possibleReactionAbility = (IAbilityCmpSubSys)CmpMapper.getAbilityComp(skill, reactor);
 
             if (possibleReactionAbility!=null)
-                if(possibleReactionAbility.isAvailable()) reactionAbility = possibleReactionAbility;
+                if(possibleReactionAbility.isAvailable())
+                {
+                    reactionAbility = possibleReactionAbility;
+                    break;
+                }
 
+        }
+        if (reactionAbility == null)
+        {
+            for(Entity scrollEntity : getGame().getAvailableScrolls(reactor))
+            {
+                ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, scrollEntity);
+                if(actionAbility.getReactions().contains(scrollCmp.skill))
+                {
+                    reactionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill, scrollEntity);
+                    break;
+                }
+            }
         }
         if (reactionAbility == null) return;
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, reactor);
