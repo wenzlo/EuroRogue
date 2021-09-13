@@ -67,8 +67,6 @@ public class StatsCmp implements Component
         if(getStr() ==0) return 0;
         return Math.round((1+(str/2f)))*4;
     }
-
-
     public int getTTMoveBase()
     {
         if(getDex() ==0) return 10;
@@ -80,7 +78,6 @@ public class StatsCmp implements Component
         if(Arrays.asList(Direction.DIAGONALS).contains(direction)) ttMove = Math.round(ttMove*1.41f);
         return ttMove;
     }
-
     public int getTTMelee()
     {
         if(getDex() ==0) return 10;

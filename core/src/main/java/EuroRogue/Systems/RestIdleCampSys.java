@@ -11,6 +11,8 @@ import java.util.List;
 import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.CodexCmp;
+import EuroRogue.Components.EquipmentSlot;
+import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
@@ -21,11 +23,13 @@ import EuroRogue.CmpMapper;
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.FrozenEvt;
 import EuroRogue.EventComponents.GameStateEvt;
+import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.GameState;
 import EuroRogue.IColoredString;
 
+import EuroRogue.ItemEvtType;
 import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
@@ -97,7 +101,6 @@ public class RestIdleCampSys extends MyEntitySystem
                 ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(genLogEvent(actor).entry);
             }
         }
-
         for(Entity entity: frozenEnts)
         {
             FrozenEvt frozenEvt = (FrozenEvt) CmpMapper.getComp(CmpType.FROZEN_EVT, entity);
@@ -116,6 +119,15 @@ public class RestIdleCampSys extends MyEntitySystem
             StatusEffectEvt statusEffectEvt = new StatusEffectEvt(getGame().getGameTick(), null, StatusEffect.HUNGRY, null, actorEntity.hashCode(), actorEntity.hashCode(), SERemovalType.OTHER );
             statusEffectEntity.add(statusEffectEvt);
             getEngine().addEntity(statusEffectEntity);
+
+            InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, actorEntity);
+            for(Integer equipmentID : inventoryCmp.getEquippedIDs())
+            {
+                Entity eventEntity = new Entity();
+                ItemEvt itemEvt = new ItemEvt(equipmentID, actorEntity.hashCode(), ItemEvtType.UNEQUIP);
+                eventEntity.add(itemEvt);
+                getEngine().addEntity(eventEntity);
+            }
 
             Entity eventEntity = new Entity();
             GameStateEvt gameStateEvt = new GameStateEvt(GameState.CAMPING);
