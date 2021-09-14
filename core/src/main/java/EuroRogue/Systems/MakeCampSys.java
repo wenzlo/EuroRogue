@@ -9,17 +9,23 @@ import java.util.ArrayList;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
+import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.EventComponents.StatEvt;
+import EuroRogue.EventComponents.StatusEffectEvt;
+import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatType;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedSet;
 import sun.jvm.hotspot.debugger.win32.coff.COFFException;
@@ -70,9 +76,24 @@ public class MakeCampSys extends MyEntitySystem
                 {
                     tickerCmp.actionQueue.removeAll(tickerCmp.getScheduledActions(entity));
                     this.setProcessing(false);
+                    ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateCampLogEvt().entry);
                     break;
                 }
             }
         }
+    }
+
+    private LogEvt generateCampLogEvt ()
+    {
+
+
+        IColoredString.Impl<SColor> coloredEvtText = new IColoredString.Impl<>();
+        Integer tick = ((TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker)).tick;
+        coloredEvtText.append(tick.toString(), SColor.WHITE);
+
+        coloredEvtText.append(" Make Camp Cancelled: Enemy Detected", SColor.RED);
+
+
+        return new LogEvt(tick, coloredEvtText);
     }
 }
