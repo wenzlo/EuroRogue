@@ -180,7 +180,7 @@ Mana/Energy Pool-
 	■ ■		          Active Row is replenshied by performing a Short Rest
  
 	■ ■ ■ ■ ████ <- Attuned Mana/Energy Pool -
-  	█████████████    Mana slots available to "Attune" mana in order to Prepare and ability.
+  	████████████    Mana slots available to "Attune" mana in order to Prepare and ability.
 			             Number of open slots is determined by Intelligence.
 					
 			A Short Rest will automatically be performed if your Active Mana is depleted or
