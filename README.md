@@ -174,13 +174,13 @@ Mana/Energy Pool-
 	Mana/Energy tokens are dropped by enemies.
 	
 	■ ■ ■ ■ ■ ■  <- Active Mana/Energy Pool - Available to spend to perform Abilites
- -------------
+ 
 	■ ■ ■ ■ ■ ■	    Spent Mana/Energy Pool - Mana spent on abilites transfers here.
 	■ ■ ■ ■ ■ ■  <- Mana/Energy randomly drawn from this pool to replenish the Active Row.
 	■ ■		          Active Row is replenshied by performing a Short Rest
- -------------
+ 
 	■ ■ ■ ■ ████ <- Attuned Mana/Energy Pool -
-  █████████████    Mana slots available to "Attune" mana in order to Prepare and ability.
+  	█████████████    Mana slots available to "Attune" mana in order to Prepare and ability.
 			             Number of open slots is determined by Intelligence.
 					
 			A Short Rest will automatically be performed if your Active Mana is depleted or
