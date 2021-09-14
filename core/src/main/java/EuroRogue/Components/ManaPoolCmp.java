@@ -19,13 +19,18 @@ public class ManaPoolCmp implements Component
     public List<School> active = new ArrayList<>();
     public List<School> spent = new ArrayList<>();
     public List<School> attuned = new ArrayList<>();
+    public int numAttunedSlots;
     private final GWTRNG rng = new GWTRNG();
 
-    public ManaPoolCmp(){}
+    public ManaPoolCmp(int numAttunedSlots)
+    {
+        this.numAttunedSlots = numAttunedSlots;
+    }
 
-    public ManaPoolCmp(Collection<School> manaPool)
+    public ManaPoolCmp(Collection<School> manaPool, int numAttunedSlots)
     {
         spent.addAll(manaPool);
+        this.numAttunedSlots = numAttunedSlots;
     }
 
     @Override

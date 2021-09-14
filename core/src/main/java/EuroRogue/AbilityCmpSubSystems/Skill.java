@@ -3,6 +3,7 @@ package EuroRogue.AbilityCmpSubSystems;
 import java.util.Arrays;
 import java.util.Collections;
 
+import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.StatusEffectCmps.StatusEffect;
@@ -73,6 +74,7 @@ public enum Skill
         {
             if(Collections.frequency(manaPoolCmp.spent, school)< Collections.frequency(Arrays.asList(skill.prepCost),school)) return false;
         }
+        if(manaPoolCmp.numAttunedSlots<(skill.prepCost.length+ manaPoolCmp.attuned.size())) return false;
         return true;
     }
 

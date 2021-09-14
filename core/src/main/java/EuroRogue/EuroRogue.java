@@ -830,7 +830,8 @@ public class EuroRogue extends ApplicationAdapter {
                     getFocus().remove(CodexCmp.class);
                     getFocus().remove(ManaPoolCmp.class);
                     getFocus().add(getRandomStats(12));
-                    getFocus().add(new ManaPoolCmp());
+                    StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getFocus());
+                    getFocus().add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
                     getFocus().add( new CodexCmp());
                     mobFactory.setRandomSkillSet(getFocus());
 

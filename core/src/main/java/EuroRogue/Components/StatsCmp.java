@@ -253,8 +253,6 @@ public class StatsCmp implements Component
         return Math.round(3+(intel/2f));
     }
 
-
-
     public void mergeWith(StatsCmp statsCmp)
     {
         str =Math.max(str, statsCmp.getStr());

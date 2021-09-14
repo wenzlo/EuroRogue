@@ -56,7 +56,7 @@ public class MobFactory
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
 
         mob.add(new FactionCmp(FactionCmp.Faction.PLAYER));
-        mob.add(new ManaPoolCmp());
+        mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
 
         setRandomSkillSet(mob);
@@ -83,7 +83,7 @@ public class MobFactory
         mob.add(aiCmp);
         mob.add(new FOVCmp(level.decoDungeon[0].length,level.decoDungeon.length));
         mob.add(new FactionCmp(FactionCmp.Faction.PLAYER));
-        mob.add(new ManaPoolCmp(Arrays.asList(School.PHY)));
+        mob.add(new ManaPoolCmp(Arrays.asList(School.PHY), statsCmp.getNumAttunedSlots()));
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
         game.engine.addEntity(mob);
         return mob;
@@ -109,7 +109,7 @@ public class MobFactory
         mob.add(aiCmp);
         mob.add(new FOVCmp(level.decoDungeon[0].length,level.decoDungeon.length));
         mob.add(new FactionCmp(FactionCmp.Faction.MONSTER));
-        mob.add(new ManaPoolCmp());
+        mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
         game.engine.addEntity(mob);
         setRandomSkillSet(mob);
@@ -144,8 +144,9 @@ public class MobFactory
         while (spentLimit > 0 && skillPool.size()>0)
         {
             Skill skill = rng.getRandomElement(skillPool);
-
             skillPool.remove(skill);
+            if(spentLimit - skill.prepCost.length-1 < 0) continue;
+
             if (skill.castingCost.length < spentLimit && Skill.qualify(skill, stats) &! codex.getExcludedSchools().contains(skill.school))
             {
                 manaPool.spent.addAll(Arrays.asList(skill.prepCost));

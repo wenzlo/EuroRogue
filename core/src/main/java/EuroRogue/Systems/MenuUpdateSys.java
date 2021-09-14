@@ -566,7 +566,6 @@ public class MenuUpdateSys extends MyEntitySystem {
         menuCmp.menuMap.put(Coord.get(1,1), '1', menuItem );
         keyLookup.put('1', menuCmp);
     }
-
     private IColoredString.Impl getActionLabel(IAbilityCmpSubSys abilityCmp, Character selectionKey, int totalLength)
     {
         Skill skill = abilityCmp.getSkill();
@@ -637,7 +636,6 @@ public class MenuUpdateSys extends MyEntitySystem {
 
         return coloredString;
     }
-
     public int scheduleItemEquipEvt (Entity entity, int itemID)
     {
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);

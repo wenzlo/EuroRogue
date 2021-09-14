@@ -70,8 +70,6 @@ public class MakeCampSys extends MyEntitySystem
             for(Coord coord : levelCmp.actors.positions())
             {
                 if(coord==positionCmp.coord)continue;
-                Entity visibleEnemy = getGame().getEntity(levelCmp.actors.get(coord));
-                String name = ((NameCmp) CmpMapper.getComp(CmpType.NAME, visibleEnemy)).name;
                 if(fovCmp.visible.contains(coord))
                 {
                     tickerCmp.actionQueue.removeAll(tickerCmp.getScheduledActions(entity));
