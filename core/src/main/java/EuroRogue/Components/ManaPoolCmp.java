@@ -185,7 +185,8 @@ public class ManaPoolCmp implements Component
     {
         for(Skill skill : codexCmp.prepared)
         {
-            if(active.containsAll(Arrays.asList(skill.castingCost))) return false;
+            if(skill.skillType == Skill.SkillType.REACTION) continue;
+            if(active.containsAll(Arrays.asList(skill.castingCost)) ) return false;
         }
         return true;
     }

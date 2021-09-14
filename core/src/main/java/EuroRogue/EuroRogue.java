@@ -173,7 +173,6 @@ public class EuroRogue extends ApplicationAdapter {
     public SquidInput input, campInput, startInput;
     public InputMultiplexer inputProcessor;
     private final Color bgColor=Color.BLACK;
-    private SquidStorage currentSave;
     public int depth = 0;
 
 
@@ -310,7 +309,6 @@ public class EuroRogue extends ApplicationAdapter {
     @Override
     public void create ()
     {
-        currentSave = new SquidStorage("EuroRogue");
         ticker = new Entity();
         currentLevel = new Entity();
         engine.addEntity(currentLevel);
@@ -821,21 +819,23 @@ public class EuroRogue extends ApplicationAdapter {
 
                 case 'p':
                 case 'P':
-                        CodexCmp codexCm = (CodexCmp)CmpMapper.getComp(CmpType.CODEX,getFocus());
-                        for(Skill skill : codexCm.prepared)
-                        {
-                            IAbilityCmpSubSys abilityCmpSubSys = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, getFocus());
-                            if(abilityCmpSubSys!=null) getFocus().remove(abilityCmpSubSys.getClass());
-                        }
-                        getFocus().remove(StatsCmp.class);
-                        getFocus().remove(CodexCmp.class);
-                        getFocus().remove(ManaPoolCmp.class);
-                        getFocus().add(getRandomStats(10));
-                        getFocus().add(new ManaPoolCmp());
-                        getFocus().add( new CodexCmp());
-                        mobFactory.setRandomSkillSet(getFocus());
 
-                    break;
+                    CodexCmp codexCm = (CodexCmp)CmpMapper.getComp(CmpType.CODEX,getFocus());
+                    for(Skill skill : codexCm.prepared)
+                    {
+                        IAbilityCmpSubSys abilityCmpSubSys = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, getFocus());
+                        if(abilityCmpSubSys!=null) getFocus().remove(abilityCmpSubSys.getClass());
+                    }
+                    getFocus().remove(StatsCmp.class);
+                    getFocus().remove(CodexCmp.class);
+                    getFocus().remove(ManaPoolCmp.class);
+                    getFocus().add(getRandomStats(12));
+                    getFocus().add(new ManaPoolCmp());
+                    getFocus().add( new CodexCmp());
+                    mobFactory.setRandomSkillSet(getFocus());
+
+
+                    return;
 
                 case '[':
                 case '{':
