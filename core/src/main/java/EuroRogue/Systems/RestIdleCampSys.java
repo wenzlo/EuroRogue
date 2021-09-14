@@ -10,6 +10,7 @@ import java.util.List;
 
 import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
 import EuroRogue.Components.AICmp;
+import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.InventoryCmp;
@@ -150,13 +151,14 @@ public class RestIdleCampSys extends MyEntitySystem
     public LogEvt genLogEvent(Entity entity)
     {
         String name = ((NameCmp)CmpMapper.getComp(CmpType.NAME, entity)).name;
+        SColor nameColor = ((CharCmp)CmpMapper.getComp(CmpType.CHAR, entity)).color;
         Integer tick = ((TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker)).tick;
         LogCmp log = (LogCmp)CmpMapper.getComp(CmpType.LOG, getGame().logWindow);
 
         IColoredString.Impl string = new IColoredString.Impl();
         string.append(tick.toString(), SColor.WHITE);
-        string.append(" "+name, SColor.LIGHT_YELLOW_DYE);
-        string.append("feels Rested", SColor.WHITE);
+        string.append(" "+name, nameColor);
+        string.append(" looks Rested", SColor.WHITE);
         return new LogEvt(tick, string);
     }
 

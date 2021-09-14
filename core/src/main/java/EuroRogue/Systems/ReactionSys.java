@@ -201,9 +201,9 @@ public class ReactionSys extends MyEntitySystem
         String targetName = ((NameCmp) CmpMapper.getComp(CmpType.NAME, targetEntity)).name;
         coloredEvtText.append(tick.toString(), SColor.WHITE);
 
-        coloredEvtText.append(" " + targetName + " ", targetColor);
+        coloredEvtText.append(" " + targetName, targetColor);
         coloredEvtText.append(" reacts to ", SColor.SILVER_GREY);
-        coloredEvtText.append(" " + performerName + "'s ", performerColor);
+        coloredEvtText.append(performerName + "'s ", performerColor);
         coloredEvtText.append(actionEvt.skill.name, actionEvt.skill.school.color);
         coloredEvtText.append(" with ", SColor.SILVER_GREY);
         coloredEvtText.append(reactionAbility.getSkill().name, reactionAbility.getSkill().school.color);

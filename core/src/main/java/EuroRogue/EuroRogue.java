@@ -151,7 +151,7 @@ public class EuroRogue extends ApplicationAdapter {
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Legend";
+    public String playerName = "Rodney";
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
@@ -233,7 +233,7 @@ public class EuroRogue extends ApplicationAdapter {
         campWindow = new Entity();
         Stage campWinStage = buildStage(42,21,69,30,69,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
         campWindow.add(new WindowCmp((MySparseLayers) campWinStage.getActors().get(0),campWinStage, false));
-        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{1,24,37, 55};
+        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{1,25,49, 65};
         campWindow.add(new MenuCmp());
         engine.addEntity(campWindow);
 
@@ -286,11 +286,11 @@ public class EuroRogue extends ApplicationAdapter {
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, inventoryWindow)).columnIndexes = new int[]{1,32, 66};
         inventoryWindow.add(new MenuCmp());
 
-        Stage taStage = buildStage(22,92,88,10,88,10, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        Stage taStage = buildStage(22,92,106,10,106,10, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         targetHotBar = new Entity();
         targetHotBar.add(new WindowCmp((MySparseLayers) taStage.getActors().get(0), taStage, true));
-        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, targetHotBar)).columnIndexes = new int[]{1,22, 45, 68};
+        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, targetHotBar)).columnIndexes = new int[]{1,28, 55,82};
         targetHotBar.add(new MenuCmp());
         engine.addEntity(targetHotBar);
 

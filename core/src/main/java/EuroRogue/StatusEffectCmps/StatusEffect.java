@@ -61,7 +61,9 @@ public enum StatusEffect
                 statusEffectCmp = new Chilled();
                 break;
             case ENRAGED:
+                int str = targetStats.getStr();
                 statusEffectCmp = new Enraged();
+                statusEffectCmp.statMultipliers.put(StatType.ATTACK_PWR, statusEffectCmp.statMultipliers.get(StatType.ATTACK_PWR)+(str*0.05f));
                 break;
             case CALESCENT:
                 statusEffectCmp = new Calescent();
@@ -83,7 +85,7 @@ public enum StatusEffect
                 statusEffectCmp.statMultipliers.put(StatType.TT_REST, statusEffectCmp.statMultipliers.get(StatType.TT_REST)-(strDexAvg*0.05f));
                 break;
             case P_ARMOR_EFCT:
-                int str = targetStats.getStr();
+                str = targetStats.getStr();
                 statusEffectCmp = new PlateArmorEfct();
                 statusEffectCmp.statMultipliers.put(StatType.TT_MOVE, statusEffectCmp.statMultipliers.get(StatType.TT_MOVE)-(str*0.075f));
                 statusEffectCmp.statMultipliers.put(StatType.TT_MELEE, statusEffectCmp.statMultipliers.get(StatType.TT_MELEE)-(str*0.075f));
@@ -94,7 +96,7 @@ public enum StatusEffect
             case DAGGER_EFCT:
                 statusEffectCmp = new DaggerEfct();
                 dex = targetStats.getDex();
-                statusEffectCmp.statMultipliers.put(StatType.ATTACK_PWR, statusEffectCmp.statMultipliers.get(StatType.ATTACK_PWR)+(dex*0.05f));
+                statusEffectCmp.statMultipliers.put(StatType.ATTACK_PWR, statusEffectCmp.statMultipliers.get(StatType.ATTACK_PWR)+(dex*0.06f));
                 break;
             case SWORD_EFCT:
                 statusEffectCmp = new SwordEfct();

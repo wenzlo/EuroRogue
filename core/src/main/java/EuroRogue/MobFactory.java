@@ -96,10 +96,10 @@ public class MobFactory
         mob.add(new NameCmp(name));
         mob.add(new CodexCmp());
         mob.add(new PositionCmp(loc));
-        mob.add(new CharCmp('E', SColor.NAVY_BLUE));
-        GlyphsCmp glyphsCmp = new GlyphsCmp(display, 'E', SColor.DARK_CERULEAN, loc.x, loc.y);
-        glyphsCmp.leftGlyph = display.glyph('•', SColor.DARK_CERULEAN, loc.x, loc.y);
-        glyphsCmp.rightGlyph = display.glyph('•', SColor.DARK_CERULEAN, loc.x, loc.y);
+        mob.add(new CharCmp('E', SColor.RED_BIRCH));
+        GlyphsCmp glyphsCmp = new GlyphsCmp(display, 'E', SColor.RED_BIRCH, loc.x, loc.y);
+        glyphsCmp.leftGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
+        glyphsCmp.rightGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         mob.add(glyphsCmp);
         StatsCmp statsCmp =game.getRandomStats(7+(depth*2));
         mob.add(statsCmp);

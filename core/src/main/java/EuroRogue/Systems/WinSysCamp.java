@@ -46,7 +46,7 @@ public class WinSysCamp extends MyEntitySystem
         Stage stage = window.stage;
 
         display.clear();
-        display.putBorders(SColor.SLATE_GRAY.toFloatBits(), getGame().gameState.toString());
+        display.putBorders(SColor.SLATE_GRAY.toFloatBits(), "Prep/Unprep Abilities──┼Purchase Stat Increase─┼Eat Food");
         for(Coord coord : menuCmp.menuMap.positions())
         {
             display.put(window.columnIndexes[coord.x], coord.y+1, menuCmp.menuMap.get(coord).label);

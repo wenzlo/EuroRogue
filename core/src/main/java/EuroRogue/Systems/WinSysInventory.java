@@ -54,7 +54,7 @@ public class WinSysInventory extends MyEntitySystem
 
         SColor bgColor = (SColor) display.defaultBackground;
         Stage stage = game.inventoryWindow.getComponent(WindowCmp.class).stage;
-        String caption = "Inventory";
+        String caption = "Inventory─────────────────────────Equipment SLots";
 
 
 
