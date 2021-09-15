@@ -12,11 +12,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
@@ -27,6 +29,7 @@ import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.EventComponents.CodexEvt;
+import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.StatEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
@@ -41,6 +44,7 @@ import EuroRogue.SortAbilityBySkillType;
 import EuroRogue.StatType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
+import EuroRogue.TargetType;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
 
@@ -111,7 +115,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
 
             IColoredString.Impl abilityLabel;
-            if(getGame().gameState!= GameState.CAMPING)
+            if(getGame().gameState!= GameState.CAMPING || getGame().gameState!= GameState.AIMING)
             {
                 abilityLabel = getActionLabel(abilityCmp, chr, finalLength);
                 getGame().globalMenuIndex++;
@@ -129,10 +133,34 @@ public class MenuUpdateSys extends MyEntitySystem {
                         getEngine().getSystem(AISys.class).scheduleActionEvt(focusEntity, abilityCmp);
                 }
             };
+            if(abilityCmp.getTargetType()== TargetType.AOE)
+            {
+
+                PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, focusEntity);
+                Coord aimCoord = positionCmp.coord;
+                if(!abilityCmp.getIdealLocations().isEmpty()) aimCoord = abilityCmp.getIdealLocations().keySet().first();
+                Coord finalAimCoord = aimCoord;
+                primaryAction = new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                        if(abilityCmp.isAvailable())
+                        {
+                            abilityCmp.getAOE().shift(finalAimCoord);
+                            getGame().getFocus().add(new AimingCmp(finalAimCoord, abilityCmp.getSkill()));
+                            //abilityCmp.getAOE().setOrigin(positionCmp.coord);
+                            Entity eventEntity = new Entity();
+                            GameStateEvt gameStateEvt = new GameStateEvt(GameState.AIMING);
+                            eventEntity.add(gameStateEvt);
+                            getEngine().addEntity(eventEntity);
+
+                        }
+                    }
+                };
+            }
             menuItem.addPrimaryAction(primaryAction);
             menuCmp.menuMap.put(coord, chr, menuItem);
             keyLookup.put(chr, menuCmp);
-
             y++;
 
         }
@@ -216,7 +244,6 @@ public class MenuUpdateSys extends MyEntitySystem {
     }
     private void updateTargetHotBar(Entity entity)
     {
-
         Entity focusTarget = getGame().getFocusTarget();
         MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, entity);
         WindowCmp window = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, entity);
@@ -240,7 +267,6 @@ public class MenuUpdateSys extends MyEntitySystem {
             MenuItem menuItem = new MenuItem(abilityLabel);
             menuCmp.menuMap.put(coord, null, menuItem);
             y++;
-
         }
 
         List<IAbilityCmpSubSys> scrollAbilities = new ArrayList<>();
@@ -249,9 +275,6 @@ public class MenuUpdateSys extends MyEntitySystem {
             ScrollCmp scrollCmp = null;
 
             scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
-
-
-
             if (scrollCmp != null)
                 scrollAbilities.add((IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity));
         }
@@ -274,6 +297,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             if (ability != null)
                 preparedReactions.add((IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, focusTarget));
         }
+
         finalLength = window.columnIndexes[1] - window.columnIndexes[0] - 2;
         x = 2;
         y = 0;
@@ -302,7 +326,6 @@ public class MenuUpdateSys extends MyEntitySystem {
             menuCmp.menuMap.put(coord, null, menuItem);
             y++;
         }
-
     }
     private void updateInventory(Entity entity)
     {

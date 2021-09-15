@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Component;
 
 import java.util.Arrays;
 
+import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
 import EuroRogue.DamageType;
 import EuroRogue.StatType;
 import squidpony.squidgrid.Direction;
@@ -45,6 +46,7 @@ public class StatsCmp implements Component
     {
         return Math.round(10* moveSndLvlMult);
     }
+
 
 
     public int getMaxHP()
@@ -275,7 +277,7 @@ public class StatsCmp implements Component
         sb.append("ttMove  = "+getTTMoveBase()+"\n");
         sb.append("ttMelee = "+getTTMelee()+"\n");
         sb.append("ttCast  = "+getTTCast()+"\n");
-        sb.append("ttRest  = "+getTTRest()+"\n");
+        sb.append("ttRest  = "+getTTRest()+"\n"+"\n");
         sb.append("NoiseLvl= "+ getMoveSndLvl()+"\n");
 
         sb.append("RESISTS"+"\n"+"\n");
@@ -293,6 +295,7 @@ public class StatsCmp implements Component
         sb.append("Melee DPT = "+dpt+"\n");
         dpt = ((float)getSpellPower()/(float)getTTCast());
         sb.append("Spell DPT = "+dpt+"\n");
+
         return sb.toString();
     }
 }

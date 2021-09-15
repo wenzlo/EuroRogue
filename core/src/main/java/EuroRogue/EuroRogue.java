@@ -18,6 +18,7 @@ import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentSlot;
@@ -38,7 +39,6 @@ import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WeaponCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.Components.PositionCmp;
@@ -85,6 +85,7 @@ import EuroRogue.Listeners.ItemListener;
 import EuroRogue.StatusEffectListeners.WaterWalkingListener;
 import EuroRogue.StatusEffectListeners.WellFedListener;
 import EuroRogue.Systems.ActionSys;
+import EuroRogue.Systems.AimSys;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.Systems.MakeCampSys;
 import EuroRogue.Systems.CodexSys;
@@ -116,7 +117,6 @@ import EuroRogue.Systems.ReactionSys;
 import EuroRogue.Systems.RestIdleCampSys;
 import EuroRogue.Systems.AISys;
 import EuroRogue.Systems.TickerSys;
-import squidpony.SquidStorage;
 import squidpony.StringKit;
 import squidpony.squidai.AOE;
 import squidpony.squidai.DijkstraMap;
@@ -170,7 +170,7 @@ public class EuroRogue extends ApplicationAdapter {
     private static final int cellWidth = 9;
     /** The pixel height of a cell */
     private static final int cellHeight = 9;
-    public SquidInput input, campInput, startInput;
+    public SquidInput input, aimInput, campInput, startInput;
     public InputMultiplexer inputProcessor;
     private final Color bgColor=Color.BLACK;
     public int depth = 0;
@@ -198,7 +198,7 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addEntity(currentLevel);
 
 
-        player = mobFactory.generateRndPlayer();
+        player = mobFactory.generateSkillessPlayer();
         player.add(new FocusCmp());
         Entity levelEvtEntity = new Entity();
         LevelEvt levelEvt = new LevelEvt();
@@ -304,8 +304,6 @@ public class EuroRogue extends ApplicationAdapter {
             ((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
         }
     }
-
-
     @Override
     public void create ()
     {
@@ -345,6 +343,7 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new StatusEffectRemovalSys());
         engine.addSystem(new NoiseSys());
         engine.addSystem(new MakeCampSys());
+        engine.addSystem(new AimSys());
 
         Family actors = Family.all(AICmp.class).get();
         engine.addEntityListener(actors, new ActorListener(this));
@@ -524,87 +523,81 @@ public class EuroRogue extends ApplicationAdapter {
             }
 
         },
-                //The second parameter passed to a SquidInput can be a SquidMouse, which takes mouse or touchscreen
-                //input and converts it to grid coordinates (here, a cell is 10 wide and 20 tall, so clicking at the
-                // pixel position 16,51 will pass screenX as 1 (since if you divide 16 by 10 and round down you get 1),
-                // and screenY as 2 (since 51 divided by 20 rounded down is 2)).
-                new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {
 
+                new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {}));
 
-                    // if the user clicks and there are no awaitedMoves queued up, generate toCursor if it
-                    // hasn't been generated already by mouseMoved, then copy it over to awaitedMoves.
-                   /* @Override
-                    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-                        // This is needed because we center the camera on the player as he moves through a dungeon that is three
-                        // screens wide and three screens tall, but the mouse still only can receive input on one screen's worth
-                        // of cells. (gridWidth >> 1) halves gridWidth, pretty much, and that we use to get the centered
-                        // position after adding to the player's position (along with the gridHeight).
-                        Coord focusLocation = getFocus().getComponent(PositionCmp.class).coord;
-                        screenX += focusLocation.x - (gridWidth >> 1);
-                        screenY += focusLocation.y - (gridHeight >> 1);
-                        // we also need to check if screenX or screenY is out of bounds.
-                        return screenX >= 0 && screenY >= 0 && screenX < bigWidth && screenY < bigHeight;
-                *//*if (awaitedMoves.isEmpty()) {
-                    if (toCursor.isEmpty()) {
-                        cursor = Coord.get(screenX, screenY);
-                        //This uses DijkstraMap.findPathPreScannned() to get a path as a List of Coord from the current
-                        // player position to the position the user clicked on. The "PreScanned" part is an optimization
-                        // that's special to DijkstraMap; because the whole map has already been fully analyzed by the
-                        // DijkstraMap.scan() method at the start of the program, and re-calculated whenever the player
-                        // moves, we only need to do a fraction of the work to find the best path with that info.
-                        toCursor.clear();
-                        playerToCursor.findPathPreScanned(toCursor, cursor);
-                        //findPathPreScanned includes the current cell (goal) by default, which is helpful when
-                        // you're finding a path to a monster or loot, and want to bump into it, but here can be
-                        // confusing because you would "move into yourself" as your first move without this.
-                        if(!toCursor.isEmpty())
-                            toCursor.remove(0);
-                    }
-                    //awaitedMoves.addAll(toCursor);
-                }*//*
-                    }
+        aimInput = new SquidInput((key, alt, ctrl, shift) -> {
 
-                    @Override
-                    public boolean touchDragged(int screenX, int screenY, int pointer) {
-                        return mouseMoved(screenX, screenY);
-                    }
+            AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getFocus());
+            IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
+            LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
+            AOE aoe = ability.getAOE();
 
-                    // causes the path to the mouse position to become highlighted (toCursor contains a list of Coords that
-                    // receive highlighting). Uses DijkstraMap.findPathPreScanned() to find the path, which is rather fast.
-                    @Override
-                    public boolean mouseMoved(int screenX, int screenY) {
-                *//*if(!awaitedMoves.isEmpty())
-                    return false;*//*
-                        // This is needed because we center the camera on the player as he moves through a dungeon that is three
-                        // screens wide and three screens tall, but the mouse still only can receive input on one screen's worth
-                        // of cells. (gridWidth >> 1) halves gridWidth, pretty much, and that we use to get the centered
-                        // position after adding to the player's position (along with the gridHeight).
-               *//* Coord focusLocation = getFocus().getComponent(PositionCmp.class).coord;
-                screenX += focusLocation.x - (gridWidth >> 1);
-                screenY += focusLocation.y - (gridHeight >> 1);
-                // we also need to check if screenX or screenY is out of bounds.
-                if(screenX < 0 || screenY < 0 || screenX >= bigWidth || screenY >= bigHeight ||
-                        (cursor.x == screenX && cursor.y == screenY))
+            if(aimingCmp==null) return;
+
+            for(Character chr : engine.getSystem(MenuUpdateSys.class).keyLookup.keySet())
+            {
+
+                if(chr == key)
                 {
-                    return false;
-                }
-                cursor = Coord.get(screenX, screenY);
-                //This uses DijkstraMap.findPathPreScannned() to get a path as a List of Coord from the current
-                // player position to the position the user clicked on. The "PreScanned" part is an optimization
-                // that's special to DijkstraMap; because the whole map has already been fully analyzed by the
-                // DijkstraMap.scan() method at the start of the program, and re-calculated whenever the player
-                // moves, we only need to do a fraction of the work to find the best path with that info.
 
-                toCursor.clear();
-                playerToCursor.findPathPreScanned(toCursor, cursor);
-                //findPathPreScanned includes the current cell (goal) by default, which is helpful when
-                // you're finding a path to a monster or loot, and want to bump into it, but here can be
-                // confusing because you would "move into yourself" as your first move without this.
-                if(!toCursor.isEmpty())
-                    toCursor.remove(0);*//*
-                        return false;
-                    }*/
-                }));
+
+                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
+                    return;
+                }
+                if(getShiftChar(chr)==key)
+                {
+                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
+                    return;
+                }
+            }
+
+            Direction direction = Direction.NONE;
+
+            switch(key) {
+                case SquidInput.ESCAPE:
+                    getFocus().remove(AimingCmp.class);
+                    Entity gameStateEvtEnt = new Entity();
+                    engine.addEntity(gameStateEvtEnt);
+                    gameStateEvtEnt.add(new GameStateEvt(GameState.PLAYING));
+                    break;
+
+                case SquidInput.UP_ARROW:
+                    direction = Direction.UP;
+
+                    break;
+
+                case SquidInput.RIGHT_ARROW:
+                    direction = Direction.RIGHT;
+                    break;
+
+                case SquidInput.DOWN_ARROW:
+                    direction = Direction.DOWN;
+                    break;
+
+                case SquidInput.LEFT_ARROW:
+                    direction = Direction.LEFT;
+                    break;
+
+                case SquidInput.CENTER_ARROW:
+                    if(ability.isAvailable())
+                        engine.getSystem(AISys.class).scheduleActionEvt(getFocus(), ability);
+                        Entity eventEntity = new Entity();
+                        GameStateEvt gameStateEvt = new GameStateEvt(GameState.PLAYING);
+                        eventEntity.add(gameStateEvt);
+                        engine.addEntity(eventEntity);
+                        getFocus().remove(AimingCmp.class);
+                        return;
+
+
+            }
+            Coord newAimCoord = aimingCmp.aimCoord.translate(direction);
+            if(aoe.getOrigin().distance(newAimCoord)<=aoe.getMaxRange()
+                    && levelCmp.floors.contains(newAimCoord))
+                aimingCmp.aimCoord = aimingCmp.aimCoord.translate(direction);
+        },
+
+                new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {}));
 
         input = new SquidInput((key, alt, ctrl, shift) -> {
             Entity focus = getFocus();
@@ -863,6 +856,12 @@ public class EuroRogue extends ApplicationAdapter {
                     }
                     break;
 
+                case 'm':
+                    //ScreenShotFactory.saveScreenshot();
+
+
+
+
             }
 
             Coord newPosition = Coord.get(newX,newY);
@@ -884,14 +883,7 @@ public class EuroRogue extends ApplicationAdapter {
                     MeleeAttack meleeAttackAb = focus.getComponent(MeleeAttack.class);
                     if(meleeAttackAb.isAvailable())
                     {
-                        AICmp focusAI = focus.getComponent(AICmp.class);
-                        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, focus);
-
-                        focusAI.target = currentLevel.getComponent(LevelCmp.class).actors.get(newPosition);
-                        ActionEvt meleeAttack = new ActionEvt(getFocus().hashCode(), null, Skill.MELEE_ATTACK, focusAI.target, statsCmp.getWeaponDamage(), meleeAttackAb.getStatusEffects());
-                        ScheduledEvt scheduledEvt = new ScheduledEvt(getGameTick()+statsCmp.getTTMelee(), focus.hashCode(), meleeAttack);
-
-                        ticker.getComponent(TickerCmp.class).actionQueue.add(scheduledEvt);
+                        engine.getSystem(AISys.class).scheduleActionEvt(getFocus(), meleeAttackAb);
                     }
                 }
             }
@@ -984,7 +976,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         input.setRepeatGap(180);
         campInput.setRepeatGap(240);
-        inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, startInput, input, campInput);
+        inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, startInput, input, campInput, aimInput);
         campInput.setIgnoreInput(true);
         Gdx.input.setInputProcessor(inputProcessor);
 
@@ -1050,7 +1042,7 @@ public class EuroRogue extends ApplicationAdapter {
         scroll.add(new ItemCmp(ItemType.SCROLL));
         scroll.add(new CharCmp('%', skill.school.color));
         scroll.add(new ScrollCmp(skill));
-        IAbilityCmpSubSys abilityCmpSubSys = IAbilityCmpSubSys.newAbilityCmp(skill);
+        IAbilityCmpSubSys abilityCmpSubSys = IAbilityCmpSubSys.newAbilityCmp(skill, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel)).bareDungeon);
         abilityCmpSubSys.setScrollID(scroll.hashCode());
         abilityCmpSubSys.setScroll(true);
         scroll.add(abilityCmpSubSys);
@@ -1165,9 +1157,10 @@ public class EuroRogue extends ApplicationAdapter {
     }
     public void updateAbilities(Entity entity)
     {
-        if(entity==null) return;
+        if(entity==null || gameState == GameState.AIMING) return;
         ArrayList<IAbilityCmpSubSys> codexAbilityCmps = new ArrayList<>();
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
 
         for(Skill skill : codexCmp.prepared)
         {
@@ -1177,72 +1170,64 @@ public class EuroRogue extends ApplicationAdapter {
         }
 
         for (Integer itemID : getScrollIDs(entity)) {
-            Coord actorPosition = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
             Entity itemEntity = getEntity(itemID);
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
 
             IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
             AICmp aiCmp = ((AICmp) CmpMapper.getComp(CmpType.AI, entity));
 
-            AOE aoe = abilityCmp.getAOE();
-            abilityCmp.updateScrollAOE(itemEntity, aoe, actorPosition);
-            abilityCmp.setTargets(aoe.idealLocations(aiCmp.getTargetLocations(abilityCmp.getTargetType(), this), null));
 
-            if(aiCmp.target!=null && abilityCmp.getSkill().skillType!=Skill.SkillType.REACTION && abilityCmp.getSkill().skillType!=Skill.SkillType.BUFF)
-            {
-                abilityCmp.setAvailable( !abilityCmp.getTargets().isEmpty() && abilityCmp.getActive() &&
-                        abilityCmp.getTargets().containsKey(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, getEntity(aiCmp.target))).coord));
-            }
-
-
-            else  if(abilityCmp.getSkill().skillType==Skill.SkillType.REACTION || abilityCmp.getSkill().skillType==Skill.SkillType.BUFF )
-            {
-                abilityCmp.setAvailable(!abilityCmp.getTargets().isEmpty() && abilityCmp.getActive());
-            }
-
-            else abilityCmp.setAvailable(false);
-
-            abilityCmp.setDamage(itemEntity);
-            abilityCmp.setTTPerform(itemEntity);
 
         }
         for (IAbilityCmpSubSys abilityCmp : codexAbilityCmps)
         {
-            Skill skill = abilityCmp.getSkill();
-            AICmp aiCmp = ((AICmp) CmpMapper.getComp(CmpType.AI, entity));
-            ManaPoolCmp manaPool = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, entity);
-            InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
-            Entity weaponEntity = getEntity(inventoryCmp.getSlotEquippedID(EquipmentSlot.RIGHT_HAND_WEAP));
-            WeaponType weaponType = null;
-            if(weaponEntity!=null && skill.weaponReq!=null)
-            {
-                WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
-                weaponType = weaponCmp.weaponType;
-            }
-            AOE aoe = abilityCmp.getAOE();
-            abilityCmp.updateAOE(entity, aoe);
-            abilityCmp.setTargets(aoe.idealLocations(aiCmp.getTargetLocations(abilityCmp.getTargetType(), this), null));
-
-            if(aiCmp.target!=null && skill.skillType!=Skill.SkillType.REACTION && skill.skillType!=Skill.SkillType.BUFF)
-                abilityCmp.setAvailable(manaPool.canAfford(skill) &! abilityCmp.getTargets().isEmpty() && abilityCmp.getActive() &&
-                    abilityCmp.getTargets().containsKey(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, getEntity(aiCmp.target))).coord) && skill.weaponReq==weaponType);
-
-            else  if(skill.skillType==Skill.SkillType.REACTION || skill.skillType==Skill.SkillType.BUFF)
-                abilityCmp.setAvailable(manaPool.canAfford(skill) &! abilityCmp.getTargets().isEmpty() && abilityCmp.getActive() && skill.weaponReq==weaponType);
-
-            else abilityCmp.setAvailable(false);
-            if(skill == Skill.DAGGER_THROW && abilityCmp.isAvailable())
-            {
-                ((DaggerThrow)abilityCmp).itemID = weaponEntity.hashCode();
-                ((DaggerThrow)abilityCmp).chr = weaponType.chr;
-                ((DaggerThrow)abilityCmp).statusEffects = ((MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, entity)).getStatusEffects();
-
-            }
-
-            abilityCmp.setDamage(entity);
-            abilityCmp.setTTPerform(entity);
+            updateAbility(abilityCmp, entity, null);
         }
     }
+    public void updateAbility(IAbilityCmpSubSys abilityCmp, Entity entity, Entity scrollEntity)
+    {
+        Skill skill = abilityCmp.getSkill();
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
+        InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
+        ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, entity);
+        Entity weaponEntity = getEntity(inventoryCmp.getSlotEquippedID(EquipmentSlot.RIGHT_HAND_WEAP));
+
+        WeaponType weaponType = null;
+        if(weaponEntity!=null && skill.weaponReq!=null)
+        {
+            WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
+            weaponType = weaponCmp.weaponType;
+        }
+        AOE aoe = abilityCmp.getAOE();
+        abilityCmp.updateAOE(entity, levelCmp, aoe, scrollEntity);
+
+        AICmp aiCmp = ((AICmp) CmpMapper.getComp(CmpType.AI, entity));
+        if(abilityCmp.getSkill().skillType!=Skill.SkillType.REACTION && abilityCmp.getSkill().skillType!=Skill.SkillType.BUFF && abilityCmp.getTargetType() != TargetType.AOE)
+        {
+            abilityCmp.setAvailable( aiCmp.target!=null && manaPoolCmp.canAfford(skill) &&!abilityCmp.getIdealLocations().isEmpty() && abilityCmp.getActive() &&
+                    abilityCmp.getIdealLocations().keySet().contains(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, getEntity(aiCmp.target))).coord));
+        }
+
+
+        else  if(abilityCmp.getSkill().skillType==Skill.SkillType.REACTION || abilityCmp.getSkill().skillType==Skill.SkillType.BUFF )
+        {
+            abilityCmp.setAvailable(manaPoolCmp.canAfford(skill) && !abilityCmp.getIdealLocations().isEmpty() && abilityCmp.getActive());
+        }
+        else if(abilityCmp.getTargetType() == TargetType.AOE) abilityCmp.setAvailable(manaPoolCmp.canAfford(skill));
+
+        else abilityCmp.setAvailable(false);
+
+        /*if(skill == Skill.DAGGER_THROW && abilityCmp.isAvailable())
+        {
+            ((DaggerThrow)abilityCmp).itemID = weaponEntity.hashCode();
+            ((DaggerThrow)abilityCmp).chr = weaponType.chr;
+            ((DaggerThrow)abilityCmp).statusEffects = ((MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, entity)).getStatusEffects();
+        }*/
+
+        abilityCmp.setDamage(entity);
+        abilityCmp.setTTPerform(entity);
+    }
+
 
     public ArrayList<StatusEffect> getStatusEffects(Entity entity)
     {
@@ -1287,44 +1272,36 @@ public class EuroRogue extends ApplicationAdapter {
     }
     public void getInput()
     {
-
         switch (gameState)
         {
+            case GAME_OVER:
             case LOADING:
                 break;
+
             case PLAYING:
 
-                if(input.hasNext())
-                {
-
-                    this.input.next();
-                }
-
+                if(input.hasNext()) this.input.next();
                 break;
 
             case CAMPING:
 
-                if(campInput.hasNext())
-                {
+                if(campInput.hasNext()) campInput.next();
+                break;
 
-                    campInput.next();
-                }
+            case AIMING:
+
+                if(aimInput.hasNext()) aimInput.next();
                 break;
 
             case STARTING:
 
-                if(startInput.hasNext())
-                {
-
-                    startInput.next();
-                }
+                if(startInput.hasNext()) startInput.next();
                 break;
 
         }
     }
     public StatsCmp getRandomStats(int total)
     {
-
         HashMap<StatType, Integer> stats = new HashMap<>();
         stats.put(StatType.STR, 1);
         stats.put(StatType.DEX, 1);

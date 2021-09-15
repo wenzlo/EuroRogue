@@ -4,9 +4,12 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+
+import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.GlyphsCmp;
@@ -50,11 +53,10 @@ public class WinSysDungeon extends MyEntitySystem
     public void update(float deltaTime)
     {
         if(!((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display.isVisible()) return;
-        for(Entity entity:entities)
-        {
 
-            putMap(getGame().currentLevel);
-        }
+
+        putMap(getGame().currentLevel);
+
     }
 
     private void putMap(Entity levelEntity)
@@ -121,15 +123,27 @@ public class WinSysDungeon extends MyEntitySystem
                     display.put(x, y, '!', SColor.WHITE);
                 }
                 Coord cell = Coord.get(x,y);
-                Integer potetnialItemID = levelCmp.items.get(cell);
-                if(potetnialItemID!=null && focusFov.visible.contains(cell))
+                Integer potentialItemID = levelCmp.items.get(cell);
+                if(potentialItemID!=null && focusFov.visible.contains(cell))
                 {
-                    Entity item = getGame().getEntity(potetnialItemID);
+                    Entity item = getGame().getEntity(potentialItemID);
                     CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, item);
                     display.put(cell.x, cell.y, charCmp.chr, charCmp.color);
                 }
             }
         }
+        AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
+        if(aimingCmp!=null)
+        {
+            IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
+
+            for(Coord coord : ability.getAOE().findArea().keySet())
+            {
+                display.put(coord.x, coord.y,".",ability.getSkill().school.color);
+            }
+
+        }
+
 
 
         Stage stage = windowCmp.stage;

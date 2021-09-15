@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
@@ -76,71 +77,80 @@ public class ReactionSys extends MyEntitySystem
 
     private void procActionEvt (ActionEvt actionEvt)
     {
-
-        Entity reactor = getGame().getEntity(actionEvt.targetID);
-        StatsCmp reactorStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, reactor);
-        if(reactor==null) return;
-        Entity actor = getGame().getEntity(actionEvt.performerID);
-        IAbilityCmpSubSys actionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, actor);
-        if(actionEvt.scrollID!=null) actionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp( actionEvt.skill, getGame().getEntity(actionEvt.scrollID));
-
-        getGame().updateAbilities(reactor);
-
-
-        IAbilityCmpSubSys reactionAbility = null;
-
-        for (Skill skill : actionAbility.getReactions()) {
-            IAbilityCmpSubSys possibleReactionAbility = (IAbilityCmpSubSys)CmpMapper.getAbilityComp(skill, reactor);
-
-            if (possibleReactionAbility!=null)
-                if(possibleReactionAbility.isAvailable())
-                {
-                    reactionAbility = possibleReactionAbility;
-                    break;
-                }
-
-        }
-        if (reactionAbility == null)
+        for(Integer targetID : actionEvt.targetIDs)
         {
-            for(Entity scrollEntity : getGame().getAvailableScrolls(reactor))
+            Entity reactor = getGame().getEntity(targetID);
+
+            StatsCmp reactorStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, reactor);
+            if(reactor==null) return;
+            Entity actor = getGame().getEntity(actionEvt.performerID);
+            ArrayList<Integer> targets = new ArrayList<>();
+            targets.add(actor.hashCode());
+            IAbilityCmpSubSys actionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, actor);
+            if(actionEvt.scrollID!=null) actionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp( actionEvt.skill, getGame().getEntity(actionEvt.scrollID));
+
+            getGame().updateAbilities(reactor);
+
+
+            IAbilityCmpSubSys reactionAbility = null;
+
+            for (Skill skill : actionAbility.getReactions()) {
+                IAbilityCmpSubSys possibleReactionAbility = (IAbilityCmpSubSys)CmpMapper.getAbilityComp(skill, reactor);
+
+                if (possibleReactionAbility!=null)
+                    if(possibleReactionAbility.isAvailable())
+                    {
+                        reactionAbility = possibleReactionAbility;
+                        break;
+                    }
+
+            }
+            if (reactionAbility == null)
             {
-                ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, scrollEntity);
-                if(actionAbility.getReactions().contains(scrollCmp.skill))
+                for(Entity scrollEntity : getGame().getAvailableScrolls(reactor))
                 {
-                    reactionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill, scrollEntity);
-                    break;
+                    ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, scrollEntity);
+                    if(actionAbility.getReactions().contains(scrollCmp.skill))
+                    {
+                        reactionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill, scrollEntity);
+                        break;
+                    }
                 }
             }
-        }
-        if (reactionAbility == null) return;
-        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, reactor);
-        actionEvt.finalDmg = Math.round(actionEvt.baseDmg - actionEvt.baseDmg * reactionAbility.getDmgReduction(statsCmp));
+            if (reactionAbility == null) return;
+            StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, reactor);
+            actionEvt.finalDmg = Math.round(actionEvt.baseDmg - actionEvt.baseDmg * reactionAbility.getDmgReduction(statsCmp));
 
-        if (!reactionAbility.scroll()) {
+            if (!reactionAbility.scroll()) {
 
-            if (reactionAbility.getActive())
-            {
+                if (reactionAbility.getActive())
+                {
 
-                ActionEvt reaction = new ActionEvt(reactor.hashCode(), null, reactionAbility.getSkill(), actor.hashCode(), reactionAbility.getDamage(), reactionAbility.getStatusEffects());
+                    ActionEvt reaction = new ActionEvt(reactor.hashCode(), null, reactionAbility.getSkill(), targets, reactionAbility.getDamage(), reactionAbility.getStatusEffects());
+                    Entity eventEntity = new Entity();
+                    eventEntity.add(reaction);
+                    getEngine().addEntity(eventEntity);
+                }
+            } else {
+
+                Entity scrollEntity = getGame().getScrollForSkill(reactionAbility.getSkill(), reactor);
+                ActionEvt reaction = new ActionEvt(reactor.hashCode(), scrollEntity.hashCode(), reactionAbility.getSkill(), targets, reactionAbility.getDamage(), reactionAbility.getStatusEffects());
+
                 Entity eventEntity = new Entity();
                 eventEntity.add(reaction);
                 getEngine().addEntity(eventEntity);
             }
-        } else {
-
-            Entity scrollEntity = getGame().getScrollForSkill(reactionAbility.getSkill(), reactor);
-            ActionEvt reaction = new ActionEvt(reactor.hashCode(), scrollEntity.hashCode(), reactionAbility.getSkill(), actor.hashCode(), reactionAbility.getDamage(), reactionAbility.getStatusEffects());
-
-            Entity eventEntity = new Entity();
-            eventEntity.add(reaction);
-            getEngine().addEntity(eventEntity);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateReactionLogEvt(actionEvt, reactionAbility).entry);
         }
-        ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateReactionLogEvt(actionEvt, reactionAbility).entry);
+
+
     }
     private void procMoveEvt (MoveEvt moveEvt)
     {
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Entity actor = getGame().getEntity(moveEvt.entityID);
+        ArrayList<Integer> targets = new ArrayList<>();
+        targets.add(actor.hashCode());
         Coord actorPos = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, actor)).coord;
 
         Set<Integer> reactorIDs = levelCmp.getAdjActorIDs(actorPos);
@@ -170,7 +180,7 @@ public class ReactionSys extends MyEntitySystem
 
                         if (reactionAbility.getActive()) {
 
-                            ActionEvt reaction = new ActionEvt(reactor.hashCode(), null, reactionAbility.getSkill(), actor.hashCode(), reactionAbility.getDamage(), reactionAbility.getStatusEffects());
+                            ActionEvt reaction = new ActionEvt(reactor.hashCode(), null, reactionAbility.getSkill(), targets, reactionAbility.getDamage(), reactionAbility.getStatusEffects());
 
                             Entity eventEntity = new Entity();
                             eventEntity.add(reaction);
@@ -179,7 +189,7 @@ public class ReactionSys extends MyEntitySystem
                     } else {
 
                         Entity scrollEntity = getGame().getScrollForSkill(reactionAbility.getSkill(), reactor);
-                        ActionEvt reaction = new ActionEvt(reactor.hashCode(), scrollEntity.hashCode(), reactionAbility.getSkill(), actor.hashCode(), reactionAbility.getDamage(), reactionAbility.getStatusEffects());
+                        ActionEvt reaction = new ActionEvt(reactor.hashCode(), scrollEntity.hashCode(), reactionAbility.getSkill(), targets, reactionAbility.getDamage(), reactionAbility.getStatusEffects());
 
                         Entity eventEntity = new Entity();
                         eventEntity.add(reaction);
@@ -192,7 +202,7 @@ public class ReactionSys extends MyEntitySystem
 
     private LogEvt generateReactionLogEvt (ActionEvt actionEvt, IAbilityCmpSubSys reactionAbility) {
         Entity performerEntity = getGame().getEntity(actionEvt.performerID);
-        Entity targetEntity = getGame().getEntity(actionEvt.targetID);
+        Entity targetEntity = getGame().getEntity(actionEvt.targetIDs.get(0));
         SColor performerColor = ((CharCmp) CmpMapper.getComp(CmpType.CHAR, performerEntity)).color;
         SColor targetColor = ((CharCmp) CmpMapper.getComp(CmpType.CHAR, targetEntity)).color;
         IColoredString.Impl<SColor> coloredEvtText = new IColoredString.Impl<>();

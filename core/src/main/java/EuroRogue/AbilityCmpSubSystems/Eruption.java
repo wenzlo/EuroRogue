@@ -17,35 +17,39 @@ import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
-import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
+import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
-import squidpony.squidai.PointAOE;
-import squidpony.squidai.Technique;
-import squidpony.squidgrid.gui.gdx.Radiance;
-import squidpony.squidgrid.gui.gdx.SColor;
+import squidpony.squidai.BlastAOE;
+import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
+public class Eruption implements IAbilityCmpSubSys
 {
-    private Skill skill = Skill.ARCANE_TOUCH;
+    private Skill skill = Skill.ERUPTION;
     private boolean active = true;
     private  boolean scroll = false;
     private Integer scrollID = null;
-    private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
+    private BlastAOE aoe = new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 1, 1);
     private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available = false;
     private int damage;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private int ttPerform;
-    private TextCellFactory.Glyph glyph;
+    public TextCellFactory.Glyph glyph;
+
+
+    public Eruption()
+    {
+        statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED, DamageType.FIRE));
+    }
 
     public Skill getSkill() {
         return skill;
@@ -70,7 +74,9 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     public void setScrollID(Integer id) { scrollID = id; }
 
     @Override
-    public boolean isAvailable() {
+    public boolean isAvailable()
+    {
+
         return available;
     }
 
@@ -97,7 +103,10 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     }
 
     @Override
-    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targetableLocations) { this.idealLocations = targetableLocations; }
+    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets)
+    {
+        this.idealLocations = targets;
+    }
 
     @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
@@ -105,7 +114,7 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     }
 
     @Override
-    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation=targetedLocation;}
+    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }
 
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
@@ -122,7 +131,7 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
 
     @Override
     public TargetType getTargetType() {
-        return TargetType.ENEMY;
+        return TargetType.AOE;
     }
 
     @Override
@@ -132,13 +141,13 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     public void setDamage(Entity performer)
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        damage = statsCmp.getSpellPower();
+        damage = Math.round(statsCmp.getSpellPower()*0.5f);
     }
 
     @Override
     public DamageType getDmgType(Entity performer)
     {
-        return DamageType.ARCANE;
+        return DamageType.FIRE;
     }
 
     @Override
@@ -160,24 +169,28 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     @Override
     public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
     {
+        BlastAOE blastAOE = (BlastAOE) aoe;
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        aoe.setOrigin(positionCmp.coord);
-
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+        if(scroll) statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, scrollEntity);
+
+        blastAOE.setOrigin(positionCmp.coord);
+        blastAOE.setMaxRange(statsCmp.getIntel());
+        blastAOE.setRadius(statsCmp.getSpellPower()/4);
+
         ArrayList<Coord> enemyLocations = new ArrayList<>();
         for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
         ArrayList<Coord> friendLocations = new ArrayList<>();
         for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
         friendLocations.add(positionCmp.coord);
-        setIdealLocations(aoe.idealLocations(enemyLocations, friendLocations));
+        setIdealLocations(blastAOE.idealLocations(enemyLocations, friendLocations));
+        if(!idealLocations.isEmpty()) blastAOE.shift(idealLocations.keySet().first());
+        else blastAOE.shift(positionCmp.coord);
     }
-
-
 
     @Override
-    public ItemEvt genItemEvent(Entity performer, Entity target) {
-        return null;
-    }
+    public ItemEvt genItemEvent(Entity performer, Entity target) { return null; }
 
     @Override
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
@@ -197,13 +210,6 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     @Override
     public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
     {
-
-        glyph = display.glyph('•',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
-        SColor color = skill.school.color;
-
-        Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));
-        glyph.setName(light.hashCode() + " " + "0" + " temp");
-        lightingHandler.addLight(light.hashCode(), light);
 
     }
 
@@ -228,7 +234,7 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getSpellPower()*15;
+        return statsCmp.getSpellPower()*3;
     }
 
 

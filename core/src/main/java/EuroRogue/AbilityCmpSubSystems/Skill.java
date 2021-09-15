@@ -2,8 +2,6 @@ package EuroRogue.AbilityCmpSubSystems;
 
 import java.util.Arrays;
 import java.util.Collections;
-
-import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.StatusEffectCmps.StatusEffect;
@@ -20,6 +18,7 @@ public enum Skill
     DAGGER_THROW(       "Dagger Throw", DaggerThrow.class,  AnimationsSys.AnimationType.PROJECTILE,   SkillType.ACTION,  School.PHY, new School[0], new School[]{School.PHY}, WeaponType.DAGGER, null,   0, 3, 0, 0, 0),
     CHILL(     "Chill", Chill.class, AnimationsSys.AnimationType.MELEE_MAGIC,  SkillType.ACTION,  School.ICE, new School[]{School.ICE},      new School[]{School.ICE}, null,              StatusEffect.CHILLED,  0, 0, 0, 0, 2),
     IMMOLATE(                 "Immolate", Immolate.class,      AnimationsSys.AnimationType.MELEE_MAGIC,  SkillType.ACTION,  School.FIR, new School[]{School.FIR},      new School[]{School.FIR}, null,             StatusEffect.CALESCENT,  0, 0, 0, 0, 2),
+    ERUPTION(                 "Eruption", Eruption.class,      AnimationsSys.AnimationType.BLAST,  SkillType.ACTION,  School.FIR, new School[]{School.FIR, School.FIR, School.FIR},      new School[]{School.FIR, School.FIR, School.FIR}, null,             StatusEffect.CALESCENT,  0, 0, 0, 0, 2),
     ARCANE_TOUCH(         "Arcane Touch", ArcaneTouch.class,      AnimationsSys.AnimationType.MELEE_MAGIC,  SkillType.ACTION,  School.ARC, new School[]{School.ARC},      new School[]{School.ARC}, null,     null,  0, 0, 0, 0, 2),
     DODGE(                       "Dodge", Dodge.class,         AnimationsSys.AnimationType.WIGGLE,     SkillType.REACTION,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY}, null,      null,  0, 3, 0, 0, 0),
     ENRAGE(                     "Enrage", Enrage.class,        AnimationsSys.AnimationType.SELF_BUFF,      SkillType.BUFF,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY}, null,              StatusEffect.ENRAGED,  3, 0, 0, 0, 0),

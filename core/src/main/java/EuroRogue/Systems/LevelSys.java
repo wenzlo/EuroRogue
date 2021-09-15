@@ -100,6 +100,7 @@ public class LevelSys extends MyEntitySystem
             levelEvt.processed=true;
 
             newLevel();
+            if(getGame().depth==0) getGame().mobFactory.setRandomSkillSet(getGame().player);
         }
     }
 

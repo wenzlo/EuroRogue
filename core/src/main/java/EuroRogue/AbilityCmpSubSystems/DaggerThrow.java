@@ -9,6 +9,8 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
+import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
@@ -34,14 +36,14 @@ public class DaggerThrow implements IAbilityCmpSubSys
     private boolean active = true;
     private  boolean scroll = false;
     private Integer scrollID = null;
-    public int damage;
+    private int damage;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    public int ttPerform;
-    public TextCellFactory.Glyph glyph;
-    public char chr;
+    private int ttPerform;
+    private TextCellFactory.Glyph glyph;
     public int itemID;
-
-    public OrderedMap<Coord, ArrayList<Coord>> targets = new OrderedMap();
+    public char chr;
+    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
+    private Coord targetedLocation;
     private boolean available = false;
 
     public Skill getSkill() {
@@ -98,15 +100,18 @@ public class DaggerThrow implements IAbilityCmpSubSys
     }
 
     @Override
-    public void setTargets(OrderedMap<Coord, ArrayList<Coord>> targets)
-    {
-        this.targets = targets;
+    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets) { this.idealLocations = targets; }
+
+    @Override
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
+        return idealLocations;
     }
 
     @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getTargets() {
-        return targets;
-    }
+    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation;}
+
+    @Override
+    public Coord getTargetedLocation() { return targetedLocation; }
 
     @Override
     public AOE getAOE() {
@@ -114,20 +119,24 @@ public class DaggerThrow implements IAbilityCmpSubSys
     }
 
     @Override
-    public void updateAOE(Entity actor, AOE aoe)
+    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
-        Coord location = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor)).coord;
-        aoe.setOrigin(location);
+        if(scroll) statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, scrollEntity);
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+
+        aoe.setOrigin(positionCmp.coord);
         aoe.setMaxRange(statsCmp.getDex());
+
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        ArrayList<Coord> enemyLocations = new ArrayList<>();
+        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
+        ArrayList<Coord> friendLocations = new ArrayList<>();
+        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
+        friendLocations.add(positionCmp.coord);
+        setIdealLocations(aoe.idealLocations(enemyLocations, friendLocations));
     }
-    @Override
-    public void updateScrollAOE(Entity scroll, AOE aoe, Coord location)
-    {
-        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, scroll);
-        aoe.setOrigin(location);
-        aoe.setMaxRange(statsCmp.getDex());
-    }
+
 
     @Override
     public ItemEvt genItemEvent(Entity performer, Entity target)
@@ -138,13 +147,11 @@ public class DaggerThrow implements IAbilityCmpSubSys
     }
 
     @Override
-    public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Entity target, IEventComponent eventCmp, MySparseLayers display)
+    public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
-        Coord endPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, target)).coord;
 
-
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, endPos, eventCmp);
+        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
     }
 
     @Override

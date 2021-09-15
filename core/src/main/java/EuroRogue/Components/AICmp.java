@@ -98,6 +98,7 @@ public class AICmp implements Component
         switch (targetType)
         {
             case ENEMY:
+            case AOE:
                 for(Integer entID:visibleEnemies)
                 {
                     Entity entity = game.getEntity(entID);

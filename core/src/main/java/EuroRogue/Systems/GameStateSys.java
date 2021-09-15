@@ -71,6 +71,7 @@ public class GameStateSys extends MyEntitySystem
     {
         switch (gameState)
         {
+
             case STARTING:
                 for(Entity windowEntity : getGame().allWindows)
                     ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
@@ -80,22 +81,19 @@ public class GameStateSys extends MyEntitySystem
             case LOADING:
                 for(Entity windowEntity : getGame().allWindows)
                     ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
-
-
                 break;
 
             case PLAYING:
+            case AIMING:
                 for(Entity windowEntity : getGame().allWindows)
                 {
                     if(getGame().playingWindows.contains(windowEntity)) ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(true);
                     else  ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
-
                 }
                 break;
             case CAMPING:
                 for(Entity windowEntity : getGame().allWindows)
                 {
-
                     if(getGame().campingWindows.contains(windowEntity)) ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(true);
                     else  ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
                 }
@@ -121,11 +119,21 @@ public class GameStateSys extends MyEntitySystem
             case PLAYING:
                 getGame().campInput.setIgnoreInput(true);
                 getGame().input.setIgnoreInput(false);
+                getGame().aimInput.setIgnoreInput(true);
+                break;
+            case AIMING:
+                getGame().campInput.setIgnoreInput(true);
+                getGame().input.setIgnoreInput(true);
+                getGame().aimInput.setIgnoreInput(false);
                 break;
             case CAMPING:
             case STARTING:
                 getGame().campInput.setIgnoreInput(false);
                 getGame().input.setIgnoreInput(true);
+                getGame().aimInput.setIgnoreInput(true);
+                break;
+            case LOADING:
+            case GAME_OVER:
                 break;
         }
     }

@@ -4,6 +4,7 @@ import EuroRogue.AbilityCmpSubSystems.Dodge;
 import EuroRogue.AbilityCmpSubSystems.MagicMissile;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
 import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.ArmorCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
@@ -51,6 +52,7 @@ import EuroRogue.EventComponents.StatusEffectEvt;
 public enum CmpType
 {
     ACTION_EVT(ActionEvt.class),
+    AIMING(AimingCmp.class),
     ANIM_GLYPH_EVT(AnimateGlyphEvt.class),
     AI(AICmp.class),
     ARMOR(ArmorCmp.class),

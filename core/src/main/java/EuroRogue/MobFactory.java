@@ -63,29 +63,21 @@ public class MobFactory
         if(((StatsCmp) CmpMapper.getComp(CmpType.STATS, mob)).getPerc()<3) addTorch(mob);
         return mob;
     }
-    public Entity generateSkillessPlayer(Coord loc)
+    public Entity generateSkillessPlayer()
     {
-        MySparseLayers display = game.dungeonWindow.getComponent(WindowCmp.class).display;
-        LevelCmp level = game.currentLevel.getComponent(LevelCmp.class);
         Entity mob = new Entity();
-        mob.add(new NameCmp("Player"));
+        mob.add(new NameCmp(game.playerName));
         mob.add(new CodexCmp());
-        mob.add(new PositionCmp(loc));
 
 
         mob.add(new CharCmp('@', SColor.WHITE));
-        mob.add(new GlyphsCmp(display, '@', SColor.WHITE, loc.x, loc.y));
-        StatsCmp statsCmp =game.getRandomStats(10);
+        StatsCmp statsCmp =game.getRandomStats(12);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
 
-        AICmp aiCmp = new AICmp(level.decoDungeon, new ArrayList<>(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
-        mob.add(aiCmp);
-        mob.add(new FOVCmp(level.decoDungeon[0].length,level.decoDungeon.length));
         mob.add(new FactionCmp(FactionCmp.Faction.PLAYER));
-        mob.add(new ManaPoolCmp(Arrays.asList(School.PHY), statsCmp.getNumAttunedSlots()));
+        mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
-        game.engine.addEntity(mob);
         return mob;
     }
     public Entity generateRndMob(Coord loc, String name, int depth)
@@ -137,7 +129,7 @@ public class MobFactory
             manaPool.attuned.add(mana);
             manaPool.spent.remove(mana);
         }
-        mob.add((IAbilityCmpSubSys.newAbilityCmp(Skill.MELEE_ATTACK)));
+        mob.add((IAbilityCmpSubSys.newAbilityCmp(Skill.MELEE_ATTACK, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel)).bareDungeon)));
         spentLimit = spentLimit - Skill.MELEE_ATTACK.prepCost.length;
 
 
@@ -159,7 +151,7 @@ public class MobFactory
                     manaPool.attuned.add(mana);
                     manaPool.spent.remove(mana);
                 }
-                mob.add((IAbilityCmpSubSys.newAbilityCmp(skill)));
+                mob.add((IAbilityCmpSubSys.newAbilityCmp(skill, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel)).bareDungeon)));
                 spentLimit = spentLimit - skill.prepCost.length;
             }
         }

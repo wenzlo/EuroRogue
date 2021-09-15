@@ -7,10 +7,15 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 import com.badlogic.gdx.utils.Align;
 
+import java.util.ArrayList;
+
+import squidpony.StringKit;
 import squidpony.squidgrid.Direction;
+import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.SubcellLayers;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
+import squidpony.squidmath.Coord;
 
 public class MySparseLayers extends SubcellLayers
 {
@@ -207,4 +212,45 @@ public class MySparseLayers extends SubcellLayers
         addAction(Actions.sequence(sequence));
     }
 
+    public ArrayList<Integer> summonWithLight(float delay, int startX, int startY, int endX, int endY, char shown,
+                       final float startColor, final float endColor, float duration, LightHandler lightHandler,
+            /* @Nullable */ Runnable postRunnable)
+    {
+        duration = Math.max(0.015f, duration);
+        final int nbActions = 2 + (0 < delay ? 1 : 0) + (postRunnable == null ? 0 : 1);
+        int index = 0;
+        final Action[] sequence = new Action[nbActions];
+        if (0 < delay)
+            sequence[index++] = Actions.delay(delay);
+        final TextCellFactory.Glyph glyph = glyph(shown, startColor, startX, startY);
+        ArrayList<Integer> lightIDs = new ArrayList<>();
+        sequence[index++] = Actions.parallel(
+                new TemporalAction(duration) {
+                    @Override
+                    protected void update(float percent) {
+                        glyph.setPackedColor(SColor.lerpFloatColors(startColor, endColor, percent * 0.95f));
+                        int radius = (int) (Coord.get(startX, startY).distance(Coord.get(endX,endY))+1);
+                        Light light = new Light(Coord.get(startX*3, startY*3), new Radiance(radius, SColor.lerpFloatColors(glyph.getColor().toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f),0.8f));
+                        glyph.setName(light.hashCode() + " " + "0" + " temp");
+                        lightHandler.addLight(light.hashCode(), light);
+                        lightIDs.add(light.hashCode());
+
+                    }
+                },
+                Actions.moveTo(worldX(endX), worldY(endY), duration));
+        if(postRunnable != null)
+        {
+            sequence[index++] = Actions.run(postRunnable);
+        }
+        /* Do this one last, so that hasActiveAnimations() returns true during 'postRunnables' */
+        sequence[index] = Actions.run(new Runnable() {
+            @Override
+            public void run() {
+                glyphs.remove(glyph);
+
+            }
+        });
+        glyph.addAction(Actions.sequence(sequence));
+        return lightIDs;
+    }
 }

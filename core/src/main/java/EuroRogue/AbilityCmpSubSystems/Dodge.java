@@ -8,7 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.CmpMapper;
+import EuroRogue.Components.AICmp;
 import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.EventComponents.ItemEvt;
@@ -35,7 +37,8 @@ public class Dodge implements IAbilityCmpSubSys
     private  boolean scroll = false;
     private Integer scrollID = null;
     private AOE aoe = new PointAOE(Coord.get(-1,-1),0,0);
-    public OrderedMap<Coord, ArrayList<Coord>> targets = new OrderedMap();
+    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
+    private  Coord targetedLocation;
     private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private GWTRNG rng = new GWTRNG();
@@ -92,28 +95,38 @@ public class Dodge implements IAbilityCmpSubSys
         active=false;
     }
     @Override
-    public void setTargets(OrderedMap<Coord, ArrayList<Coord>> targets)
+    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets)
     {
-        this.targets = targets;
+        this.idealLocations = targets;
     }
     @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getTargets() {
-        return targets;
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
+        return idealLocations;
     }
+
+    @Override
+    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }
+
+    @Override
+    public Coord getTargetedLocation() { return targetedLocation; }
+
     @Override
     public AOE getAOE() {
         return aoe;
     }
     @Override
-    public void updateAOE(Entity actor, AOE aoe)
+    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
     {
-        Coord location = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,actor)).coord;
-        aoe.setOrigin(location);
-    }
-    @Override
-    public void updateScrollAOE(Entity scroll, AOE aoe, Coord location)
-    {
-        aoe.setOrigin(location);
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+        aoe.setOrigin(positionCmp.coord);
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        ArrayList<Coord> enemyLocations = new ArrayList<>();
+        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
+        ArrayList<Coord> friendLocations = new ArrayList<>();
+        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
+        friendLocations.add(positionCmp.coord);
+        setIdealLocations(aoe.idealLocations(enemyLocations, friendLocations));
+
     }
 
     @Override
@@ -122,7 +135,7 @@ public class Dodge implements IAbilityCmpSubSys
     }
 
     @Override
-    public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Entity target, IEventComponent eventCmp, MySparseLayers display)
+    public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
         inactivate();
         TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer)).glyph;

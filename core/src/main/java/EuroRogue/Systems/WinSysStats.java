@@ -6,6 +6,8 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
+import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
+import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.FocusCmp;
@@ -88,12 +90,14 @@ public class WinSysStats extends MyEntitySystem
             {
                 display.put(x,y,string, SColor.WHITE);
                 y++;
-                if(y>15)
+                if(y>16)
                 {
                     x=((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().focusStatsWindow)).columnIndexes[1];
                     y=1;
                 }
             }
+            MeleeAttack meleeAttack = (MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, getGame().getFocus());
+            display.put(20,16,"Noise Lvl="+meleeAttack.getNoiseLvl(getGame().getFocus()), SColor.WHITE);
 
             stage.getViewport().apply(false);
             stage.act();

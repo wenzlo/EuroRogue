@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.CmpMapper;
+import EuroRogue.Components.AICmp;
+import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.EventComponents.ItemEvt;
@@ -37,11 +39,12 @@ public class Immolate implements IAbilityCmpSubSys
     private  boolean scroll = false;
     private Integer scrollID = null;
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
-    public OrderedMap<Coord, ArrayList<Coord>> targets = new OrderedMap();
+    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
+    private Coord targetedLocation;
     private boolean available = false;
-    public int damage;
+    private int damage;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    public int ttPerform;
+    private int ttPerform;
     public TextCellFactory.Glyph glyph;
 
     public Immolate()
@@ -99,15 +102,21 @@ public class Immolate implements IAbilityCmpSubSys
     }
 
     @Override
-    public void setTargets(OrderedMap<Coord, ArrayList<Coord>> targets)
+    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets)
     {
-        this.targets = targets;
+        this.idealLocations = targets;
     }
 
     @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getTargets() {
-        return targets;
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
+        return idealLocations;
     }
+
+    @Override
+    public void setTargetedLocation(Coord targetLocation) { this.targetedLocation = targetLocation; }
+
+    @Override
+    public Coord getTargetedLocation() { return targetedLocation; }
 
     @Override
     public AOE getAOE() {
@@ -157,16 +166,18 @@ public class Immolate implements IAbilityCmpSubSys
     }
 
     @Override
-    public void updateAOE(Entity actor, AOE aoe)
+    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
         aoe.setOrigin(positionCmp.coord);
-    }
 
-    @Override
-    public void updateScrollAOE(Entity scroll, AOE aoe, Coord location)
-    {
-        aoe.setOrigin(location);
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        ArrayList<Coord> enemyLocations = new ArrayList<>();
+        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
+        ArrayList<Coord> friendLocations = new ArrayList<>();
+        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
+        friendLocations.add(positionCmp.coord);
+        setIdealLocations(aoe.idealLocations(enemyLocations, friendLocations));
     }
 
     @Override
@@ -175,13 +186,13 @@ public class Immolate implements IAbilityCmpSubSys
     }
 
     @Override
-    public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Entity target, IEventComponent eventCmp, MySparseLayers display)
+    public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
-        Coord endPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, target)).coord;
+
         TextCellFactory.Glyph glyph = getGlyph();
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, endPos, eventCmp);
+        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
     }
 
     @Override

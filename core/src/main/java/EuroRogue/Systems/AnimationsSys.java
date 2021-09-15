@@ -5,6 +5,10 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
+import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -13,8 +17,10 @@ import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.Light;
+import EuroRogue.LightHandler;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
+import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -73,7 +79,48 @@ public class AnimationsSys extends MyEntitySystem
                     break;
 
                 case BURST:
+
                 case TINT:
+                    break;
+                case BLAST:
+
+                    ActionEvt actionEvt = (ActionEvt) animation.sourceEvent;
+                    Entity actor = getGame().getEntity(actionEvt.performerID);
+                    IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill,actor );
+                    BlastAOE blastAOE = (BlastAOE) ability.getAOE();
+                    Coord center = blastAOE.getCenter();
+                    LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
+
+                    float delay =  0.0f;
+                    ArrayList<Coord> blastZone = new ArrayList(blastAOE.findArea().keySet());
+                    Collections.shuffle(blastZone);
+                    for(Coord coord : blastZone)
+                    {
+                        ArrayList<Integer> lightList = display.summonWithLight(delay,center.x, center.y, coord.x, coord.y, '*', SColor.YELLOW.toFloatBits(), SColor.SAFETY_ORANGE.toFloatBits(), 0.25f,  lightHandler, null);
+                        delay = (float) (delay+(0.2/blastAOE.findArea().keySet().size()));
+                        Runnable postRunnable = new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                for(Integer lightID : lightList)
+                                {
+                                    lightHandler.removeLight(lightID);
+                                }
+                            }
+                        };
+                        if(actionEvt.targetIDs.isEmpty())
+                        {
+                            TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actor)).leftGlyph;
+                            display.tint(0f, glyph, SColor.SAFETY_ORANGE.toFloatBits(),0.75f, postRunnable);
+                        }
+                        for(Integer targetID : actionEvt.targetIDs)
+                        {
+
+                            Entity targetActor = getGame().getEntity(targetID);
+                            GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
+                            display.tint(0f, glyphsCmp.glyph, SColor.SAFETY_ORANGE.toFloatBits(),0.75f, postRunnable);
+                        }
+                    }
                     break;
 
                 case PROJ_MAGIC:
@@ -84,11 +131,11 @@ public class AnimationsSys extends MyEntitySystem
                     ye = animation.endLocation.y;
                     direction = Direction.toGoTo(animation.startLocation, animation.endLocation);
 
-                    ActionEvt actionEvt = (ActionEvt) animation.sourceEvent;
+                    actionEvt = (ActionEvt) animation.sourceEvent;
                     SColor color = actionEvt.skill.school.color;
                     Light light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
 
-                    Entity target = getGame().getEntity(actionEvt.targetID);
+                    Entity target = getGame().getEntity(actionEvt.targetIDs.get(0));
                     TextCellFactory.Glyph targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
 
@@ -122,7 +169,7 @@ public class AnimationsSys extends MyEntitySystem
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     color = actionEvt.skill.school.color;
 
-                    target = getGame().getEntity(actionEvt.targetID);
+                    target = getGame().getEntity(actionEvt.targetIDs.get(0));
                     targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
 
@@ -151,7 +198,7 @@ public class AnimationsSys extends MyEntitySystem
                     ye = animation.endLocation.y;
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     color = actionEvt.skill.school.color;
-                    target = getGame().getEntity(actionEvt.targetID);
+                    target = getGame().getEntity(actionEvt.targetIDs.get(0));
                     targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
                     light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
@@ -182,7 +229,7 @@ public class AnimationsSys extends MyEntitySystem
                     ye = animation.endLocation.y;
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     color = actionEvt.skill.school.color;
-                    target = getGame().getEntity(actionEvt.targetID);
+                    target = getGame().getEntity(actionEvt.targetIDs.get(0));
                     targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
                     light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
@@ -216,6 +263,7 @@ public class AnimationsSys extends MyEntitySystem
         SLIDE,
         BUMP,
         BURST,
+        BLAST,
         SELF_BUFF,
         TINT,
         PROJ_MAGIC,

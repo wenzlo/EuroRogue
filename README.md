@@ -10,7 +10,7 @@ The current iteration focuses mainly on the combat systems and plays much like a
 I am still in "Systems Before Content" mode so there are only a handful of abilities, weapons and armor available.
 
 Future plans include Worker Placement/Action Selection strategy layer that will happen in between dungeons.
-Currently the "Bag Builder" (simplified deck builder) Energy/Mana mangement mechanic is the only "Euro" mechanic implemented.
+Currently the "Bag Builder" (simplified deck builder) Energy/Mana management mechanic is the only "Euro" mechanic implemented.
 
 There are no defined enemy types yet, just randomly rolled characters similar to the player, but with less stat points.
 Random enemies total stat points increase with depth. You must sacrifice Mana/Energy to buy stat increases to keep up.

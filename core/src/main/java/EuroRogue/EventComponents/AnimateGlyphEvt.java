@@ -29,7 +29,7 @@ public class AnimateGlyphEvt implements IEventComponent
         this.glyph=glyph;
         this.animationType=animationType;
         this.startLocation=startLocation;
-        this.endLocation=Coord.get(startLocation.x+direction.deltaX, startLocation.y+direction.deltaY);
+        this.endLocation=startLocation;
         this.sourceEvent=sourceEvent;
     }
 

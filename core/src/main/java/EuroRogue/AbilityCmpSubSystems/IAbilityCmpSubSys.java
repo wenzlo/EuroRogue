@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.LightHandler;
@@ -35,15 +36,16 @@ public interface IAbilityCmpSubSys extends Component
     boolean     getActive();
     void        activate();
     void        inactivate();
-    void        setTargets(OrderedMap<Coord, ArrayList<Coord>> targets);
+    void        setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets);
     OrderedMap<Coord, ArrayList<Coord>>
-                getTargets();
+                getIdealLocations();
+    void        setTargetedLocation(Coord targetLocation);
+    Coord       getTargetedLocation();
     AOE         getAOE();
-    void        updateAOE(Entity actor, AOE aoe);
-    void        updateScrollAOE(Entity scroll, AOE aoe, Coord location);
+    void        updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity);
     ItemEvt     genItemEvent(Entity performer, Entity target);
     AnimateGlyphEvt
-                genAnimateGlyphEvt(Entity performer, Entity target, IEventComponent eventCmp, MySparseLayers display);
+                genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display);
     TextCellFactory.Glyph getGlyph();
     void        spawnGlyph(MySparseLayers display, LightHandler lightingHandler);
     HashMap<StatusEffect, SEParameters>
@@ -61,13 +63,17 @@ public interface IAbilityCmpSubSys extends Component
     void        setTTPerform(Entity performer);
     double      getNoiseLvl(Entity performer);
 
-    static IAbilityCmpSubSys newAbilityCmp(Skill skill)
+    static IAbilityCmpSubSys newAbilityCmp(Skill skill, char[][] map)
     {
         switch (skill)
         {
             case ENLIGHTEN: return new Enlighten();
             case ICE_SHIELD: return  new IceShield();
             case MAGIC_MISSILE: return new MagicMissile();
+            case ERUPTION:
+                Eruption eruption= new Eruption();
+                eruption.getAOE().setMap(map);
+                return  eruption;
             case ARCANE_TOUCH: return new ArcaneTouch();
             case DAGGER_THROW: return new DaggerThrow();
             case CHILL: return new Chill();
