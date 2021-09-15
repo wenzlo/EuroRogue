@@ -9,7 +9,7 @@ import EuroRogue.EuroRogue;
 public class GwtLauncher extends GwtApplication {
     @Override
     public GwtApplicationConfiguration getConfig() {
-        GwtApplicationConfiguration configuration = new GwtApplicationConfiguration(90 * 10, (25 + 7) * 20);
+        GwtApplicationConfiguration configuration = new GwtApplicationConfiguration(180 * 9, 114 * 9);
         return configuration;
     }
 

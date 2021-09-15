@@ -4,31 +4,21 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-
-import java.util.ArrayList;
-
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
-import EuroRogue.Components.ManaPoolCmp;
-import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
-import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.EventComponents.LogEvt;
-import EuroRogue.EventComponents.StatEvt;
-import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
-import EuroRogue.StatType;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedSet;
-import sun.jvm.hotspot.debugger.win32.coff.COFFException;
+
 
 public class MakeCampSys extends MyEntitySystem
 {

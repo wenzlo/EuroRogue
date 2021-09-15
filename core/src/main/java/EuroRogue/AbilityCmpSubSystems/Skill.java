@@ -2,8 +2,6 @@ package EuroRogue.AbilityCmpSubSystems;
 
 import java.util.Arrays;
 import java.util.Collections;
-
-import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.StatusEffectCmps.StatusEffect;
