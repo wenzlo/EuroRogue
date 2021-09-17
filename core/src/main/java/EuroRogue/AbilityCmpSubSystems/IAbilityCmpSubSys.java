@@ -18,7 +18,6 @@ import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.MySparseLayers;
-import squidpony.squidai.AOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
@@ -36,13 +35,11 @@ public interface IAbilityCmpSubSys extends Component
     boolean     getActive();
     void        activate();
     void        inactivate();
-    void        setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets);
     OrderedMap<Coord, ArrayList<Coord>>
-                getIdealLocations();
+                getIdealLocations(Entity actor, LevelCmp levelCmp);
     void        setTargetedLocation(Coord targetLocation);
     Coord       getTargetedLocation();
-    AOE         getAOE();
-    void        updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity);
+
     ItemEvt     genItemEvent(Entity performer, Entity target);
     AnimateGlyphEvt
                 genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display);
@@ -62,29 +59,6 @@ public interface IAbilityCmpSubSys extends Component
     int         getTTPerform();
     void        setTTPerform(Entity performer);
     double      getNoiseLvl(Entity performer);
-
-    static IAbilityCmpSubSys newAbilityCmp(Skill skill, char[][] map)
-    {
-        switch (skill)
-        {
-            case ENLIGHTEN: return new Enlighten();
-            case ICE_SHIELD: return  new IceShield();
-            case MAGIC_MISSILE: return new MagicMissile();
-            case ERUPTION:
-                Eruption eruption= new Eruption();
-                eruption.getAOE().setMap(map);
-                return  eruption;
-            case ARCANE_TOUCH: return new ArcaneTouch();
-            case DAGGER_THROW: return new DaggerThrow();
-            case CHILL: return new Chill();
-            case IMMOLATE: return new Immolate();
-            case DODGE: return new Dodge();
-            case ENRAGE: return  new Enrage();
-            case MELEE_ATTACK: return new MeleeAttack();
-            //case OPPORTUNITY: return new Opportunity();
-        }
-        return null;
-    }
 
 
 }

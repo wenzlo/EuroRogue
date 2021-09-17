@@ -30,7 +30,7 @@ import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
 import squidpony.squidmath.OrderedMap;
 
-public class Dodge implements IAbilityCmpSubSys
+public class Dodge extends Ability
 {
     private boolean active = true;
     private Skill skill = Skill.DODGE;
@@ -42,6 +42,11 @@ public class Dodge implements IAbilityCmpSubSys
     private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private GWTRNG rng = new GWTRNG();
+
+    public Dodge()
+    {
+        super("Dodge", new PointAOE(Coord.get(-1,-1),0,0));
+    }
 
 
     @Override
@@ -94,15 +99,22 @@ public class Dodge implements IAbilityCmpSubSys
     {
         active=false;
     }
+
     @Override
-    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets)
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
-        this.idealLocations = targets;
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+        aoe.setOrigin(positionCmp.coord);
+
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        ArrayList<Coord> enemyLocations = new ArrayList<>();
+        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
+        ArrayList<Coord> friendLocations = new ArrayList<>();
+        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
+        friendLocations.add(positionCmp.coord);
+        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
     }
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
-        return idealLocations;
-    }
+
 
     @Override
     public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }
@@ -110,23 +122,8 @@ public class Dodge implements IAbilityCmpSubSys
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
 
-    @Override
-    public AOE getAOE() {
+    private AOE getAOE() {
         return aoe;
-    }
-    @Override
-    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
-    {
-        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        aoe.setOrigin(positionCmp.coord);
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
-        ArrayList<Coord> enemyLocations = new ArrayList<>();
-        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
-        ArrayList<Coord> friendLocations = new ArrayList<>();
-        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
-        friendLocations.add(positionCmp.coord);
-        setIdealLocations(aoe.idealLocations(enemyLocations, friendLocations));
-
     }
 
     @Override

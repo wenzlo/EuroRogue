@@ -8,7 +8,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -21,6 +21,7 @@ import EuroRogue.LightHandler;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
 import squidpony.squidai.BlastAOE;
+import squidpony.squidai.Technique;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -86,8 +87,8 @@ public class AnimationsSys extends MyEntitySystem
 
                     ActionEvt actionEvt = (ActionEvt) animation.sourceEvent;
                     Entity actor = getGame().getEntity(actionEvt.performerID);
-                    IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill,actor );
-                    BlastAOE blastAOE = (BlastAOE) ability.getAOE();
+                    Technique ability = (Technique) CmpMapper.getAbilityComp(actionEvt.skill,actor );
+                    BlastAOE blastAOE = (BlastAOE) ability.aoe;
                     Coord center = blastAOE.getCenter();
                     LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
 

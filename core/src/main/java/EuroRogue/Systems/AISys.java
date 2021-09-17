@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
@@ -194,10 +194,10 @@ public class AISys extends MyEntitySystem
             if(itemEventScheduled) continue;
 
 
-            ArrayList<IAbilityCmpSubSys> availableAbilities = getAvailableActions(entity);
+            ArrayList<Ability> availableAbilities = getAvailableActions(entity);
             if(!availableAbilities.isEmpty() &! ai.visibleEnemies.isEmpty())
             {
-                IAbilityCmpSubSys abilityToSchedule = rng.getRandomElement(availableAbilities);
+                Ability abilityToSchedule = rng.getRandomElement(availableAbilities);
                 scheduleActionEvt(entity, abilityToSchedule);
 
             }
@@ -324,13 +324,13 @@ public class AISys extends MyEntitySystem
 
 
     }
-    public ArrayList<IAbilityCmpSubSys> getAvailableActions(Entity entity)
+    public ArrayList<Ability> getAvailableActions(Entity entity)
     {
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
-        ArrayList<IAbilityCmpSubSys> availableAbilities = new ArrayList<>();
+        ArrayList<Ability> availableAbilities = new ArrayList<>();
         for(Skill skill : codexCmp.prepared)
         {
-            IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, entity);
+            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(skill, entity);
             getGame().updateAbility(abilityCmp, entity, null);
             //if(entity== getGame().getFocusTarget()) System.out.println(skill+" "+abilityComp.isAvailable());
             if(skill.skillType== Skill.SkillType.REACTION) continue;
@@ -343,7 +343,7 @@ public class AISys extends MyEntitySystem
             Entity itemEntity = getGame().getEntity(itemID);
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
             if(scrollCmp.consumed) continue;
-            IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
+            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
             getGame().updateAbility(abilityCmp, entity, itemEntity);
             if(abilityCmp.isAvailable() && abilityCmp.getSkill().skillType != Skill.SkillType.REACTION)
             {
@@ -363,7 +363,7 @@ public class AISys extends MyEntitySystem
 
         return scheduledTick;
     }
-    public int scheduleActionEvt (Entity entity, IAbilityCmpSubSys ability)
+    public int scheduleActionEvt (Entity entity, Ability ability)
     {
         TargetType targetType = ability.getTargetType();
 

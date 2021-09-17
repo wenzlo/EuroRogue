@@ -8,7 +8,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.ArrayList;
 import java.util.Set;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
@@ -86,16 +86,16 @@ public class ReactionSys extends MyEntitySystem
             Entity actor = getGame().getEntity(actionEvt.performerID);
             ArrayList<Integer> targets = new ArrayList<>();
             targets.add(actor.hashCode());
-            IAbilityCmpSubSys actionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, actor);
-            if(actionEvt.scrollID!=null) actionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp( actionEvt.skill, getGame().getEntity(actionEvt.scrollID));
+            Ability actionAbility = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, actor);
+            if(actionEvt.scrollID!=null) actionAbility = (Ability) CmpMapper.getAbilityComp( actionEvt.skill, getGame().getEntity(actionEvt.scrollID));
 
             getGame().updateAbilities(reactor);
 
 
-            IAbilityCmpSubSys reactionAbility = null;
+            Ability reactionAbility = null;
 
             for (Skill skill : actionAbility.getReactions()) {
-                IAbilityCmpSubSys possibleReactionAbility = (IAbilityCmpSubSys)CmpMapper.getAbilityComp(skill, reactor);
+                Ability possibleReactionAbility = (Ability)CmpMapper.getAbilityComp(skill, reactor);
 
                 if (possibleReactionAbility!=null)
                     if(possibleReactionAbility.isAvailable())
@@ -112,7 +112,7 @@ public class ReactionSys extends MyEntitySystem
                     ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, scrollEntity);
                     if(actionAbility.getReactions().contains(scrollCmp.skill))
                     {
-                        reactionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill, scrollEntity);
+                        reactionAbility = (Ability) CmpMapper.getAbilityComp(scrollCmp.skill, scrollEntity);
                         break;
                     }
                 }
@@ -172,8 +172,8 @@ public class ReactionSys extends MyEntitySystem
             getGame().updateAbilities(reactor);
             for(Skill skill:moveReactions)
             {
-                IAbilityCmpSubSys reactionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, reactor);
-                if(getGame().getScrollForSkill(skill, reactor)!=null ) reactionAbility = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, getGame().getScrollForSkill(skill, reactor));
+                Ability reactionAbility = (Ability) CmpMapper.getAbilityComp(skill, reactor);
+                if(getGame().getScrollForSkill(skill, reactor)!=null ) reactionAbility = (Ability) CmpMapper.getAbilityComp(skill, getGame().getScrollForSkill(skill, reactor));
                 if(reactionAbility!=null && reactionAbility.isAvailable())
                 {
                     if (!reactionAbility.scroll()) {
@@ -200,7 +200,7 @@ public class ReactionSys extends MyEntitySystem
         }
     }
 
-    private LogEvt generateReactionLogEvt (ActionEvt actionEvt, IAbilityCmpSubSys reactionAbility) {
+    private LogEvt generateReactionLogEvt (ActionEvt actionEvt, Ability reactionAbility) {
         Entity performerEntity = getGame().getEntity(actionEvt.performerID);
         Entity targetEntity = getGame().getEntity(actionEvt.targetIDs.get(0));
         SColor performerColor = ((CharCmp) CmpMapper.getComp(CmpType.CHAR, performerEntity)).color;

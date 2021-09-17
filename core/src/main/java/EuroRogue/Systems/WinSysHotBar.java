@@ -92,38 +92,5 @@ public class WinSysHotBar extends MyEntitySystem
             stage.draw();
         }
     }
-    /*private IColoredString.Impl getReactionLabel(IAbilityCmpSubSys abilityCmp)
-    {
-        Skill skill = abilityCmp.getSkill();
-        return getActionLabel(abilityCmp, null, abilityCmp.getSkill().toString().length() + skill.castingCost.length+1);
-    }
-    private IColoredString.Impl getActionLabel(IAbilityCmpSubSys abilityCmp, Integer numRowKey, int totalLength)
-    {
-        Skill skill = abilityCmp.getSkill();
-        float abilityColor = skill.school.color.toFloatBits();
-        if(!abilityCmp.isAvailable()) abilityColor = SColor.lerpFloatColors(abilityColor,SColor.FLOAT_BLACK,0.5f);
-        IColoredString.Impl coloredString = new IColoredString.Impl();
-        if(numRowKey!=null) coloredString.append(numRowKey.toString()+") ", SColor.colorFromFloat(abilityColor));
-        coloredString.append(skill.name+" ", SColor.colorFromFloat(abilityColor));
-        for(int i=0; i<(totalLength-coloredString.length()-skill.castingCost.length); i++) coloredString.append(' ', SColor.TRANSPARENT);
-        for(School mana : skill.castingCost)
-        {
-            coloredString.append('■',mana.color);
-        }
-        return coloredString;
-    }
-    private IColoredString.Impl getScrollLabel(IAbilityCmpSubSys abilityCmp, Integer numRowKey, int totalLength)
-    {
-        Skill skill = abilityCmp.getSkill();
-        float abilityColor = skill.school.color.toFloatBits();
-        if(!abilityCmp.isAvailable()) abilityColor = SColor.lerpFloatColors(abilityColor,SColor.FLOAT_BLACK,0.5f);
-        IColoredString.Impl coloredString = new IColoredString.Impl();
-        if(numRowKey!=null && abilityCmp.getSkill().skillType!= Skill.SkillType.REACTION) coloredString.append(numRowKey.toString()+") ", SColor.colorFromFloat(abilityColor));
-        coloredString.append(skill.name+" ", SColor.colorFromFloat(abilityColor));
-        for(int i=0; i<(totalLength-coloredString.length()-skill.castingCost.length); i++) coloredString.append(' ', SColor.TRANSPARENT);
 
-        coloredString.append('%',skill.school.color);
-
-        return coloredString;
-    }*/
 }

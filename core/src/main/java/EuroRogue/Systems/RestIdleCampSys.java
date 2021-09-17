@@ -8,11 +8,10 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.ArrayList;
 import java.util.List;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
-import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
@@ -143,7 +142,7 @@ public class RestIdleCampSys extends MyEntitySystem
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX,entity);
         for(Skill skill : codexCmp.prepared)
         {
-            IAbilityCmpSubSys abilityCmpSubSys = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill,entity);
+            Ability abilityCmpSubSys = (Ability) CmpMapper.getAbilityComp(skill,entity);
             abilityCmpSubSys.activate();
         }
 

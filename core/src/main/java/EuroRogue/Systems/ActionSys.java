@@ -10,7 +10,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 
 import java.util.ArrayList;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
@@ -37,6 +37,7 @@ import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.CmpType;
 import EuroRogue.TargetType;
+import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
@@ -76,13 +77,13 @@ public class ActionSys extends MyEntitySystem
             action.processed=true;
 
             Entity performerEntity = getGame().getEntity(action.performerID);
-            IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(action.skill, performerEntity);
+            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(action.skill, performerEntity);
             TargetType targetType = abilityCmp.getTargetType();
             Entity targetEntity = null;
             if(!action.targetIDs.isEmpty() && targetType != AOE)
                 targetEntity = getGame().getEntity(action.targetIDs.get(0));
 
-            else action.targetIDs = getAOEtargets(abilityCmp);
+            else action.targetIDs = getAOEtargets((Technique) abilityCmp);
 
             if(targetEntity != null)
             {
@@ -94,7 +95,7 @@ public class ActionSys extends MyEntitySystem
             {
                 scrollEntity = getGame().getEntity(action.scrollID);
 
-                abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(action.skill, scrollEntity);
+                abilityCmp = (Ability) CmpMapper.getAbilityComp(action.skill, scrollEntity);
             }
             if(targetType!=AOE) getGame().updateAbility(abilityCmp, performerEntity, scrollEntity);
             if(abilityCmp==null) System.out.println("Ability comp = Null");
@@ -158,7 +159,6 @@ public class ActionSys extends MyEntitySystem
     }
     private LogEvt generateCancelLogEvt (ActionEvt actionEvt, Entity entity)
     {
-        //IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, entity);
         IColoredString.Impl<SColor> coloredEvtText = new IColoredString.Impl<>();
         Integer tick = ((TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker)).tick;
         coloredEvtText.append(tick.toString(), SColor.WHITE);
@@ -171,11 +171,11 @@ public class ActionSys extends MyEntitySystem
 
         return new LogEvt(tick, coloredEvtText);
     }
-    private ArrayList<Integer> getAOEtargets(IAbilityCmpSubSys ability)
+    private ArrayList<Integer> getAOEtargets(Technique ability)
     {
         ArrayList<Integer> targets = new ArrayList<>();
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        for(Coord coord : ability.getAOE().findArea().keySet())
+        for(Coord coord : ability.aoe.findArea().keySet())
         {
             if(levelCmp.actors.positions().contains(coord)) targets.add(levelCmp.actors.get(coord));
         }

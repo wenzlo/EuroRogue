@@ -8,7 +8,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
@@ -64,7 +64,6 @@ public class NoiseSys extends MyEntitySystem
         TerrainType terrainType = TerrainType.getTerrainTypeFromChar(levelCmp.decoDungeon[positionCmp.coord.x][positionCmp.coord.y]);
         NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.NOISE_MAP, actor);
         noiseMap.noiseMap.clearSounds();
-        double noiseLvl = statsCmp.getMoveSndLvl()*terrainType.noiseMult;
 
         noiseMap.noiseMap.setSound(positionCmp.coord, statsCmp.getMoveSndLvl()*terrainType.noiseMult);
         noiseMap.noiseMap.scan();
@@ -118,11 +117,11 @@ public class NoiseSys extends MyEntitySystem
 
         if(!actionEvt.isProcessed()) return;
 
-        IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, performerEntity);
+        Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, performerEntity);
         if(actionEvt.scrollID!=null)
         {
             Entity scrollEntity = getGame().getEntity(actionEvt.scrollID);
-            abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, scrollEntity);
+            abilityCmp = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, scrollEntity);
             getEngine().removeEntity(scrollEntity);
         }
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performerEntity);

@@ -1,4 +1,5 @@
 package EuroRogue;
+
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
@@ -13,8 +14,7 @@ import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import EuroRogue.AbilityCmpSubSystems.DaggerThrow;
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.Components.AICmp;
@@ -118,7 +118,6 @@ import EuroRogue.Systems.RestIdleCampSys;
 import EuroRogue.Systems.AISys;
 import EuroRogue.Systems.TickerSys;
 import squidpony.StringKit;
-import squidpony.squidai.AOE;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.DefaultResources;
@@ -529,9 +528,8 @@ public class EuroRogue extends ApplicationAdapter {
         aimInput = new SquidInput((key, alt, ctrl, shift) -> {
 
             AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getFocus());
-            IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
+            Ability ability = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
-            AOE aoe = ability.getAOE();
 
             if(aimingCmp==null) return;
 
@@ -592,7 +590,7 @@ public class EuroRogue extends ApplicationAdapter {
 
             }
             Coord newAimCoord = aimingCmp.aimCoord.translate(direction);
-            if(aoe.getOrigin().distance(newAimCoord)<=aoe.getMaxRange()
+            if(ability.aoe.getOrigin().distance(newAimCoord)<=ability.aoe.getMaxRange()
                     && levelCmp.floors.contains(newAimCoord))
                 aimingCmp.aimCoord = aimingCmp.aimCoord.translate(direction);
         },
@@ -816,8 +814,8 @@ public class EuroRogue extends ApplicationAdapter {
                     CodexCmp codexCm = (CodexCmp)CmpMapper.getComp(CmpType.CODEX,getFocus());
                     for(Skill skill : codexCm.prepared)
                     {
-                        IAbilityCmpSubSys abilityCmpSubSys = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, getFocus());
-                        if(abilityCmpSubSys!=null) getFocus().remove(abilityCmpSubSys.getClass());
+                        Ability ability = (Ability) CmpMapper.getAbilityComp(skill, getFocus());
+                        if(ability!=null) getFocus().remove(ability.getClass());
                     }
                     getFocus().remove(StatsCmp.class);
                     getFocus().remove(CodexCmp.class);
@@ -1042,11 +1040,11 @@ public class EuroRogue extends ApplicationAdapter {
         scroll.add(new ItemCmp(ItemType.SCROLL));
         scroll.add(new CharCmp('%', skill.school.color));
         scroll.add(new ScrollCmp(skill));
-        IAbilityCmpSubSys abilityCmpSubSys = IAbilityCmpSubSys.newAbilityCmp(skill, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel)).bareDungeon);
-        abilityCmpSubSys.setScrollID(scroll.hashCode());
-        abilityCmpSubSys.setScroll(true);
-        scroll.add(abilityCmpSubSys);
-        ((IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, scroll)).setScroll(true);
+        Ability ability = Ability.newAbilityCmp(skill, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel)).bareDungeon);
+        ability.setScrollID(scroll.hashCode());
+        ability.setScroll(true);
+        scroll.add(ability);
+        ((Ability) CmpMapper.getAbilityComp(skill, scroll)).setScroll(true);
         StatsCmp statsCmp = new StatsCmp();
         statsCmp.setStr(skill.strReq);
         statsCmp.setDex(skill.dexReq);
@@ -1091,20 +1089,20 @@ public class EuroRogue extends ApplicationAdapter {
         }
         return null;
     }
-    public ArrayList<IAbilityCmpSubSys> getAvailableAbilities(Entity actor)
+    public ArrayList<Ability> getAvailableAbilities(Entity actor)
     {
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, actor);
-        ArrayList<IAbilityCmpSubSys> abilities = new ArrayList<>();
+        ArrayList<Ability> abilities = new ArrayList<>();
         for(Skill skill:codexCmp.prepared)
         {
-            IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys)CmpMapper.getAbilityComp(skill, actor);
+            Ability abilityCmp = (Ability)CmpMapper.getAbilityComp(skill, actor);
             if(abilityCmp.isAvailable())abilities.add(abilityCmp);
         }
         for(Integer scrollID:getScrollIDs(actor))
         {
             Entity scrollEntity = getEntity(scrollID);
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL,scrollEntity);
-            IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
+            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
             if(abilityCmp.isAvailable())abilities.add(abilityCmp);
 
         }
@@ -1119,7 +1117,7 @@ public class EuroRogue extends ApplicationAdapter {
         {
             Entity scrollEntity = getEntity(scrollID);
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL,scrollEntity);
-            IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
+            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
             if(abilityCmp.isAvailable())scrolls.add(scrollEntity);
 
         }
@@ -1158,13 +1156,13 @@ public class EuroRogue extends ApplicationAdapter {
     public void updateAbilities(Entity entity)
     {
         if(entity==null || gameState == GameState.AIMING) return;
-        ArrayList<IAbilityCmpSubSys> codexAbilityCmps = new ArrayList<>();
+        ArrayList<Ability> codexAbilityCmps = new ArrayList<>();
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
 
         for(Skill skill : codexCmp.prepared)
         {
-            IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill,entity);
+            Ability ability = (Ability) CmpMapper.getAbilityComp(skill,entity);
             if(ability!=null) codexAbilityCmps.add(ability);
 
         }
@@ -1173,18 +1171,18 @@ public class EuroRogue extends ApplicationAdapter {
             Entity itemEntity = getEntity(itemID);
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
 
-            IAbilityCmpSubSys abilityCmp = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
+            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
             AICmp aiCmp = ((AICmp) CmpMapper.getComp(CmpType.AI, entity));
 
 
 
         }
-        for (IAbilityCmpSubSys abilityCmp : codexAbilityCmps)
+        for (Ability abilityCmp : codexAbilityCmps)
         {
             updateAbility(abilityCmp, entity, null);
         }
     }
-    public void updateAbility(IAbilityCmpSubSys abilityCmp, Entity entity, Entity scrollEntity)
+    public void updateAbility(Ability abilityCmp, Entity entity, Entity scrollEntity)
     {
         Skill skill = abilityCmp.getSkill();
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
@@ -1198,20 +1196,18 @@ public class EuroRogue extends ApplicationAdapter {
             WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
             weaponType = weaponCmp.weaponType;
         }
-        AOE aoe = abilityCmp.getAOE();
-        abilityCmp.updateAOE(entity, levelCmp, aoe, scrollEntity);
 
         AICmp aiCmp = ((AICmp) CmpMapper.getComp(CmpType.AI, entity));
         if(abilityCmp.getSkill().skillType!=Skill.SkillType.REACTION && abilityCmp.getSkill().skillType!=Skill.SkillType.BUFF && abilityCmp.getTargetType() != TargetType.AOE)
         {
-            abilityCmp.setAvailable( aiCmp.target!=null && manaPoolCmp.canAfford(skill) &&!abilityCmp.getIdealLocations().isEmpty() && abilityCmp.getActive() &&
-                    abilityCmp.getIdealLocations().keySet().contains(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, getEntity(aiCmp.target))).coord));
+            abilityCmp.setAvailable( aiCmp.target!=null && manaPoolCmp.canAfford(skill) && abilityCmp.getActive() &&
+                    abilityCmp.getIdealLocations(entity, levelCmp).keySet().contains(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, getEntity(aiCmp.target))).coord));
         }
 
 
         else  if(abilityCmp.getSkill().skillType==Skill.SkillType.REACTION || abilityCmp.getSkill().skillType==Skill.SkillType.BUFF )
         {
-            abilityCmp.setAvailable(manaPoolCmp.canAfford(skill) && !abilityCmp.getIdealLocations().isEmpty() && abilityCmp.getActive());
+            abilityCmp.setAvailable(manaPoolCmp.canAfford(skill) && !abilityCmp.getIdealLocations(entity, levelCmp).isEmpty() && abilityCmp.getActive());
         }
         else if(abilityCmp.getTargetType() == TargetType.AOE) abilityCmp.setAvailable(manaPoolCmp.canAfford(skill));
 

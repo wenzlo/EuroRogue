@@ -5,7 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.NameCmp;
@@ -75,12 +75,12 @@ public class DamageApplicationSys extends MyEntitySystem
 
         StatsCmp targetStats = (StatsCmp)CmpMapper.getComp(CmpType.STATS, target);
         TickerCmp tickerCmp = (TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
-        IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, performer);
+        Ability ability = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, performer);
         if(actionEvt.scrollID!=null)
         {
             Entity scroll = getGame().getScrollForSkill(actionEvt.skill, performer);
 
-            ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, scroll);
+            ability = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, scroll);
         }
 
         for(StatusEffect statusEffect: actionEvt.statusEffects.keySet())
@@ -104,11 +104,11 @@ public class DamageApplicationSys extends MyEntitySystem
     public void processActionEvt(ActionEvt actionEvt)
     {
         Entity performerEntity = getGame().getEntity(actionEvt.performerID);
-        IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, performerEntity);
+        Ability ability = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, performerEntity);
         if(actionEvt.scrollID!=null)
         {
             Entity scrollEntity = getGame().getEntity(actionEvt.scrollID);
-            ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(actionEvt.skill, scrollEntity);
+            ability = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, scrollEntity);
         }
 
         for(Integer targetID : actionEvt.targetIDs)
@@ -171,7 +171,7 @@ public class DamageApplicationSys extends MyEntitySystem
         }
 
     }
-    private LogEvt generateActionLogEvt (Entity targetEntity, ActionEvt actionEvt, IAbilityCmpSubSys ability)
+    private LogEvt generateActionLogEvt (Entity targetEntity, ActionEvt actionEvt, Ability ability)
     {
 
         Entity performerEntity = getGame().getEntity(actionEvt.performerID);

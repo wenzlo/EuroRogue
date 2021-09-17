@@ -31,10 +31,9 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class MagicMissile implements IAbilityCmpSubSys
+public class MagicMissile extends Ability
 {
     private Skill skill = Skill.MAGIC_MISSILE;
-    private AOE aoe = new PointAOE(Coord.get(-1,-1),1,1);
     private boolean active = true;
     private  boolean scroll = false;
     private Integer scrollID = null;
@@ -42,9 +41,13 @@ public class MagicMissile implements IAbilityCmpSubSys
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private int ttPerform;
     public TextCellFactory.Glyph glyph;
-    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available = false;
+
+    public MagicMissile()
+    {
+        super("Magic Missile", new PointAOE(Coord.get(-1,-1),1,1));
+    }
 
     public Skill getSkill() {
         return skill;
@@ -100,31 +103,10 @@ public class MagicMissile implements IAbilityCmpSubSys
     }
 
     @Override
-    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets) { this.idealLocations = targets; }
-
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
-        return idealLocations;
-    }
-
-    @Override
-    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }
-
-    @Override
-    public Coord getTargetedLocation() { return targetedLocation; }
-
-    @Override
-    public AOE getAOE() {
-        return aoe;
-    }
-
-    @Override
-    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
-        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
-        if(scroll) statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, scrollEntity);
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        aoe.setOrigin(positionCmp.coord);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
         aoe.setMaxRange(statsCmp.getIntel());
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
@@ -133,8 +115,17 @@ public class MagicMissile implements IAbilityCmpSubSys
         ArrayList<Coord> friendLocations = new ArrayList<>();
         for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
         friendLocations.add(positionCmp.coord);
-        setIdealLocations(aoe.idealLocations(enemyLocations, friendLocations));
+        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
+    }
 
+    @Override
+    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }
+
+    @Override
+    public Coord getTargetedLocation() { return targetedLocation; }
+
+    private AOE getAOE() {
+        return aoe;
     }
 
     @Override

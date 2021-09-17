@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import java.util.List;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.CharCmp;
@@ -129,7 +129,7 @@ public class MobFactory
             manaPool.attuned.add(mana);
             manaPool.spent.remove(mana);
         }
-        mob.add((IAbilityCmpSubSys.newAbilityCmp(Skill.MELEE_ATTACK, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel)).bareDungeon)));
+        mob.add((Ability.newAbilityCmp(Skill.MELEE_ATTACK, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel)).bareDungeon)));
         spentLimit = spentLimit - Skill.MELEE_ATTACK.prepCost.length;
 
 
@@ -151,26 +151,10 @@ public class MobFactory
                     manaPool.attuned.add(mana);
                     manaPool.spent.remove(mana);
                 }
-                mob.add((IAbilityCmpSubSys.newAbilityCmp(skill, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel)).bareDungeon)));
+                mob.add((Ability.newAbilityCmp(skill, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel)).bareDungeon)));
                 spentLimit = spentLimit - skill.prepCost.length;
             }
         }
-        /*for (Skill skill : skillPool) {
-            if (skill.castingCost.length < spentLimit && Skill.qualify(skill, stats) ) {
-                manaPool.spent.addAll(Arrays.asList(skill.prepCost));
-                manaPool.spent.addAll(Arrays.asList(skill.castingCost));
-                manaPool.spent.addAll(Arrays.asList(skill.castingCost));
-                codex.known.add(skill);
-                codex.prepared.add(skill);
-                for(School mana:skill.prepCost)
-                {
-                    manaPool.attuned.add(mana);
-                    manaPool.spent.remove(mana);
-                }
-                mob.add((IAbilityCmpSubSys.newAbilityCmp(skill)));
-                spentLimit = spentLimit - skill.prepCost.length;
-            }
-        }*/
         if(codex.prepared.contains(Skill.DAGGER_THROW))
         {
             Entity daggerEntity = game.weaponFactory.newBasicWeapon(WeaponType.DAGGER);

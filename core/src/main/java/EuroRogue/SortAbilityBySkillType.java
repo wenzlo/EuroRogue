@@ -2,11 +2,12 @@ package EuroRogue;
 
 import java.util.Comparator;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 
-public class SortAbilityBySkillType implements Comparator<IAbilityCmpSubSys>
+
+public class SortAbilityBySkillType implements Comparator<Ability>
 {
-    public int compare(IAbilityCmpSubSys skillType1, IAbilityCmpSubSys skillType2) {
+    public int compare(Ability skillType1, Ability skillType2) {
 
         int st1Score = 0;
         int st2Score = 0;

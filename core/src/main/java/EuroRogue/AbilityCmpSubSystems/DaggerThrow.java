@@ -29,10 +29,9 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class DaggerThrow implements IAbilityCmpSubSys
+public class DaggerThrow extends Ability
 {
     private Skill skill = Skill.DAGGER_THROW;
-    private AOE aoe = new PointAOE(Coord.get(-1,-1),2,1);
     private boolean active = true;
     private  boolean scroll = false;
     private Integer scrollID = null;
@@ -42,9 +41,13 @@ public class DaggerThrow implements IAbilityCmpSubSys
     private TextCellFactory.Glyph glyph;
     public int itemID;
     public char chr;
-    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available = false;
+
+    public DaggerThrow()
+    {
+        super("Dagger Throw", new PointAOE(Coord.get(-1,-1),2,1));
+    }
 
     public Skill getSkill() {
         return skill;
@@ -100,32 +103,10 @@ public class DaggerThrow implements IAbilityCmpSubSys
     }
 
     @Override
-    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets) { this.idealLocations = targets; }
-
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
-        return idealLocations;
-    }
-
-    @Override
-    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation;}
-
-    @Override
-    public Coord getTargetedLocation() { return targetedLocation; }
-
-    @Override
-    public AOE getAOE() {
-        return aoe;
-    }
-
-    @Override
-    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
-        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
-        if(scroll) statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, scrollEntity);
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-
-        aoe.setOrigin(positionCmp.coord);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
         aoe.setMaxRange(statsCmp.getDex());
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
@@ -134,9 +115,18 @@ public class DaggerThrow implements IAbilityCmpSubSys
         ArrayList<Coord> friendLocations = new ArrayList<>();
         for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
         friendLocations.add(positionCmp.coord);
-        setIdealLocations(aoe.idealLocations(enemyLocations, friendLocations));
+        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
     }
 
+    @Override
+    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation;}
+
+    @Override
+    public Coord getTargetedLocation() { return targetedLocation; }
+
+    private AOE getAOE() {
+        return aoe;
+    }
 
     @Override
     public ItemEvt genItemEvent(Entity performer, Entity target)
