@@ -30,14 +30,12 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class Eruption implements IAbilityCmpSubSys
+public class Eruption extends Ability
 {
     private Skill skill = Skill.ERUPTION;
     private boolean active = true;
     private  boolean scroll = false;
     private Integer scrollID = null;
-    private BlastAOE aoe = new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 1, 1);
-    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available = false;
     private int damage;
@@ -48,6 +46,7 @@ public class Eruption implements IAbilityCmpSubSys
 
     public Eruption()
     {
+        super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 1, 1));
         statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED, DamageType.FIRE));
     }
 
@@ -103,14 +102,21 @@ public class Eruption implements IAbilityCmpSubSys
     }
 
     @Override
-    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets)
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
-        this.idealLocations = targets;
-    }
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
+        BlastAOE blastAOE = (BlastAOE) aoe;
+        blastAOE.setMaxRange(statsCmp.getIntel());
+        blastAOE.setRadius(statsCmp.getIntel()-1);
 
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
-        return idealLocations;
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        ArrayList<Coord> enemyLocations = new ArrayList<>();
+        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
+        ArrayList<Coord> friendLocations = new ArrayList<>();
+        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
+        friendLocations.add(positionCmp.coord);
+        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
     }
 
     @Override
@@ -119,8 +125,7 @@ public class Eruption implements IAbilityCmpSubSys
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
 
-    @Override
-    public AOE getAOE() {
+    private AOE getAOE() {
         return aoe;
     }
 
@@ -164,29 +169,6 @@ public class Eruption implements IAbilityCmpSubSys
     @Override
     public double getNoiseLvl(Entity performer) {
         return 10;
-    }
-
-    @Override
-    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
-    {
-        BlastAOE blastAOE = (BlastAOE) aoe;
-        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
-        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
-        if(scroll) statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, scrollEntity);
-
-        blastAOE.setOrigin(positionCmp.coord);
-        blastAOE.setMaxRange(statsCmp.getIntel());
-        blastAOE.setRadius(statsCmp.getSpellPower()/4);
-
-        ArrayList<Coord> enemyLocations = new ArrayList<>();
-        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
-        ArrayList<Coord> friendLocations = new ArrayList<>();
-        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
-        friendLocations.add(positionCmp.coord);
-        setIdealLocations(blastAOE.idealLocations(enemyLocations, friendLocations));
-        if(!idealLocations.isEmpty()) blastAOE.shift(idealLocations.keySet().first());
-        else blastAOE.shift(positionCmp.coord);
     }
 
     @Override

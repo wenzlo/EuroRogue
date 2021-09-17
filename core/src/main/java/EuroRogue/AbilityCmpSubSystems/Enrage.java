@@ -30,7 +30,7 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class Enrage implements IAbilityCmpSubSys
+public class Enrage extends Ability
 {
     private boolean active = true;
     private Skill skill = Skill.ENRAGE;
@@ -38,7 +38,6 @@ public class Enrage implements IAbilityCmpSubSys
     private Integer scrollID = null;
     private int ttPerform;
     private AOE aoe = new PointAOE(Coord.get(-1,-1),0,0);
-    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
@@ -46,6 +45,7 @@ public class Enrage implements IAbilityCmpSubSys
 
     public Enrage()
     {
+        super("Enrage", new PointAOE(Coord.get(-1,-1),0,0));
         statusEffects.put(StatusEffect.ENRAGED, new SEParameters(TargetType.SELF, SERemovalType.SHORT_REST, DamageType.NONE));
     }
 
@@ -99,14 +99,15 @@ public class Enrage implements IAbilityCmpSubSys
         active=false;
     }
     @Override
-    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets)
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
-        this.idealLocations = targets;
+        Coord location = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,actor)).coord;
+        aoe.setOrigin(location);
+        ArrayList<Coord> self = new ArrayList<>();
+        self.add(location);
+        return new OrderedMap(self,self);
     }
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
-        return idealLocations;
-    }
+
 
     @Override
     public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }
@@ -116,19 +117,8 @@ public class Enrage implements IAbilityCmpSubSys
         return targetedLocation;
     }
 
-    @Override
-    public AOE getAOE() {
+    private AOE getAOE() {
         return aoe;
-    }
-    @Override
-    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
-    {
-        Coord location = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,actor)).coord;
-        aoe.setOrigin(location);
-        idealLocations.clear();
-        ArrayList<Coord> self = new ArrayList<>();
-        self.add(location);
-        idealLocations.put(location, self);
     }
 
     @Override

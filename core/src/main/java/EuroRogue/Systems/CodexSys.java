@@ -5,9 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-import java.util.logging.Level;
-
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ManaPoolCmp;
@@ -82,7 +80,7 @@ public class CodexSys extends MyEntitySystem
     private void addAbilityCmp (Skill skill, Entity entity)
     {
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        entity.add((IAbilityCmpSubSys.newAbilityCmp(skill, levelCmp.bareDungeon)));
+        entity.add((Ability.newAbilityCmp(skill, levelCmp.bareDungeon)));
 
     }
     private void removeAbilityCmp (Skill skill, Entity entity)

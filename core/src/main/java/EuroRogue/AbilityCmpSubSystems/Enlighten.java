@@ -30,7 +30,7 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class Enlighten implements IAbilityCmpSubSys
+public class Enlighten extends Ability
 {
     private boolean active = true;
     private Skill skill = Skill.ENLIGHTEN;
@@ -45,6 +45,7 @@ public class Enlighten implements IAbilityCmpSubSys
 
     public Enlighten()
     {
+        super("Enlighten", new PointAOE(Coord.get(-1,-1),0,0));
         statusEffects.put(StatusEffect.ENLIGHTENED, new SEParameters(TargetType.SELF, SERemovalType.SHORT_REST, DamageType.NONE));
     }
 
@@ -95,14 +96,15 @@ public class Enlighten implements IAbilityCmpSubSys
     {
         active=false;
     }
+
     @Override
-    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets)
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
-        this.idealLocations = targets;
-    }
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
-        return idealLocations;
+        Coord location = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,actor)).coord;
+        aoe.setOrigin(location);
+        ArrayList<Coord> self = new ArrayList<>();
+        self.add(location);
+        return new OrderedMap(self,self);
     }
 
     @Override
@@ -113,19 +115,8 @@ public class Enlighten implements IAbilityCmpSubSys
         return targetedLocation;
     }
 
-    @Override
-    public AOE getAOE() {
+    private AOE getAOE() {
         return aoe;
-    }
-    @Override
-    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
-    {
-        Coord location = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,actor)).coord;
-        aoe.setOrigin(location);
-        idealLocations.clear();
-        ArrayList<Coord> self = new ArrayList<>();
-        self.add(location);
-        idealLocations.put(location, self);
     }
 
     @Override

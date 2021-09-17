@@ -25,27 +25,31 @@ import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
-import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
+public class ArcaneTouch extends Ability
 {
     private Skill skill = Skill.ARCANE_TOUCH;
     private boolean active = true;
     private  boolean scroll = false;
     private Integer scrollID = null;
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
-    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available = false;
     private int damage;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private int ttPerform;
     private TextCellFactory.Glyph glyph;
+
+    public ArcaneTouch()
+    {
+        super("Arcane Touch", new PointAOE(Coord.get(-1,-1), 1, 1));
+    }
+
 
     public Skill getSkill() {
         return skill;
@@ -97,11 +101,18 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     }
 
     @Override
-    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targetableLocations) { this.idealLocations = targetableLocations; }
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
+    {
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+        aoe.setOrigin(positionCmp.coord);
 
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
-        return idealLocations;
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        ArrayList<Coord> enemyLocations = new ArrayList<>();
+        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
+        ArrayList<Coord> friendLocations = new ArrayList<>();
+        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
+        friendLocations.add(positionCmp.coord);
+        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
     }
 
     @Override
@@ -110,8 +121,7 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
 
-    @Override
-    public AOE getAOE() {
+    private AOE getAOE() {
         return aoe;
     }
 
@@ -156,23 +166,6 @@ public class ArcaneTouch extends Technique implements IAbilityCmpSubSys
     public double getNoiseLvl(Entity performer) {
         return 10;
     }
-
-    @Override
-    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
-    {
-        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        aoe.setOrigin(positionCmp.coord);
-
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
-        ArrayList<Coord> enemyLocations = new ArrayList<>();
-        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
-        ArrayList<Coord> friendLocations = new ArrayList<>();
-        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
-        friendLocations.add(positionCmp.coord);
-        setIdealLocations(aoe.idealLocations(enemyLocations, friendLocations));
-    }
-
-
 
     @Override
     public ItemEvt genItemEvent(Entity performer, Entity target) {

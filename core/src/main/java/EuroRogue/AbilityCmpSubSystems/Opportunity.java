@@ -29,7 +29,7 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class Opportunity implements IAbilityCmpSubSys
+public class Opportunity extends Ability
 {
     //private Skill skill = Skill.OPPORTUNITY;
     private Skill skill = null;
@@ -37,12 +37,16 @@ public class Opportunity implements IAbilityCmpSubSys
     private  boolean scroll = false;
     private Integer scrollID = null;
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
-    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available = false;
     private int damage;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private int ttPerform;
+
+    public Opportunity()
+    {
+        super("Opportunity", new PointAOE(Coord.get(-1,-1), 1, 1));
+    }
 
     public Skill getSkill() {
         return skill;
@@ -93,15 +97,18 @@ public class Opportunity implements IAbilityCmpSubSys
         active=false;
     }
 
-    @Override
-    public void setIdealLocations(OrderedMap<Coord, ArrayList<Coord>> targets)
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
-        this.idealLocations = targets;
-    }
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+        aoe.setOrigin(positionCmp.coord);
 
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations() {
-        return idealLocations;
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        ArrayList<Coord> enemyLocations = new ArrayList<>();
+        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
+        ArrayList<Coord> friendLocations = new ArrayList<>();
+        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
+        friendLocations.add(positionCmp.coord);
+        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
     }
 
     @Override
@@ -110,8 +117,7 @@ public class Opportunity implements IAbilityCmpSubSys
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
 
-    @Override
-    public AOE getAOE() {
+    private AOE getAOE() {
         return aoe;
     }
 
@@ -156,21 +162,6 @@ public class Opportunity implements IAbilityCmpSubSys
     @Override
     public double getNoiseLvl(Entity performer) {
         return 0;
-    }
-
-    @Override
-    public void updateAOE(Entity actor, LevelCmp levelCmp, AOE aoe, Entity scrollEntity)
-    {
-        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        aoe.setOrigin(positionCmp.coord);
-
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
-        ArrayList<Coord> enemyLocations = new ArrayList<>();
-        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
-        ArrayList<Coord> friendLocations = new ArrayList<>();
-        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
-        friendLocations.add(positionCmp.coord);
-        setIdealLocations(aoe.idealLocations(enemyLocations, friendLocations));
     }
 
     @Override

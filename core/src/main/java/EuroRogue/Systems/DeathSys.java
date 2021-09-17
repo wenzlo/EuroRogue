@@ -9,7 +9,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
@@ -226,11 +226,12 @@ public class DeathSys extends MyEntitySystem
         CodexCmp codexCmp = (CodexCmp)CmpMapper.getComp(CmpType.CODEX, entity);
         for(Skill skill : codexCmp.prepared)
         {
-            IAbilityCmpSubSys iAbilityCmpSubSys = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, entity);
-            if(iAbilityCmpSubSys!=null)
+
+            Ability abilityComp = (Ability) CmpMapper.getAbilityComp(skill, entity);
+            if(abilityComp!=null)
             {
-                TextCellFactory.Glyph  glyph = iAbilityCmpSubSys.getGlyph();
-                if(glyph!=null) windowCmp.lightingHandler.removeLightByGlyph(iAbilityCmpSubSys.getGlyph());
+                TextCellFactory.Glyph  glyph = abilityComp.getGlyph();
+                if(glyph!=null) windowCmp.lightingHandler.removeLightByGlyph(abilityComp.getGlyph());
             }
 
         }
@@ -244,11 +245,11 @@ public class DeathSys extends MyEntitySystem
         CodexCmp codexCmp = (CodexCmp)CmpMapper.getComp(CmpType.CODEX, entity);
         for(Skill skill : codexCmp.prepared)
         {
-            IAbilityCmpSubSys iAbilityCmpSubSys = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(skill, entity);
-            if(iAbilityCmpSubSys!=null)
+            Ability Ability = (Ability) CmpMapper.getAbilityComp(skill, entity);
+            if(Ability !=null)
             {
-                TextCellFactory.Glyph  glyph = iAbilityCmpSubSys.getGlyph();
-                if(glyph!=null) display.removeGlyph(iAbilityCmpSubSys.getGlyph());
+                TextCellFactory.Glyph  glyph = Ability.getGlyph();
+                if(glyph!=null) display.removeGlyph(Ability.getGlyph());
             }
 
         }

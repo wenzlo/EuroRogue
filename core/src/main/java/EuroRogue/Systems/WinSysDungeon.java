@@ -5,7 +5,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
+
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
@@ -19,6 +19,7 @@ import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidgrid.mapping.LineKit;
@@ -135,9 +136,9 @@ public class WinSysDungeon extends MyEntitySystem
         AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
         if(aimingCmp!=null)
         {
-            IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
+            Ability ability = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
 
-            for(Coord coord : ability.getAOE().findArea().keySet())
+            for(Coord coord : ability.aoe.findArea().keySet())
             {
                 display.put(coord.x, coord.y,".",ability.getSkill().school.color);
             }

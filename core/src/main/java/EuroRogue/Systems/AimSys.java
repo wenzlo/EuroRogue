@@ -7,8 +7,8 @@ import com.badlogic.ashley.utils.ImmutableArray;
 
 import java.util.ArrayList;
 
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.DaggerThrow;
-import EuroRogue.AbilityCmpSubSystems.IAbilityCmpSubSys;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
@@ -22,6 +22,7 @@ import EuroRogue.Components.WeaponCmp;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.WeaponType;
 import squidpony.squidai.AOE;
+import squidpony.squidai.Technique;
 import squidpony.squidmath.Coord;
 
 
@@ -48,15 +49,13 @@ public class AimSys extends MyEntitySystem
         if(entities.size()==0) return;
         Entity actor = getGame().getFocus();
         AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, actor);
-        IAbilityCmpSubSys ability = (IAbilityCmpSubSys) CmpMapper.getAbilityComp(aimingCmp.skill, actor);
-        AOE aoe =  ability.getAOE();
-        aoe.setOrigin(((PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor)).coord);
-        aoe.shift(aimingCmp.aimCoord);
-        updateAbility(ability, actor);
-        ability.setTargetedLocation(aimingCmp.aimCoord);
+        Technique ability = (Technique) CmpMapper.getAbilityComp(aimingCmp.skill, actor);
+        ability.aoe.setOrigin(((PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor)).coord);
+        ability.aoe.shift(aimingCmp.aimCoord);
+        updateAbility((Ability) ability, actor);
     }
 
-    private void updateAbility(IAbilityCmpSubSys abilityCmp, Entity entity)
+    private void updateAbility(Ability abilityCmp, Entity entity)
     {
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Skill skill = abilityCmp.getSkill();
@@ -68,11 +67,9 @@ public class AimSys extends MyEntitySystem
             WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
             weaponType = weaponCmp.weaponType;
         }
-        AOE aoe = abilityCmp.getAOE();
         ArrayList<Coord> targets = new ArrayList<>();
-        for(Coord coord : aoe.findArea().keySet())
+        for(Coord coord : ((Technique)abilityCmp).aoe.findArea().keySet())
         {
-            System.out.println(abilityCmp.getIdealLocations());
             if(levelCmp.actors.containsPosition(coord))
             {
 
