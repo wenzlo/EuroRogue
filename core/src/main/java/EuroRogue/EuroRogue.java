@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
+import EuroRogue.AbilityCmpSubSystems.DaggerThrow;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.Components.AICmp;
@@ -1213,12 +1214,15 @@ public class EuroRogue extends ApplicationAdapter {
 
         else abilityCmp.setAvailable(false);
 
-        /*if(skill == Skill.DAGGER_THROW && abilityCmp.isAvailable())
+        if(skill==Skill.DAGGER_THROW) abilityCmp.setAvailable( weaponType == skill.weaponReq);
+
+        if(skill == Skill.DAGGER_THROW && abilityCmp.isAvailable())
         {
+            System.out.println(weaponEntity);
             ((DaggerThrow)abilityCmp).itemID = weaponEntity.hashCode();
             ((DaggerThrow)abilityCmp).chr = weaponType.chr;
             ((DaggerThrow)abilityCmp).statusEffects = ((MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, entity)).getStatusEffects();
-        }*/
+        }
 
         abilityCmp.setDamage(entity);
         abilityCmp.setTTPerform(entity);
