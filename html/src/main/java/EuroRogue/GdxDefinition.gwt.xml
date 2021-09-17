@@ -13,6 +13,7 @@
 	<entry-point class="EuroRogue.gwt.GwtLauncher" />
 	<set-configuration-property name="gdx.assetpath" value="../assets" />
 	<set-configuration-property name="xsiframe.failIfScriptTag" value="FALSE"/>
+	<extend-configuration-property name="gdx.reflect.include" value="com.badlogic.ashley.core" />
 	<!-- These two lines reduce the work GWT has to do during compilation and also shrink output size. -->
 	<set-property name="user.agent" value="gecko1_8, safari"/>
 	<collapse-property name="user.agent" values="*" />
