@@ -2,13 +2,11 @@ package EuroRogue.Components;
 
 import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.EuroRogue;
@@ -120,8 +118,9 @@ public class AICmp implements Component
                 for(Integer entID:visibleItems)
                 {
                     Entity entity = game.getEntity(entID);
-                    if(entity==null) continue;
+                    if(entity==null ) continue;
                     PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION,entity);
+                    System.out.println(positionCmp);
                     targetLocations.add(positionCmp.coord);
                 }
                 break;

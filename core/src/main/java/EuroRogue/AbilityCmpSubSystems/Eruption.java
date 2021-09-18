@@ -10,9 +10,11 @@ import java.util.List;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.Components.TickerCmp;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
@@ -25,6 +27,7 @@ import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.BlastAOE;
+import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
@@ -104,6 +107,8 @@ public class Eruption extends Ability
     @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
+
+        if(CmpMapper.getComp(CmpType.AIMING, actor) !=null) return new OrderedMap<>();
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
         BlastAOE blastAOE = (BlastAOE) aoe;
@@ -116,7 +121,11 @@ public class Eruption extends Ability
         ArrayList<Coord> friendLocations = new ArrayList<>();
         for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
         friendLocations.add(positionCmp.coord);
-        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
+        OrderedMap<Coord, ArrayList<Coord>> idealLocations = idealLocations(positionCmp.coord, enemyLocations, null);
+        //System.out.println("updating idealLocations - Eruption method");
+        //if(!idealLocations.isEmpty()) apply(positionCmp.coord, idealLocations.keySet().first());
+        //else apply(positionCmp.coord, positionCmp.coord.translate(Direction.UP));
+        return idealLocations;
     }
 
     @Override

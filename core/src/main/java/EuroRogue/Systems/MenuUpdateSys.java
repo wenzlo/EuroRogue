@@ -95,6 +95,7 @@ public class MenuUpdateSys extends MyEntitySystem {
     }
     private void updateFocusHotBar(Entity entity)
     {
+        TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         Entity focusEntity = getGame().getFocus();
         MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, entity);
         WindowCmp window = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, entity);
@@ -231,7 +232,6 @@ public class MenuUpdateSys extends MyEntitySystem {
 
         x = 3;
         y = 0;
-        TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         for (StatusEffect statusEffect : getGame().getStatusEffects(focusEntity))
         {
             StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, focusEntity);

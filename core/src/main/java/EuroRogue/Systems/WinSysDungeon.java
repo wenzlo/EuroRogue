@@ -6,6 +6,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
 
+import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
@@ -136,14 +137,24 @@ public class WinSysDungeon extends MyEntitySystem
         AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
         if(aimingCmp!=null)
         {
-            Ability ability = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
+            Ability ability = (Ability) CmpMapper.getAbilityComp(Skill.ERUPTION, getGame().getFocus());
 
-            for(Coord coord : ability.aoe.findArea().keySet())
+            if(ability!=null)
             {
-                display.put(coord.x, coord.y,".",ability.getSkill().school.color);
+                ability.setMap(levelCmp.bareDungeon);
+                for(Coord coord : ability.possibleTargets(focusPos)) display.put(coord.x, coord.y,".", SColor.GREEN_BAMBOO);
+                for(Coord coord : ability.aoe.findArea().keySet())
+                {
+                    display.put(coord.x, coord.y,".",ability.getSkill().school.color);
+                }
             }
-
         }
+
+
+
+
+
+
 
 
 

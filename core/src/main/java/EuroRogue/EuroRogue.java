@@ -591,8 +591,8 @@ public class EuroRogue extends ApplicationAdapter {
 
             }
             Coord newAimCoord = aimingCmp.aimCoord.translate(direction);
-            if(ability.aoe.getOrigin().distance(newAimCoord)<=ability.aoe.getMaxRange()
-                    && levelCmp.floors.contains(newAimCoord))
+            PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getFocus());
+            if(ability.canTarget(positionCmp.coord, newAimCoord))
                 aimingCmp.aimCoord = aimingCmp.aimCoord.translate(direction);
         },
 
@@ -1156,6 +1156,7 @@ public class EuroRogue extends ApplicationAdapter {
     }
     public void updateAbilities(Entity entity)
     {
+        System.out.println("updating idealLocations - EruoRogue plural method");
         if(entity==null || gameState == GameState.AIMING) return;
         ArrayList<Ability> codexAbilityCmps = new ArrayList<>();
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
@@ -1185,6 +1186,8 @@ public class EuroRogue extends ApplicationAdapter {
     }
     public void updateAbility(Ability abilityCmp, Entity entity, Entity scrollEntity)
     {
+        TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, ticker);
+        if(!tickerCmp.getScheduledActions(entity).isEmpty()) return;
         Skill skill = abilityCmp.getSkill();
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);

@@ -22,7 +22,9 @@ import EuroRogue.Components.WeaponCmp;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.WeaponType;
 import squidpony.squidai.AOE;
+import squidpony.squidai.BlastAOE;
 import squidpony.squidai.Technique;
+import squidpony.squidgrid.Direction;
 import squidpony.squidmath.Coord;
 
 
@@ -48,14 +50,17 @@ public class AimSys extends MyEntitySystem
     {
         if(entities.size()==0) return;
         Entity actor = getGame().getFocus();
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
         AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, actor);
-        Technique ability = (Technique) CmpMapper.getAbilityComp(aimingCmp.skill, actor);
-        ability.aoe.setOrigin(((PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor)).coord);
-        ability.aoe.shift(aimingCmp.aimCoord);
-        updateAbility((Ability) ability, actor);
+        Ability ability = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, actor);
+        if(ability.canTarget(positionCmp.coord, aimingCmp.aimCoord)) ability.apply(positionCmp.coord, aimingCmp.aimCoord);
+        else ability.apply(positionCmp.coord, positionCmp.coord.translate(Direction.UP));
+        System.out.println("updating idealLocations - AimSys method");
+        ability.apply(positionCmp.coord, aimingCmp.aimCoord);
+        //updateAbility((Ability) ability, actor);
     }
 
-    private void updateAbility(Ability abilityCmp, Entity entity)
+ /*   private void updateAbility(Ability abilityCmp, Entity entity)
     {
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Skill skill = abilityCmp.getSkill();
@@ -68,7 +73,7 @@ public class AimSys extends MyEntitySystem
             weaponType = weaponCmp.weaponType;
         }
         ArrayList<Coord> targets = new ArrayList<>();
-        for(Coord coord : ((Technique)abilityCmp).aoe.findArea().keySet())
+        for(Coord coord : abilityCmp.aoe.findArea().keySet())
         {
             if(levelCmp.actors.containsPosition(coord))
             {
@@ -89,6 +94,6 @@ public class AimSys extends MyEntitySystem
         abilityCmp.setDamage(entity);
         abilityCmp.setTTPerform(entity);
         abilityCmp.setAvailable(true);
-    }
+    }*/
 
 }

@@ -76,6 +76,7 @@ public class AISys extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
     private final GWTRNG rng = new GWTRNG();
+    private int  previousTick = 0;
 
     public AISys()
     {
@@ -104,11 +105,21 @@ public class AISys extends MyEntitySystem
         EuroRogue game = getGame();
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, game.ticker);
         LevelCmp level = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
+        int currentTick = ((TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker)).tick;
 
         for (Entity entity: entities)
         {
             if(!ticker.getScheduledActions(entity).isEmpty())continue;
             if( CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, entity)!=null && entity!=getGame().getFocus()) continue;
+            observe(entity);
+            if(currentTick > previousTick)
+            {
+
+                getGame().updateAbilities(entity);
+            }
+            previousTick=currentTick;
+
+
 
             MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
             ArrayList<StatusEffect> focusStatusEffects = getGame().getStatusEffects(getGame().getFocus());
@@ -121,8 +132,8 @@ public class AISys extends MyEntitySystem
             ManaPoolCmp manaPool = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, entity);
             CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
             InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
-            observe(entity);
-            getGame().updateAbilities(entity);
+
+
 
 
             /*if(CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, entity)!=null)
