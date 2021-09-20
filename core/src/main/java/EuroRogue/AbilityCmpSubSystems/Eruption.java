@@ -26,6 +26,7 @@ import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
+import squidpony.squidai.AimLimit;
 import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.Radius;
@@ -50,6 +51,8 @@ public class Eruption extends Ability
     public Eruption()
     {
         super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 1));
+        aoe.getReach().limit = AimLimit.FREE;
+        aoe.getReach().metric = Radius.CIRCLE;
         statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED, DamageType.FIRE));
     }
 
@@ -113,7 +116,7 @@ public class Eruption extends Ability
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
         BlastAOE blastAOE = (BlastAOE) aoe;
         blastAOE.setMaxRange(statsCmp.getIntel());
-        blastAOE.setRadius(statsCmp.getIntel()-1);
+        blastAOE.setRadius(statsCmp.getSpellPower()/4);
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
         ArrayList<Coord> enemyLocations = new ArrayList<>();
@@ -122,10 +125,8 @@ public class Eruption extends Ability
         for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
         friendLocations.add(positionCmp.coord);
         enemyLocations.remove(null);
-        OrderedMap<Coord, ArrayList<Coord>> idealLocations = idealLocations(positionCmp.coord, enemyLocations, null);
-        //System.out.println("updating idealLocations - Eruption method");
-        //if(!idealLocations.isEmpty()) apply(positionCmp.coord, idealLocations.keySet().first());
-        //else apply(positionCmp.coord, positionCmp.coord.translate(Direction.UP));
+        OrderedMap<Coord, ArrayList<Coord>> idealLocations = idealLocations(positionCmp.coord, enemyLocations, friendLocations);
+
         return idealLocations;
     }
 

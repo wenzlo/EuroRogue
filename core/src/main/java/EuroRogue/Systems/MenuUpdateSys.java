@@ -144,16 +144,14 @@ public class MenuUpdateSys extends MyEntitySystem {
                 PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, focusEntity);
                 Coord aimCoord = positionCmp.coord;
                 OrderedMap<Coord, ArrayList<Coord>> idealLocations = abilityCmp.getIdealLocations(focusEntity, levelCmp);
-                if(!idealLocations.isEmpty()) aimCoord = idealLocations.keySet().first();
-                Coord finalAimCoord = aimCoord;
                 primaryAction = new Runnable() {
                     @Override
                     public void run()
                     {
                         if(abilityCmp.isAvailable())
                         {
-                            ((Technique)abilityCmp).aoe.shift(finalAimCoord);
-                            getGame().getFocus().add(new AimingCmp(finalAimCoord, abilityCmp.getSkill()));
+                            abilityCmp.apply(positionCmp.coord, aimCoord);
+                            getGame().getFocus().add(new AimingCmp(abilityCmp.getSkill()));
                             Entity eventEntity = new Entity();
                             GameStateEvt gameStateEvt = new GameStateEvt(GameState.AIMING);
                             eventEntity.add(gameStateEvt);
@@ -217,7 +215,6 @@ public class MenuUpdateSys extends MyEntitySystem {
             if (ability != null)
                 preparedReactions.add((Ability) CmpMapper.getAbilityComp(skill, focusEntity));
         }
-        finalLength = window.columnIndexes[1] - window.columnIndexes[0] - 5;
         x = 2;
         y = 0;
         for (Ability abilityCmp : preparedReactions)

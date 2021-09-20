@@ -282,7 +282,8 @@ public class AISys extends MyEntitySystem
         {
             if(entPos==ai.location) continue;
             Integer entID = levelCmp.actors.get(entPos);
-            Entity otherEnt = getGame().getEntity(entID);FOVCmp otherFOV = (FOVCmp) CmpMapper.getComp(CmpType.FOV,otherEnt);
+            Entity otherEnt = getGame().getEntity(entID);
+            FOVCmp otherFOV = (FOVCmp) CmpMapper.getComp(CmpType.FOV,otherEnt);
             FactionCmp.Faction otherFaction = ((FactionCmp) CmpMapper.getComp(CmpType.FACTION, getGame().getEntity(entID))).faction;
 
             if(selfFOV.visible.contains(entPos))
@@ -397,6 +398,12 @@ public class AISys extends MyEntitySystem
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         ability.spawnGlyph(windowCmp.display, windowCmp.lightingHandler);
         if(ability.getTargetType()==ENEMY) rotate(entity, getGame().getEntity(targetID));
+        if(ability.getTargetType()==AOE && getGame().gameState!=GameState.AIMING)
+        {
+            LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+            Coord location = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity)).coord;
+            ability.apply(location, ability.getIdealLocations(entity, levelCmp).keySet().first());
+        }
 
         return scheduledTick;
     }

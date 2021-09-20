@@ -86,7 +86,6 @@ import EuroRogue.Listeners.ItemListener;
 import EuroRogue.StatusEffectListeners.WaterWalkingListener;
 import EuroRogue.StatusEffectListeners.WellFedListener;
 import EuroRogue.Systems.ActionSys;
-import EuroRogue.Systems.AimSys;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.Systems.MakeCampSys;
 import EuroRogue.Systems.CodexSys;
@@ -119,6 +118,7 @@ import EuroRogue.Systems.RestIdleCampSys;
 import EuroRogue.Systems.AISys;
 import EuroRogue.Systems.TickerSys;
 import squidpony.StringKit;
+import squidpony.squidai.BlastAOE;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.DefaultResources;
@@ -343,7 +343,6 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new StatusEffectRemovalSys());
         engine.addSystem(new NoiseSys());
         engine.addSystem(new MakeCampSys());
-        engine.addSystem(new AimSys());
 
         Family actors = Family.all(AICmp.class).get();
         engine.addEntityListener(actors, new ActorListener(this));
@@ -590,10 +589,16 @@ public class EuroRogue extends ApplicationAdapter {
 
 
             }
-            Coord newAimCoord = aimingCmp.aimCoord.translate(direction);
+            Ability aimAbility = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getFocus());
-            if(ability.canTarget(positionCmp.coord, newAimCoord))
-                aimingCmp.aimCoord = aimingCmp.aimCoord.translate(direction);
+            Coord newAimCoord = ((BlastAOE)aimAbility.aoe).getCenter().translate(direction);
+            if(ability.possibleTargets(positionCmp.coord).contains(newAimCoord)
+                    && levelCmp.floors.contains(newAimCoord))
+            {
+
+                ability.apply(positionCmp.coord, newAimCoord);
+                //engine.getSystem(AimSys.class).setProcessing(true);
+            }
         },
 
                 new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {}));
