@@ -80,8 +80,6 @@ public class ReactionSys extends MyEntitySystem
         for(Integer targetID : actionEvt.targetIDs)
         {
             Entity reactor = getGame().getEntity(targetID);
-
-            StatsCmp reactorStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, reactor);
             if(reactor==null) return;
             Entity actor = getGame().getEntity(actionEvt.performerID);
             ArrayList<Integer> targets = new ArrayList<>();

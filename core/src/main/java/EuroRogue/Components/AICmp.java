@@ -120,7 +120,7 @@ public class AICmp implements Component
                     Entity entity = game.getEntity(entID);
                     if(entity==null ) continue;
                     PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION,entity);
-                    System.out.println(positionCmp);
+
                     targetLocations.add(positionCmp.coord);
                 }
                 break;

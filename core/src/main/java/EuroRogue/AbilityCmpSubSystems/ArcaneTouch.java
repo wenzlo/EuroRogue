@@ -37,7 +37,6 @@ public class ArcaneTouch extends Ability
     private boolean active = true;
     private  boolean scroll = false;
     private Integer scrollID = null;
-    private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
     private boolean available = false;
     private int damage;

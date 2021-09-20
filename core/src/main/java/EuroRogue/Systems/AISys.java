@@ -544,6 +544,7 @@ public class AISys extends MyEntitySystem
     }
     private void rotate(Entity actor, Entity target)
     {
+        if(target == null || actor == null) return;
         GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH,actor);
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
         Coord targetPosition = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, target)).coord;

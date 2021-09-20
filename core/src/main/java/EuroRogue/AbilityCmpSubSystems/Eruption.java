@@ -49,7 +49,7 @@ public class Eruption extends Ability
 
     public Eruption()
     {
-        super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 1, 1));
+        super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 1));
         statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED, DamageType.FIRE));
     }
 
@@ -121,6 +121,7 @@ public class Eruption extends Ability
         ArrayList<Coord> friendLocations = new ArrayList<>();
         for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
         friendLocations.add(positionCmp.coord);
+        enemyLocations.remove(null);
         OrderedMap<Coord, ArrayList<Coord>> idealLocations = idealLocations(positionCmp.coord, enemyLocations, null);
         //System.out.println("updating idealLocations - Eruption method");
         //if(!idealLocations.isEmpty()) apply(positionCmp.coord, idealLocations.keySet().first());

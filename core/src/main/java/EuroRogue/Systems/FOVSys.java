@@ -27,7 +27,7 @@ public class FOVSys extends MyEntitySystem
 
     public FOVSys ()
     {
-        super.priority = 7;
+        super.priority = 8;
     }
 
     /**
@@ -79,6 +79,8 @@ public class FOVSys extends MyEntitySystem
         currentlySeen.or(nightVision);
         fovCmp.seen.or(currentlySeen);
         fovCmp.visible = currentlySeen;
+
+
         //System.out.println(fovCmp.visible);
 
     }

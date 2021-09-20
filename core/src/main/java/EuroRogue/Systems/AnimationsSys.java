@@ -52,7 +52,6 @@ public class AnimationsSys extends MyEntitySystem
         for(Entity entity:entities)
         {
             AnimateGlyphEvt animation = (AnimateGlyphEvt) CmpMapper.getComp(CmpType.ANIM_GLYPH_EVT, entity);
-            Coord entityLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
             animation.processed=true;
 
             /*String[] splitName = StringKit.split(animation.glyph.getName(), " ");

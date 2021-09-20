@@ -107,10 +107,20 @@ public class MeleeAttack extends Ability
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
         ArrayList<Coord> enemyLocations = new ArrayList<>();
-        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
+        for(Integer enemyID : aiCmp.visibleEnemies)
+        {
+            Coord position = levelCmp.actors.getPosition(enemyID);
+            if(position!=null) enemyLocations.add(position);
+        }
+
         ArrayList<Coord> friendLocations = new ArrayList<>();
-        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
+        for(Integer friendlyID : aiCmp.visibleFriendlies)
+        {
+            Coord position = levelCmp.actors.getPosition(friendlyID);
+            if(position!=null) enemyLocations.add(position);
+        }
         friendLocations.add(positionCmp.coord);
+
         return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
     }
 

@@ -54,9 +54,8 @@ public class AimSys extends MyEntitySystem
         AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, actor);
         Ability ability = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, actor);
         if(ability.canTarget(positionCmp.coord, aimingCmp.aimCoord)) ability.apply(positionCmp.coord, aimingCmp.aimCoord);
-        else ability.apply(positionCmp.coord, positionCmp.coord.translate(Direction.UP));
-        System.out.println("updating idealLocations - AimSys method");
-        ability.apply(positionCmp.coord, aimingCmp.aimCoord);
+        else ability.apply(positionCmp.coord, positionCmp.coord);
+        //ability.apply(positionCmp.coord, aimingCmp.aimCoord);
         //updateAbility((Ability) ability, actor);
     }
 

@@ -37,7 +37,6 @@ public class Enlighten extends Ability
     public  boolean scroll = false;
     private Integer scrollID = null;
     private int ttPerform;
-    private AOE aoe = new PointAOE(Coord.get(-1,-1),0,0);
     private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available;

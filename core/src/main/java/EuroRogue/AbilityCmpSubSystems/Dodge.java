@@ -36,8 +36,6 @@ public class Dodge extends Ability
     private Skill skill = Skill.DODGE;
     private  boolean scroll = false;
     private Integer scrollID = null;
-    private AOE aoe = new PointAOE(Coord.get(-1,-1),0,0);
-    private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private  Coord targetedLocation;
     private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();

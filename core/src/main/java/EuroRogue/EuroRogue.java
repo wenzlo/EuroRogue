@@ -850,8 +850,6 @@ public class EuroRogue extends ApplicationAdapter {
                     if(focusTarget!=null)
                     {
                         FOVCmp fovCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, focusTarget);
-                        System.out.println();
-                        System.out.println(fovCmp.visible);
                     }
                     break;
 
@@ -1156,7 +1154,6 @@ public class EuroRogue extends ApplicationAdapter {
     }
     public void updateAbilities(Entity entity)
     {
-        System.out.println("updating idealLocations - EruoRogue plural method");
         if(entity==null || gameState == GameState.AIMING) return;
         ArrayList<Ability> codexAbilityCmps = new ArrayList<>();
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
@@ -1217,11 +1214,10 @@ public class EuroRogue extends ApplicationAdapter {
 
         else abilityCmp.setAvailable(false);
 
-        if(skill==Skill.DAGGER_THROW) abilityCmp.setAvailable( weaponType == skill.weaponReq);
+        if(skill==Skill.DAGGER_THROW && abilityCmp.isAvailable()) abilityCmp.setAvailable( weaponType == skill.weaponReq);
 
         if(skill == Skill.DAGGER_THROW && abilityCmp.isAvailable())
         {
-            System.out.println(weaponEntity);
             ((DaggerThrow)abilityCmp).itemID = weaponEntity.hashCode();
             ((DaggerThrow)abilityCmp).chr = weaponType.chr;
             ((DaggerThrow)abilityCmp).statusEffects = ((MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, entity)).getStatusEffects();

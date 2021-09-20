@@ -43,7 +43,9 @@ public class DeathSys extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
 
-    public DeathSys() {}
+    public DeathSys() {
+        super.priority = 7;
+    }
 
 
     /**
@@ -132,8 +134,6 @@ public class DeathSys extends MyEntitySystem
                         getEngine().addEntity(scrollItem);
 
                         dropLocations.remove(pos);
-
-                        System.out.println("Droping scroll");
                         break;
                     }
 

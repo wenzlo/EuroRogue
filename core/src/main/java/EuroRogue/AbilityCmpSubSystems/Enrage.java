@@ -37,7 +37,6 @@ public class Enrage extends Ability
     private  boolean scroll = false;
     private Integer scrollID = null;
     private int ttPerform;
-    private AOE aoe = new PointAOE(Coord.get(-1,-1),0,0);
     private Coord targetedLocation;
     private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
