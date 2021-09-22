@@ -106,16 +106,15 @@ public class MenuUpdateSys extends MyEntitySystem {
         List<Ability> preparedAbilities = new ArrayList<>();
         for (Skill skill : codexCmp.getPreparedActions())
         {
-            Ability ability = (Ability) CmpMapper.getAbilityComp(skill, focusEntity);
+            Ability ability = CmpMapper.getAbilityComp(skill, focusEntity);
             if (ability != null)
-                preparedAbilities.add((Ability) CmpMapper.getAbilityComp(skill, focusEntity));
+                preparedAbilities.add(CmpMapper.getAbilityComp(skill, focusEntity));
         }
         int finalLength = window.columnIndexes[2] - window.columnIndexes[1] - 5;
         int x = 0;
         int y = 0;
         for (Ability abilityCmp : preparedAbilities)
         {
-
             Coord coord = Coord.get(x, y);
             Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
 
@@ -126,7 +125,6 @@ public class MenuUpdateSys extends MyEntitySystem {
                 getGame().globalMenuIndex++;
             }
             else abilityLabel = getActionLabel(abilityCmp, null, finalLength);
-
 
             MenuItem menuItem = new MenuItem(abilityLabel);
             Runnable primaryAction = new Runnable()
@@ -204,16 +202,14 @@ public class MenuUpdateSys extends MyEntitySystem {
             menuItem.addPrimaryAction(primaryAction);
             menuCmp.menuMap.put(coord, chr, menuItem);
             keyLookup.put(chr, menuCmp);
-
             y++;
-
         }
 
         List<Ability> preparedReactions = new ArrayList<>();
         for (Skill skill : codexCmp.getPreparedReactions()) {
-            Ability ability = (Ability) CmpMapper.getAbilityComp(skill, focusEntity);
+            Ability ability = CmpMapper.getAbilityComp(skill, focusEntity);
             if (ability != null)
-                preparedReactions.add((Ability) CmpMapper.getAbilityComp(skill, focusEntity));
+                preparedReactions.add(CmpMapper.getAbilityComp(skill, focusEntity));
         }
         x = 2;
         y = 0;
@@ -241,7 +237,6 @@ public class MenuUpdateSys extends MyEntitySystem {
             menuCmp.menuMap.put(coord, null, menuItem);
             y++;
         }
-
     }
     private void updateTargetHotBar(Entity entity)
     {
@@ -254,9 +249,9 @@ public class MenuUpdateSys extends MyEntitySystem {
         List<Ability> preparedAbilities = new ArrayList<>();
         for (Skill skill : codexCmp.getPreparedActions())
         {
-            Ability ability = (Ability) CmpMapper.getAbilityComp(skill, focusTarget);
+            Ability ability = CmpMapper.getAbilityComp(skill, focusTarget);
             if (ability != null)
-                preparedAbilities.add((Ability) CmpMapper.getAbilityComp(skill, focusTarget));
+                preparedAbilities.add(CmpMapper.getAbilityComp(skill, focusTarget));
         }
         int finalLength = window.columnIndexes[1] - window.columnIndexes[0] - 2;
         int x = 0;
@@ -277,7 +272,7 @@ public class MenuUpdateSys extends MyEntitySystem {
 
             scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
             if (scrollCmp != null)
-                scrollAbilities.add((Ability) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity));
+                scrollAbilities.add(CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity));
         }
         finalLength = window.columnIndexes[2] - window.columnIndexes[1] - 2;
         x = 1;
@@ -294,9 +289,9 @@ public class MenuUpdateSys extends MyEntitySystem {
 
         List<Ability> preparedReactions = new ArrayList<>();
         for (Skill skill : codexCmp.getPreparedReactions()) {
-            Ability ability = (Ability) CmpMapper.getAbilityComp(skill, focusTarget);
+            Ability ability = CmpMapper.getAbilityComp(skill, focusTarget);
             if (ability != null)
-                preparedReactions.add((Ability) CmpMapper.getAbilityComp(skill, focusTarget));
+                preparedReactions.add(CmpMapper.getAbilityComp(skill, focusTarget));
         }
 
         finalLength = window.columnIndexes[1] - window.columnIndexes[0] - 2;
@@ -431,15 +426,11 @@ public class MenuUpdateSys extends MyEntitySystem {
                     }
                 };
                 keyLookup.put(chr, menuCmp);
-
             }
             menuItem = new MenuItem(getSlotLabel(equipmentID, chr, slot));
             menuItem.addPrimaryAction(primaryAction);
             menuItem.addSecondaryAction(secondaryAction);
-
             menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
-
-
             y++;
         }
 

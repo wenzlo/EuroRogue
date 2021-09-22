@@ -111,37 +111,41 @@ public class DamageApplicationSys extends MyEntitySystem
             ability = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, scrollEntity);
         }
 
-        for(Integer targetID : actionEvt.targetIDs)
+        for(Integer targetID : actionEvt.targetsDmg.keySet())
         {
             Entity targetEntity = getGame().getEntity(targetID);
 
 
             StatsCmp targetStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, targetEntity);
 
-            if(actionEvt.finalDmg >0)
-                actionEvt.finalDmg = Math.round(actionEvt.finalDmg *(1+(1-targetStats.getResistMultiplier(ability.getDmgType(performerEntity)))));
-            if(actionEvt.finalDmg >0 || actionEvt.skill.skillType == Skill.SkillType.REACTION)
+            if(actionEvt.targetsDmg.get(targetID) >0)
+            {
+                int dmg = Math.round(actionEvt.targetsDmg.get(targetID) *(1+(1-targetStats.getResistMultiplier(ability.getDmgType(performerEntity)))));
+                actionEvt.targetsDmg.replace(targetID, dmg);
+            }
+
+            if(actionEvt.targetsDmg.get(targetID) >0 || actionEvt.skill.skillType == Skill.SkillType.REACTION)
             {
                 Frozen frozen = (Frozen) CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, targetEntity);
                 if(frozen!=null) targetEntity.remove(frozen.getClass());
 
 
             }
-            targetStats.hp = targetStats.hp-actionEvt.finalDmg;
+            targetStats.hp = targetStats.hp-actionEvt.targetsDmg.get(targetID);
 
             if(targetStats.hp<=0)
             {
-                if(performerEntity!=targetEntity && actionEvt.skill.skillType != Skill.SkillType.REACTION && actionEvt.baseDmg>0)
+                if(performerEntity!=targetEntity && actionEvt.skill.skillType != Skill.SkillType.REACTION && ability.getDamage()>0)
                     ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateActionLogEvt(targetEntity, actionEvt, ability).entry);
                 targetEntity.add(new DeathEvt(targetEntity.hashCode()));
                 return;
             }
-            if(actionEvt.skill.skillType != Skill.SkillType.REACTION && actionEvt.baseDmg>0)
+            if(actionEvt.skill.skillType != Skill.SkillType.REACTION && ability.getDamage()>0)
                 ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateActionLogEvt(targetEntity, actionEvt, ability).entry);
             if(!actionEvt.statusEffects.isEmpty())
             {
 
-                if(ability.getSkill() == Skill.MELEE_ATTACK && actionEvt.finalDmg <=0) return;
+                if(ability.getSkill() == Skill.MELEE_ATTACK && actionEvt.targetsDmg.get(targetID) <=0) return;
 
                 else
                 {
@@ -189,7 +193,7 @@ public class DamageApplicationSys extends MyEntitySystem
         coloredEvtText.append(" hits ", SColor.SILVER_GREY);
         coloredEvtText.append(targetName, targetColor);
         coloredEvtText.append(" ", SColor.SILVER_GREY);
-        coloredEvtText.append(actionEvt.finalDmg.toString()+"/"+actionEvt.baseDmg.toString()+" ", SColor.WHITE);
+        coloredEvtText.append(actionEvt.targetsDmg.get(targetEntity.hashCode()).toString()+"/"+ability.getDamage()+" ", SColor.WHITE);
         coloredEvtText.append(ability.getDmgType(performerEntity).toString(), actionEvt.skill.school.color);
         coloredEvtText.append(" damage!", SColor.WHITE);
         return new LogEvt(tick, coloredEvtText);

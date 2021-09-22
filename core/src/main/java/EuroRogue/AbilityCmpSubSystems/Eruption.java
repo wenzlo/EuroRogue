@@ -29,9 +29,11 @@ import squidpony.squidai.AOE;
 import squidpony.squidai.AimLimit;
 import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Direction;
+import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
+import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.OrderedMap;
 
 public class Eruption extends Ability
@@ -52,8 +54,33 @@ public class Eruption extends Ability
     {
         super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 1));
         aoe.getReach().limit = AimLimit.FREE;
-        aoe.getReach().metric = Radius.CIRCLE;
         statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED, DamageType.FIRE));
+    }
+
+
+    /**
+     * -Need to override this for any Ability with a non-Point AOE to set targetedLocation-ER
+     *
+     * This does one last validation of the location aimAt (checking that it is within the valid range for this
+     * Technique) before getting the area affected by the AOE targeting that cell. It considers the origin of the AOE
+     * to be the Coord parameter user, for purposes of directional limitations and for AOE implementations that need
+     * the user's location, such as ConeAOE and LineAOE.
+     * <p>
+     * YOU MUST CALL setMap() with the current map status at some point before using this method, and call it again if
+     * the map changes. Failure to do so can cause serious bugs, from logic errors where monsters consider a door
+     * closed when it is open or vice versa, to an ArrayIndexOutOfBoundsException being thrown if the player moved to a
+     * differently-sized map and the Technique tries to use the previous map with coordinates from the new one.
+     *
+     * @param user  The position of the Technique's user, x first, y second.
+     * @param aimAt A target Coord typically obtained from idealLocations that determines how to position the AOE.
+     * @return a HashMap of Coord keys to Double values from 1.0 (fully affected) to 0.0 (unaffected).
+     */
+    @Override
+    public OrderedMap<Coord, Double> apply(Coord user, Coord aimAt)
+    {
+        setTargetedLocation(aimAt);
+        return super.apply(user, aimAt);
+
     }
 
     public Skill getSkill() {
@@ -110,13 +137,12 @@ public class Eruption extends Ability
     @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
-
         if(CmpMapper.getComp(CmpType.AIMING, actor) !=null) return new OrderedMap<>();
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
         BlastAOE blastAOE = (BlastAOE) aoe;
         blastAOE.setMaxRange(statsCmp.getIntel());
-        blastAOE.setRadius(statsCmp.getSpellPower()/4);
+        blastAOE.setRadius(1+statsCmp.getIntel()/3);
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
         ArrayList<Coord> enemyLocations = new ArrayList<>();
@@ -124,7 +150,6 @@ public class Eruption extends Ability
         ArrayList<Coord> friendLocations = new ArrayList<>();
         for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
         friendLocations.add(positionCmp.coord);
-        enemyLocations.remove(null);
         OrderedMap<Coord, ArrayList<Coord>> idealLocations = idealLocations(positionCmp.coord, enemyLocations, friendLocations);
 
         return idealLocations;
@@ -136,9 +161,6 @@ public class Eruption extends Ability
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
 
-    private AOE getAOE() {
-        return aoe;
-    }
 
     @Override
     public float getDmgReduction(StatsCmp statsCmp) {

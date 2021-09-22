@@ -180,6 +180,26 @@ public class Ability extends Technique implements IAbilityCmpSubSys
         return 0;
     }
 
+    /**
+     * This does one last validation of the location aimAt (checking that it is within the valid range for this
+     * Technique) before getting the area affected by the AOE targeting that cell. It considers the origin of the AOE
+     * to be the Coord parameter user, for purposes of directional limitations and for AOE implementations that need
+     * the user's location, such as ConeAOE and LineAOE.
+     * <p>
+     * YOU MUST CALL setMap() with the current map status at some point before using this method, and call it again if
+     * the map changes. Failure to do so can cause serious bugs, from logic errors where monsters consider a door
+     * closed when it is open or vice versa, to an ArrayIndexOutOfBoundsException being thrown if the player moved to a
+     * differently-sized map and the Technique tries to use the previous map with coordinates from the new one.
+     *
+     * @param user  The position of the Technique's user, x first, y second.
+     * @param aimAt A target Coord typically obtained from idealLocations that determines how to position the AOE.
+     * @return a HashMap of Coord keys to Double values from 1.0 (fully affected) to 0.0 (unaffected).
+     */
+    @Override
+    public OrderedMap<Coord, Double> apply(Coord user, Coord aimAt) {
+        return super.apply(user, aimAt);
+    }
+
     public static Ability newAbilityCmp(Skill skill, char[][] map)
     {
         switch (skill)

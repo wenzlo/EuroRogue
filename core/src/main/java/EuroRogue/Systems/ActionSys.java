@@ -9,6 +9,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.LevelCmp;
@@ -73,31 +74,41 @@ public class ActionSys extends MyEntitySystem
         for(Entity entity:entities)
         {
             ActionEvt action = (ActionEvt) CmpMapper.getComp(CmpType.ACTION_EVT, entity);
+
             if(action.isProcessed()) return;
             action.processed=true;
 
             Entity performerEntity = getGame().getEntity(action.performerID);
-            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(action.skill, performerEntity);
+            Ability abilityCmp = CmpMapper.getAbilityComp(action.skill, performerEntity);
+            if(action.scrollID!=null) abilityCmp = getGame().getScrollAbilityCmp(action.skill, performerEntity);
             TargetType targetType = abilityCmp.getTargetType();
             Entity targetEntity = null;
-            if(!action.targetIDs.isEmpty() && targetType != AOE)
-                targetEntity = getGame().getEntity(action.targetIDs.get(0));
+            if(!action.targetsDmg.isEmpty() && targetType != AOE)
+                targetEntity = getGame().getEntity((Integer) action.targetsDmg.keySet().toArray()[0]);
 
-            else action.targetIDs = getAOEtargets((Technique) abilityCmp);
+            else
+            {
+                ArrayList<Integer> aoeTargets = getAOEtargets(abilityCmp);
+                for(Integer targetId : aoeTargets)
+                {
+                    Entity aoeTarEnt = getGame().getEntity(targetId);
+                    PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, aoeTarEnt);
+                    int dmg = (int) (abilityCmp.aoe.findArea().get(positionCmp.coord)*abilityCmp.getDamage());
+                    System.out.println(dmg);
+                    action.targetsDmg.put(targetId, dmg);
+                }
+                System.out.println("______________");
+
+            }
+
+
 
             if(targetEntity != null)
             {
                 abilityCmp.setTargetedLocation(((PositionCmp) CmpMapper.getComp(CmpType.POSITION, targetEntity)).coord);
             }
 
-            Entity scrollEntity = null;
-            if(action.scrollID!=null)
-            {
-                scrollEntity = getGame().getEntity(action.scrollID);
-
-                abilityCmp = (Ability) CmpMapper.getAbilityComp(action.skill, scrollEntity);
-            }
-            if(targetType!=AOE) getGame().updateAbility(abilityCmp, performerEntity, scrollEntity);
+            if(targetType!=AOE) getGame().updateAbility(abilityCmp, performerEntity);
             if(abilityCmp==null) System.out.println("Ability comp = Null");
             if(!abilityCmp.isAvailable() && abilityCmp.getSkill().skillType != Skill.SkillType.REACTION || performerEntity==null)
             {
@@ -117,7 +128,7 @@ public class ActionSys extends MyEntitySystem
 
                 if(action.scrollID==null) ((ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, performerEntity)).spendMana(abilityCmp.getSkill().castingCost);
                 else
-                {
+                {   Entity scrollEntity = getGame().getEntity(action.scrollID);
                     ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, scrollEntity);
                     scrollCmp.consumed= true;
                     Entity eventEntity = new Entity();
@@ -141,6 +152,7 @@ public class ActionSys extends MyEntitySystem
                     getEngine().addEntity(damageEvtEntity);
                 }
                 generateActionLogEvt(action, performerEntity);
+
             }
         }
     }

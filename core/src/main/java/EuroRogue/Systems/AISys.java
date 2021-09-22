@@ -112,29 +112,20 @@ public class AISys extends MyEntitySystem
             if(!ticker.getScheduledActions(entity).isEmpty())continue;
             if( CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, entity)!=null && entity!=getGame().getFocus()) continue;
             observe(entity);
-            if(currentTick > previousTick)
-            {
+            getGame().updateAbilities(entity);
 
-                getGame().updateAbilities(entity);
-            }
             previousTick=currentTick;
-
-
 
             MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
             ArrayList<StatusEffect> focusStatusEffects = getGame().getStatusEffects(getGame().getFocus());
             if(focusStatusEffects.contains(StatusEffect.FROZEN) || focusStatusEffects.contains(StatusEffect.BURNING))
                 if(display.hasActiveAnimations()) continue;
 
-
             PositionCmp position = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
             AICmp ai = (AICmp) CmpMapper.getComp(CmpType.AI, entity);
             ManaPoolCmp manaPool = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, entity);
             CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
             InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
-
-
-
 
             /*if(CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, entity)!=null)
             {
@@ -157,7 +148,6 @@ public class AISys extends MyEntitySystem
                 continue;
             }
 
-
             if(manaPool.inert(codexCmp) && getGame().gameState == GameState.PLAYING)
             {
                 scheduleRestEvt(entity);
@@ -172,7 +162,6 @@ public class AISys extends MyEntitySystem
 
                 continue;
             }
-
 
            /* String name = ((NameCmp) CmpMapper.getComp(CmpType.NAME, entity)).name;
             IColoredString.Impl<SColor> coloredString = new IColoredString.Impl<>(ticker.tick+" "+name+" takes turn", SColor.WHITE);
@@ -203,7 +192,6 @@ public class AISys extends MyEntitySystem
                 }
             }
             if(itemEventScheduled) continue;
-
 
             ArrayList<Ability> availableAbilities = getAvailableActions(entity);
             if(!availableAbilities.isEmpty() &! ai.visibleEnemies.isEmpty())
@@ -343,7 +331,7 @@ public class AISys extends MyEntitySystem
         for(Skill skill : codexCmp.prepared)
         {
             Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(skill, entity);
-            getGame().updateAbility(abilityCmp, entity, null);
+            getGame().updateAbility(abilityCmp, entity);
             //if(entity== getGame().getFocusTarget()) System.out.println(skill+" "+abilityComp.isAvailable());
             if(skill.skillType== Skill.SkillType.REACTION) continue;
 
@@ -356,7 +344,7 @@ public class AISys extends MyEntitySystem
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
             if(scrollCmp.consumed) continue;
             Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
-            getGame().updateAbility(abilityCmp, entity, itemEntity);
+            getGame().updateAbility(abilityCmp, entity);
             if(abilityCmp.isAvailable() && abilityCmp.getSkill().skillType != Skill.SkillType.REACTION)
             {
                 availableAbilities.add(abilityCmp);
@@ -387,11 +375,11 @@ public class AISys extends MyEntitySystem
         Integer targetID;
         if(targetType==SELF) targetID=entity.hashCode();
         else targetID = aiCmp.target;
-        ArrayList<Integer> targets = new ArrayList<>();
-        targets.add(targetID);
+        HashMap<Integer, Integer> targets = new HashMap<>();
+        targets.put(targetID, ability.getDamage());
         if(ability.getTargetType()==AOE) targets.clear();
 
-        ActionEvt actionEvt = new ActionEvt(entity.hashCode(), ability.getScrollID(), ability.getSkill(), targets, ability.getDamage(), ability.getStatusEffects());
+        ActionEvt actionEvt = new ActionEvt(entity.hashCode(), ability.getScrollID(), ability.getSkill(), targets, ability.getStatusEffects());
         ScheduledEvt scheduledEvt = new ScheduledEvt(scheduledTick,entity.hashCode(),actionEvt);
         ticker.actionQueue.add(scheduledEvt);
 

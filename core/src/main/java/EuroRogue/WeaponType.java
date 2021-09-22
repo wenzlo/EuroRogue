@@ -8,7 +8,7 @@ public enum WeaponType
     DAGGER       ("Dagger", DamageType.PIERCING,   '+', new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP}, StatusEffect.BLEEDING, StatusEffect.DAGGER_EFCT),
     QUARTER_STAFF("Quarter Staff", DamageType.BLUDGEONING,'-', new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP},  null, StatusEffect.QSTAFF_EFCT),
     STAFF(        "Staff", DamageType.BLUDGEONING,'|', new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP},  StatusEffect.STAGGERED, StatusEffect.STAFF_EFCT),
-    SWORD        ("Sword", DamageType.SLASHING,   '†', new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP}, StatusEffect.BLEEDING, StatusEffect.SWORD_EFCT);
+    SWORD        ("Sword", DamageType.SLASHING,   '†', new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP}, null, StatusEffect.SWORD_EFCT);
 
     public String name;
     public DamageType damageType;

@@ -18,9 +18,11 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.WindowCmp;
+import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
 import EuroRogue.AbilityCmpSubSystems.Ability;
+import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidgrid.mapping.LineKit;
@@ -68,6 +70,9 @@ public class WinSysDungeon extends MyEntitySystem
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         FOVCmp focusFov = ((FOVCmp) CmpMapper.getComp(CmpType.FOV,getGame().getFocus()));
         Coord focusPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,getGame().getFocus())).coord;
+        AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
+        Ability aimAbility = null;
+        if(aimingCmp!=null) aimAbility = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
         LineKit.pruneLines(levelCmp.lineDungeon, focusFov.seen, levelCmp.prunedDungeon);
         MySparseLayers display = windowCmp.display;
         display.clear();
@@ -105,14 +110,19 @@ public class WinSysDungeon extends MyEntitySystem
 
 
 
-                    if (levelCmp.floors.contains(Coord.get(x, y))){
+                        if(getGame().gameState== GameState.AIMING)
+                        {
+                            if(aimAbility!=null)
+                            {
+                                Coord coord = Coord.get(x,y);
+                                char chr = levelCmp.decoDungeon[x][y];
+                                if(!levelCmp.floors.contains(coord)) chr = levelCmp.prunedDungeon[x][y];
+                                if(aimAbility.possibleTargets(focusPos, levelCmp.resistance).contains(x,y)) display.put(x, y, chr, SColor.GREEN_BAMBOO);
+                                if(aimAbility.aoe.findArea().keySet().contains(coord)) display.put(x, y, chr, SColor.SAFETY_ORANGE);
+                            }
+                        }
 
-                    }
-
-                        //display.put(x, y, SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.bgColors[x][y], 0.3f));
-                        //display.put(x, y, SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.bgColors[x][y], 0.3f));
-
-                    else display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.4f));
+                        else if(!levelCmp.floors.contains(x,y))display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.12f));
 
 
 
@@ -134,27 +144,6 @@ public class WinSysDungeon extends MyEntitySystem
                 }
             }
         }
-        AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
-        if(aimingCmp!=null)
-        {
-            Ability ability = (Ability) CmpMapper.getAbilityComp(Skill.ERUPTION, getGame().getFocus());
-
-            if(ability!=null)
-            {
-                ability.setMap(levelCmp.bareDungeon);
-                for(Coord coord : ability.possibleTargets(focusPos)) display.put(coord.x, coord.y,".", SColor.GREEN_BAMBOO);
-                for(Coord coord : ability.aoe.findArea().keySet())
-                {
-                    display.put(coord.x, coord.y,".",ability.getSkill().school.color);
-                }
-            }
-        }
-
-
-
-
-
-
 
 
 

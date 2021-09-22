@@ -12,7 +12,6 @@ import java.util.Collections;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
-import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
@@ -108,12 +107,12 @@ public class AnimationsSys extends MyEntitySystem
                                 }
                             }
                         };
-                        if(actionEvt.targetIDs.isEmpty())
+                        if(actionEvt.targetsDmg.isEmpty())
                         {
                             TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actor)).leftGlyph;
                             display.tint(0f, glyph, SColor.SAFETY_ORANGE.toFloatBits(),0.75f, postRunnable);
                         }
-                        for(Integer targetID : actionEvt.targetIDs)
+                        for(Integer targetID : actionEvt.targetsDmg.keySet())
                         {
 
                             Entity targetActor = getGame().getEntity(targetID);
@@ -135,7 +134,7 @@ public class AnimationsSys extends MyEntitySystem
                     SColor color = actionEvt.skill.school.color;
                     Light light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
 
-                    Entity target = getGame().getEntity(actionEvt.targetIDs.get(0));
+                    Entity target = getGame().getEntity(actionEvt.targetsDmg.get(0));
                     TextCellFactory.Glyph targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
 
@@ -169,7 +168,7 @@ public class AnimationsSys extends MyEntitySystem
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     color = actionEvt.skill.school.color;
 
-                    target = getGame().getEntity(actionEvt.targetIDs.get(0));
+                    target = getGame().getEntity(actionEvt.targetsDmg.get(0));
                     targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
 
@@ -198,7 +197,7 @@ public class AnimationsSys extends MyEntitySystem
                     ye = animation.endLocation.y;
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     color = actionEvt.skill.school.color;
-                    target = getGame().getEntity(actionEvt.targetIDs.get(0));
+                    target = getGame().getEntity(actionEvt.targetsDmg.get(0));
                     targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
                     light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
@@ -229,7 +228,7 @@ public class AnimationsSys extends MyEntitySystem
                     ye = animation.endLocation.y;
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     color = actionEvt.skill.school.color;
-                    target = getGame().getEntity(actionEvt.targetIDs.get(0));
+                    target = getGame().getEntity(actionEvt.targetsDmg.get(0));
                     targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
                     light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);

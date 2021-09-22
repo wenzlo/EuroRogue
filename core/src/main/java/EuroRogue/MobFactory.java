@@ -93,7 +93,7 @@ public class MobFactory
         glyphsCmp.leftGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         glyphsCmp.rightGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         mob.add(glyphsCmp);
-        StatsCmp statsCmp =game.getRandomStats(12+(depth*2));
+        StatsCmp statsCmp =game.getRandomStats(7+(depth*2));
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
 
@@ -131,7 +131,6 @@ public class MobFactory
         }
         Ability newAbility = Ability.newAbilityCmp(Skill.MELEE_ATTACK, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel)).bareDungeon);
         mob.add(newAbility);
-        System.out.println(((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel)).bareDungeon);
         spentLimit = spentLimit - Skill.MELEE_ATTACK.prepCost.length;
 
 

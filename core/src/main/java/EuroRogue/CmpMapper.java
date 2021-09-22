@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.Entity;
 
 import java.util.HashMap;
 
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 
@@ -36,9 +37,9 @@ public class CmpMapper
         return compMappers.get(cmpType).get(entity);
     }
 
-    public static Component getAbilityComp(Skill skill, Entity entity)
+    public static Ability getAbilityComp(Skill skill, Entity entity)
     {
-        return abilityMappers.get(skill).get(entity);
+        return (Ability) abilityMappers.get(skill).get(entity);
     }
     public static Component getStatusEffectComp(StatusEffect effectType, Entity entity)
     {
