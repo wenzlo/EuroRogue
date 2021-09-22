@@ -40,6 +40,7 @@ import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WeaponCmp;
 import EuroRogue.Components.WindowCmp;
+import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.Components.PositionCmp;
@@ -147,6 +148,7 @@ public class EuroRogue extends ApplicationAdapter {
     public CmpMapper cmpMapper = new CmpMapper();
     public Integer globalMenuIndex = 0;
     public char[] globalMenuSelectionKeys = "1234567890-=qweruiop[]".toCharArray();
+    public HashMap<Character, MenuCmp> keyLookup = new HashMap();
     public Entity gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, ticker, logWindow, currentLevel;
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows;
     public float lastFrameTime;
@@ -174,7 +176,6 @@ public class EuroRogue extends ApplicationAdapter {
     public InputMultiplexer inputProcessor;
     private final Color bgColor=Color.BLACK;
     public int depth = 0;
-
 
     public void newGame()
     {
@@ -456,16 +457,16 @@ public class EuroRogue extends ApplicationAdapter {
 
 
         startInput = new SquidInput((key, alt, ctrl, shift) -> {
-            for(Character chr : engine.getSystem(MenuUpdateSys.class).keyLookup.keySet())
+            for(Character chr : keyLookup.keySet())
             {
                 if(chr == key)
                 {
-                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
+                    keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
                     return;
                 }
                 if(getShiftChar(chr)==key)
                 {
-                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
+                    keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
                     return;
                 }
             }
@@ -494,29 +495,49 @@ public class EuroRogue extends ApplicationAdapter {
 
         campInput = new SquidInput((key, alt, ctrl, shift) -> {
 
+            //System.out.println(keyLookup.keySet());
 
-            for(Character chr : engine.getSystem(MenuUpdateSys.class).keyLookup.keySet())
+            if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
+            {
+                if(shift) keyLookup.get(getUnshiftedChar(key)).menuMap.get(getUnshiftedChar(key)).runSecondaryAction();
+                else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
+                return;
+            }
+            /*for(Character chr : keyLookup.keySet())
             {
 
                 if(chr == key)
                 {
 
 
-                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
+                    keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
                     return;
                 }
                 if(getShiftChar(chr)==key)
                 {
-                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
+                    keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
                     return;
                 }
-            }
-            if(key=='c')
+            }*/
+            if(key=='c'|| key == SquidInput.ESCAPE)
             {
+                campInput.setIgnoreInput(true);
                 Entity gameStateEvtEnt = new Entity();
                 engine.addEntity(gameStateEvtEnt);
                 gameStateEvtEnt.add(new GameStateEvt(GameState.PLAYING));
-
+                for(Entity entity : engine.getEntitiesFor(Family.one(CampEvt.class).get()))
+                {
+                    CampEvt campEvt = (CampEvt)CmpMapper.getComp(CmpType.CAMP_EVT, entity);
+                    for(Integer equipmentID : campEvt.equippedIDs)
+                    {
+                        Entity eventEntity = new Entity();
+                        ItemEvt itemEvt = new ItemEvt(equipmentID, getFocus().hashCode(), ItemEvtType.EQUIP);
+                        eventEntity.add(itemEvt);
+                        engine.addEntity(eventEntity);
+                    }
+                    campEvt.processed = true;
+                    break;
+                }
                 AISys aiSys = engine.getSystem(AISys.class);
                 aiSys.scheduleRestEvt(getFocus());
             }
@@ -533,19 +554,19 @@ public class EuroRogue extends ApplicationAdapter {
 
             if(aimingCmp==null) return;
 
-            for(Character chr : engine.getSystem(MenuUpdateSys.class).keyLookup.keySet())
+            for(Character chr : keyLookup.keySet())
             {
 
                 if(chr == key)
                 {
 
 
-                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
+                    keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
                     return;
                 }
                 if(getShiftChar(chr)==key)
                 {
-                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
+                    keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
                     return;
                 }
             }
@@ -611,16 +632,16 @@ public class EuroRogue extends ApplicationAdapter {
             if(!tickerCmp.getScheduledActions(getFocus()).isEmpty()) return;
 
 
-            for(Character chr : engine.getSystem(MenuUpdateSys.class).keyLookup.keySet())
+            for(Character chr : keyLookup.keySet())
             {
                 if(chr == key)
                 {
-                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
+                    keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
                     return;
                 }
                 if(getShiftChar(chr)==key)
                 {
-                    engine.getSystem(MenuUpdateSys.class).keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
+                    keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
                     return;
                 }
             }
@@ -1282,6 +1303,37 @@ public class EuroRogue extends ApplicationAdapter {
             case 'p': return 'P';
             case '[': return '{';
             case ']': return '}';
+        }
+        return ' ';
+    }
+    private char getUnshiftedChar(char chr)
+    {
+        switch (chr)
+        {
+            case '!': return '1';
+            case '@': return '2';
+            case '#': return '3';
+            case '$': return '4';
+            case '%': return '5';
+            case '^': return '6';
+            case '&': return '7';
+            case '*': return '8';
+            case '(': return '9';
+            case ')': return '0';
+            case '_': return '-';
+            case '+': return '=';
+            case 'Q': return 'q';
+            case 'W': return 'w';
+            case 'E': return 'e';
+            case 'R': return 'r';
+            case 'T': return 't';
+            case 'Y': return 'y';
+            case 'U': return 'u';
+            case 'I': return 'i';
+            case 'O': return 'o';
+            case 'P': return 'p';
+            case '{': return '[';
+            case '}': return ']';
         }
         return ' ';
     }

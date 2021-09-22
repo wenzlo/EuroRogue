@@ -97,7 +97,9 @@ public class WinSysStats extends MyEntitySystem
                 }
             }
             MeleeAttack meleeAttack = (MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, getGame().getFocus());
-            display.put(20,16,"Noise Lvl="+meleeAttack.getNoiseLvl(getGame().getFocus()), SColor.WHITE);
+            double noiseLvl = 0;
+            if(meleeAttack!=null) noiseLvl = meleeAttack.getNoiseLvl(getGame().getFocus());
+            display.put(20,16,"Noise Lvl="+noiseLvl, SColor.WHITE);
 
             stage.getViewport().apply(false);
             stage.act();

@@ -109,7 +109,7 @@ public class RestIdleCampSys extends MyEntitySystem
         for(Entity entity: campingEnts)
         {
             CampEvt campEvt = (CampEvt) CmpMapper.getComp(CmpType.CAMP_EVT, entity);
-            campEvt.processed = true;
+
             Entity actorEntity = getGame().getEntity(campEvt.actorID);
             ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, actorEntity);
             List<School> cost = new ArrayList<>(manaPoolCmp.active);

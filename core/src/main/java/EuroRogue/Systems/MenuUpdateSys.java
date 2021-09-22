@@ -53,7 +53,7 @@ import squidpony.squidmath.OrderedMap;
 
 public class MenuUpdateSys extends MyEntitySystem {
     private ImmutableArray<Entity> entities;
-    public HashMap<Character, MenuCmp> keyLookup = new HashMap();
+
 
     public MenuUpdateSys()
     {
@@ -77,7 +77,7 @@ public class MenuUpdateSys extends MyEntitySystem {
     public void update(float deltaTime)
     {
         getGame().globalMenuIndex = 0;
-        keyLookup.clear();
+        getGame().keyLookup.clear();
         for (Entity entity : entities)
         {
             if(!((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, entity)).display.isVisible()) continue;
@@ -116,15 +116,15 @@ public class MenuUpdateSys extends MyEntitySystem {
         for (Ability abilityCmp : preparedAbilities)
         {
             Coord coord = Coord.get(x, y);
-            Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+            Character chr = null;
 
             IColoredString.Impl abilityLabel;
-            if(getGame().gameState!= GameState.CAMPING || getGame().gameState!= GameState.AIMING)
+            if(getGame().gameState == GameState.PLAYING)
             {
-                abilityLabel = getActionLabel(abilityCmp, chr, finalLength);
+                chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
                 getGame().globalMenuIndex++;
             }
-            else abilityLabel = getActionLabel(abilityCmp, null, finalLength);
+            abilityLabel = getActionLabel(abilityCmp, chr, finalLength);
 
             MenuItem menuItem = new MenuItem(abilityLabel);
             Runnable primaryAction = new Runnable()
@@ -141,7 +141,6 @@ public class MenuUpdateSys extends MyEntitySystem {
 
                 PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, focusEntity);
                 Coord aimCoord = positionCmp.coord;
-                OrderedMap<Coord, ArrayList<Coord>> idealLocations = abilityCmp.getIdealLocations(focusEntity, levelCmp);
                 primaryAction = new Runnable() {
                     @Override
                     public void run()
@@ -161,7 +160,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             }
             menuItem.addPrimaryAction(primaryAction);
             menuCmp.menuMap.put(coord, chr, menuItem);
-            keyLookup.put(chr, menuCmp);
+            getGame().keyLookup.put(chr, menuCmp);
             y++;
 
         }
@@ -201,7 +200,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             };
             menuItem.addPrimaryAction(primaryAction);
             menuCmp.menuMap.put(coord, chr, menuItem);
-            keyLookup.put(chr, menuCmp);
+            getGame().keyLookup.put(chr, menuCmp);
             y++;
         }
 
@@ -237,6 +236,8 @@ public class MenuUpdateSys extends MyEntitySystem {
             menuCmp.menuMap.put(coord, null, menuItem);
             y++;
         }
+
+
     }
     private void updateTargetHotBar(Entity entity)
     {
@@ -378,7 +379,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             menuItem.addPrimaryAction(primaryAction);
             menuItem.addSecondaryAction(secondaryAction);
             menuCmp.menuMap.put(coord, chr, menuItem);
-            keyLookup.put(chr, menuCmp);
+            getGame().keyLookup.put(chr, menuCmp);
             y++;
 
         }
@@ -425,7 +426,7 @@ public class MenuUpdateSys extends MyEntitySystem {
                         getGame().engine.addEntity(eventEntity);
                     }
                 };
-                keyLookup.put(chr, menuCmp);
+                getGame().keyLookup.put(chr, menuCmp);
             }
             menuItem = new MenuItem(getSlotLabel(equipmentID, chr, slot));
             menuItem.addPrimaryAction(primaryAction);
@@ -433,6 +434,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
             y++;
         }
+
 
 
     }
@@ -486,7 +488,9 @@ public class MenuUpdateSys extends MyEntitySystem {
 
             menuItem.addPrimaryAction(primaryAction);
             menuCmp.menuMap.put(coord, charKey, menuItem);
-            keyLookup.put(charKey, menuCmp);
+
+            getGame().keyLookup.put(charKey, menuCmp);
+
 
             y++;
             getGame().globalMenuIndex++;
@@ -531,7 +535,8 @@ public class MenuUpdateSys extends MyEntitySystem {
             menuItem.addPrimaryAction(primaryAction);
             menuItem.addSecondaryAction(secondaryAction);
             menuCmp.menuMap.put(coord, charKey, menuItem);
-            keyLookup.put(charKey, menuCmp);
+            getGame().keyLookup.put(charKey, menuCmp);
+
 
             y++;
             getGame().globalMenuIndex++;
@@ -560,9 +565,9 @@ public class MenuUpdateSys extends MyEntitySystem {
             };
             eatFood.addPrimaryAction(primaryAction);
             menuCmp.menuMap.put(Coord.get(x,y), chr, eatFood);
-            keyLookup.put(chr, menuCmp);
-        }
+            getGame().keyLookup.put(chr, menuCmp);
 
+        }
     }
     private void updateStartMenu(Entity entity)
     {
@@ -579,7 +584,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         MenuItem menuItem = new MenuItem(new IColoredString.Impl("1) New Game", SColor.WHITE));
         menuItem.addPrimaryAction(primaryAction);
         menuCmp.menuMap.put(Coord.get(1,1), '1', menuItem );
-        keyLookup.put('1', menuCmp);
+        getGame().keyLookup.put('1', menuCmp);
     }
     private IColoredString.Impl getActionLabel(Ability abilityCmp, Character selectionKey, int totalLength)
     {

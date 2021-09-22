@@ -191,11 +191,10 @@ public class LightingSys extends MyEntitySystem
             for(Coord coord : aimAbility.possibleTargets(positionCmp.coord) )
             {
                 if(aimAbility.aoe.findArea().keySet().contains(coord) || !levelCmp.floors.contains(coord)) continue;
-                System.out.println(coord);
                 for(int x=-0; x<3; x++){
                     for(int y=0; y<3; y++)
                     {
-                        System.out.println((coord.x*3+x)+" "+(coord.y*3+y));
+
                         lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y] = SColor.lerpFloatColors(lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y], SColor.GREEN_BAMBOO.toFloatBits(), 0.15f);
                     }
                 }
@@ -206,7 +205,7 @@ public class LightingSys extends MyEntitySystem
                 for(int x=0; x<3; x++){
                     for(int y=0; y<3; y++)
                     {
-                        System.out.println((coord.x*3+x)+" "+(coord.y*3+y));
+
                         lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y] = SColor.lerpFloatColors(lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y], SColor.SAFETY_ORANGE.toFloatBits(), 0.15f);
                     }
                 }

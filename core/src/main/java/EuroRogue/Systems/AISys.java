@@ -426,10 +426,12 @@ public class AISys extends MyEntitySystem
     public int scheduleCampEvt (Entity entity)
     {
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
+        InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
+
 
         int scheduledTick = ticker.tick + 100;
 
-        CampEvt campEvt = new CampEvt(entity.hashCode());
+        CampEvt campEvt = new CampEvt(entity.hashCode(), inventoryCmp.getEquippedIDs());
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
         ScheduledEvt scheduledEvt = new ScheduledEvt(scheduledTick,entity.hashCode(),campEvt);
         ticker.actionQueue.add(scheduledEvt);
