@@ -48,6 +48,7 @@ import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.mapping.DungeonUtility;
+import squidpony.squidgrid.mapping.Placement;
 import squidpony.squidgrid.mapping.SerpentMapGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
@@ -187,7 +188,9 @@ public class LevelSys extends MyEntitySystem
         aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(aiCmp.decoDungeon));
         player.add(new FOVCmp(getGame().bigWidth,getGame().bigHeight));
         newLevel.actors.add(getGame().dungeonGen.stairsUp, player.hashCode(), player.hashCode());
-        GreasedRegion spwnCrds = new GreasedRegion(newLevel.decoDungeon, '.');
+        getGame().placement = new Placement(getGame().dungeonGen.finder);
+        GreasedRegion spwnCrds = new GreasedRegion();
+        spwnCrds.addAll(getGame().placement.getHidingPlaces(Radius.CIRCLE, 7));
         GreasedRegion stairsUpFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(newLevel.resistance, new double[newLevel.resistance.length][newLevel.resistance[0].length] , getGame().dungeonGen.stairsUp.x, getGame().dungeonGen.stairsUp.y),0.0).not();
         if(getGame().getEntity(player.hashCode())==null)
         {
@@ -195,10 +198,13 @@ public class LevelSys extends MyEntitySystem
         }
         player.add(new FocusCmp());
 
+
+
+        System.out.println(getGame().placement.getHidingPlaces(Radius.CIRCLE, 5));
         for(int i=0;i<10;i++)
         {
 
-            Coord itemLoc = rng.getRandomElement(spwnCrds);
+            Coord itemLoc = getGame().placement.getHidingPlaces(Radius.CIRCLE,5).randomItem(rng);
             spwnCrds.remove(itemLoc);
 
             Skill skill = rng.getRandomElement(Arrays.asList(Skill.values()));

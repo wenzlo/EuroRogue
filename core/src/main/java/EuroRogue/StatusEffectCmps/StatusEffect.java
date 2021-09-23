@@ -119,7 +119,7 @@ public enum StatusEffect
                 statusEffectCmp = new Bleeding();
                 break;
             case ENLIGHTENED:
-                statusEffectCmp = new Enlightened();
+                statusEffectCmp = new Enlightened(SERemovalType.SHORT_REST, targetStats);
                 break;
             case STAGGERED:
                 statusEffectCmp = new Staggered();

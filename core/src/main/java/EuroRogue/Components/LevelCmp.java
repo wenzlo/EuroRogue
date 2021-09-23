@@ -12,6 +12,7 @@ import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.SpatialMap;
 import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.LineKit;
+import squidpony.squidgrid.mapping.Placement;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GreasedRegion;
 
@@ -24,6 +25,7 @@ public class LevelCmp implements Component
     public GreasedRegion floors;
     public SpatialMap<Integer, Integer> actors = new SpatialMap();
     public SpatialMap<Integer, Integer> items = new SpatialMap();
+
 
     public LevelCmp(){}
     public LevelCmp (char[][] decoDungeon, char[][] bareDungeon, int[][] environment)

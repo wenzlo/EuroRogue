@@ -127,6 +127,7 @@ import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.SquidInput;
 import squidpony.squidgrid.gui.gdx.SquidMouse;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
+import squidpony.squidgrid.mapping.Placement;
 import squidpony.squidgrid.mapping.SectionDungeonGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
@@ -159,6 +160,7 @@ public class EuroRogue extends ApplicationAdapter {
     public GWTRNG rng;
 
     public SectionDungeonGenerator dungeonGen;
+    public Placement placement;
     /** In number of cells */
     private static final int gridWidth = 166;
     /** In number of cells */
@@ -191,8 +193,6 @@ public class EuroRogue extends ApplicationAdapter {
         dungeonGen.addLake(35);
 
         //dungeonGen.utility.closeDoors(preDungeon);
-
-
         currentLevel = new Entity();
         engine.addEntity(currentLevel);
 
