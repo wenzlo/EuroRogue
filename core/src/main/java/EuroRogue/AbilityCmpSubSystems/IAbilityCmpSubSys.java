@@ -35,6 +35,7 @@ public interface IAbilityCmpSubSys extends Component
     boolean     getActive();
     void        activate();
     void        inactivate();
+    void        updateAOE(Entity performer);
     OrderedMap<Coord, ArrayList<Coord>>
                 getIdealLocations(Entity actor, LevelCmp levelCmp);
     void        setTargetedLocation(Coord targetLocation);

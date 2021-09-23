@@ -20,7 +20,7 @@ public class WeaponCmp implements Component
     {
         this.weaponType = weaponType;
         if(weaponType.appliedEffect!=null)
-            this.statusEffects.put(weaponType.appliedEffect, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED, WeaponType.DAGGER.damageType));
+            this.statusEffects.put(weaponType.appliedEffect, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
     }
 
 

@@ -48,7 +48,7 @@ public class Chill extends Ability
     public Chill()
     {
         super("Chilled", new PointAOE(Coord.get(-1,-1), 1, 1));
-        statusEffects.put(StatusEffect.CHILLED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED, DamageType.ICE));
+        statusEffects.put(StatusEffect.CHILLED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
     }
 
 
@@ -105,10 +105,16 @@ public class Chill extends Ability
     }
 
     @Override
+    public void updateAOE(Entity performer)
+    {
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
+        aoe.setOrigin(positionCmp.coord);
+    }
+
+    @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        aoe.setOrigin(positionCmp.coord);
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
         ArrayList<Coord> enemyLocations = new ArrayList<>();

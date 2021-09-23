@@ -55,11 +55,13 @@ public class DamageApplicationSys extends MyEntitySystem
         for(Entity entity:entities)
         {
             ActionEvt actionEvt = (ActionEvt) CmpMapper.getComp(CmpType.ACTION_EVT, entity);
+            Entity performerEntity = getGame().getEntity(actionEvt.performerID);
 
             if(actionEvt!=null)
             {
                 if(!actionEvt.isProcessed()) return;
-                processActionEvt(actionEvt);
+                processActionEvt(actionEvt, performerEntity);
+                genStatusEffectEvts(actionEvt, performerEntity);
             }
             DamageEvent damageEvent = (DamageEvent) CmpMapper.getComp(CmpType.DAMAGE_EVT, entity);
             if(damageEvent!=null)
@@ -69,41 +71,36 @@ public class DamageApplicationSys extends MyEntitySystem
             }
         }
     }
-
-    public void genStatusEffectEvts(ActionEvt actionEvt, Entity performer, Entity target)
+    public void genStatusEffectEvts(ActionEvt actionEvt, Entity performer)
     {
-
-        StatsCmp targetStats = (StatsCmp)CmpMapper.getComp(CmpType.STATS, target);
         TickerCmp tickerCmp = (TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         Ability ability = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, performer);
         if(actionEvt.scrollID!=null)
         {
             Entity scroll = getGame().getScrollForSkill(actionEvt.skill, performer);
-
             ability = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, scroll);
         }
 
         for(StatusEffect statusEffect: actionEvt.statusEffects.keySet())
         {
+            for(Integer targetID : actionEvt.targetsDmg.keySet())
+            {
+                SEParameters seParameters = actionEvt.statusEffects.get(statusEffect);
+                Integer duration = ability.getStatusEffectDuration((StatsCmp) CmpMapper.getComp(CmpType.STATS, performer), statusEffect);
 
-            int targetID = target.hashCode();
-            SEParameters seParameters = actionEvt.statusEffects.get(statusEffect);
-            if(seParameters.targetType == TargetType.SELF) targetID = performer.hashCode();
-            Integer duration = ability.getStatusEffectDuration((StatsCmp) CmpMapper.getComp(CmpType.STATS, performer), statusEffect);
-            if(duration!=null)
-                duration = Math.round(duration*(1+(1-targetStats.getResistMultiplier(seParameters.resistanceType))));
-            StatusEffectEvt statusEffectEvt = new StatusEffectEvt(tickerCmp.tick, duration, statusEffect, ability.getSkill(),  performer.hashCode(), targetID, seParameters.seRemovalType);
-            Entity eventEntity = new Entity();
-            eventEntity.add(statusEffectEvt);
-            getEngine().addEntity(eventEntity);
-
+                if(duration!=null)
+                {
+                    duration = Math.round(duration * (actionEvt.targetsDmg.get(targetID) / (float)ability.getDamage()));
+                }
+                StatusEffectEvt statusEffectEvt = new StatusEffectEvt(tickerCmp.tick, duration, statusEffect, ability.getSkill(),  performer.hashCode(), targetID, seParameters.seRemovalType);
+                Entity eventEntity = new Entity();
+                eventEntity.add(statusEffectEvt);
+                getEngine().addEntity(eventEntity);
+            }
         }
-
-
     }
-    public void processActionEvt(ActionEvt actionEvt)
+    public void processActionEvt(ActionEvt actionEvt, Entity performerEntity)
     {
-        Entity performerEntity = getGame().getEntity(actionEvt.performerID);
         Ability ability = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, performerEntity);
         if(actionEvt.scrollID!=null)
         {
@@ -142,18 +139,6 @@ public class DamageApplicationSys extends MyEntitySystem
             }
             if(actionEvt.skill.skillType != Skill.SkillType.REACTION && ability.getDamage()>0)
                 ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateActionLogEvt(targetEntity, actionEvt, ability).entry);
-            if(!actionEvt.statusEffects.isEmpty())
-            {
-
-                if(ability.getSkill() == Skill.MELEE_ATTACK && actionEvt.targetsDmg.get(targetID) <=0) return;
-
-                else
-                {
-                    genStatusEffectEvts(actionEvt, performerEntity, targetEntity);
-                    //((LogCmp) CmpMapper.getComp(LOG, getGame().logWindow)).logEntries.add(generateSEffectLogEvt(actionEvt).entry);
-                }
-
-            }
         }
     }
     public void processDamageEvt(Entity entity, DamageEvent damageEvt)

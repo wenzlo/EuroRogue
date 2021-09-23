@@ -45,7 +45,7 @@ public class Enlighten extends Ability
     public Enlighten()
     {
         super("Enlighten", new PointAOE(Coord.get(-1,-1),0,0));
-        statusEffects.put(StatusEffect.ENLIGHTENED, new SEParameters(TargetType.SELF, SERemovalType.SHORT_REST, DamageType.NONE));
+        statusEffects.put(StatusEffect.ENLIGHTENED, new SEParameters(TargetType.SELF, SERemovalType.SHORT_REST));
     }
 
     @Override
@@ -97,10 +97,16 @@ public class Enlighten extends Ability
     }
 
     @Override
+    public void updateAOE(Entity performer)
+    {
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
+        aoe.setOrigin(positionCmp.coord);
+    }
+
+    @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
         Coord location = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,actor)).coord;
-        aoe.setOrigin(location);
         ArrayList<Coord> self = new ArrayList<>();
         self.add(location);
         return new OrderedMap(self,self);

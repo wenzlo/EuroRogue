@@ -24,6 +24,7 @@ import EuroRogue.CmpType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.MySparseLayers;
 import squidpony.squidai.AOE;
+import squidpony.squidai.BlastAOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -103,11 +104,19 @@ public class MagicMissile extends Ability
     }
 
     @Override
+    public void updateAOE(Entity performer)
+    {
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
+
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
+        aoe.setOrigin(positionCmp.coord);
+        aoe.setMaxRange(statsCmp.getIntel());
+    }
+
+    @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
-        aoe.setMaxRange(statsCmp.getIntel());
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
         ArrayList<Coord> enemyLocations = new ArrayList<>();

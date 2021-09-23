@@ -5,6 +5,10 @@ import com.badlogic.ashley.core.Entity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
+import EuroRogue.Components.PositionCmp;
 import EuroRogue.LightHandler;
 import EuroRogue.TargetType;
 import EuroRogue.DamageType;
@@ -82,6 +86,9 @@ public class Ability extends Technique implements IAbilityCmpSubSys
     public void inactivate() {
 
     }
+
+    @Override
+    public void updateAOE(Entity performer) { }
 
     @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp) {

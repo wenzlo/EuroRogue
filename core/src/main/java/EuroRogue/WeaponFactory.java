@@ -40,7 +40,7 @@ public class WeaponFactory
         weapon.add(new ItemCmp(ItemType.WEAPON));
         weapon.add(new CharCmp(weaponType.chr, SColor.LIGHT_GRAY));
         EquipmentCmp equipmentCmp = new EquipmentCmp(weaponType.slots);
-        equipmentCmp.statusEffects.put(weaponType.grantedEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER, weaponType.damageType));
+        equipmentCmp.statusEffects.put(weaponType.grantedEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER));
         weapon.add(equipmentCmp);
         WeaponCmp weaponCmp = new WeaponCmp(weaponType);
         if(weaponType==WeaponType.DAGGER)weaponCmp.throwable=true;
@@ -69,7 +69,7 @@ public class WeaponFactory
     public static void addOnHitSE (Entity weaponEntity, StatusEffect statusEffect, TargetType targetType)
     {
         WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
-        weaponCmp.statusEffects.put(statusEffect, new SEParameters(targetType, SERemovalType.TIMED, weaponCmp.weaponType.damageType));
+        weaponCmp.statusEffects.put(statusEffect, new SEParameters(targetType, SERemovalType.TIMED));
         NameCmp nameCmp = (NameCmp) CmpMapper.getComp(CmpType.NAME, weaponEntity);
         nameCmp.name = nameCmp.name+" of "+StatusEffect.getEffectDescriptorPost(statusEffect);
 
@@ -81,7 +81,7 @@ public class WeaponFactory
     public static void addOnEquipSE (Entity weaponEntity, StatusEffect statusEffect)
     {
         EquipmentCmp equipmentCmp = (EquipmentCmp) CmpMapper.getComp(CmpType.EQUIPMENT, weaponEntity);
-        equipmentCmp.statusEffects.put(statusEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER, statusEffect.resistance));
+        equipmentCmp.statusEffects.put(statusEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER));
         NameCmp nameCmp = (NameCmp) CmpMapper.getComp(CmpType.NAME, weaponEntity);
         nameCmp.name = StatusEffect.getEffectDescriptorPre(statusEffect)+" "+nameCmp.name;
     }

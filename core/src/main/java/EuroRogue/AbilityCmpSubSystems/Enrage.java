@@ -13,6 +13,7 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.EventComponents.ItemEvt;
+import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
@@ -26,6 +27,8 @@ import EuroRogue.MySparseLayers;
 import EuroRogue.CmpType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
+import squidpony.squidgrid.gui.gdx.Radiance;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
@@ -40,12 +43,13 @@ public class Enrage extends Ability
     private Coord targetedLocation;
     private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
+    public TextCellFactory.Glyph glyph;
 
 
     public Enrage()
     {
         super("Enrage", new PointAOE(Coord.get(-1,-1),0,0));
-        statusEffects.put(StatusEffect.ENRAGED, new SEParameters(TargetType.SELF, SERemovalType.SHORT_REST, DamageType.NONE));
+        statusEffects.put(StatusEffect.ENRAGED, new SEParameters(TargetType.SELF, SERemovalType.SHORT_REST));
     }
 
     @Override
@@ -97,11 +101,17 @@ public class Enrage extends Ability
     {
         active=false;
     }
+
+    @Override
+    public void updateAOE(Entity performer)
+    {
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
+        aoe.setOrigin(positionCmp.coord);
+    }
     @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
         Coord location = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,actor)).coord;
-        aoe.setOrigin(location);
         ArrayList<Coord> self = new ArrayList<>();
         self.add(location);
         return new OrderedMap(self,self);
@@ -139,7 +149,8 @@ public class Enrage extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler) {
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    {
 
     }
 

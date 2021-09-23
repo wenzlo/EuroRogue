@@ -19,6 +19,7 @@ import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
+import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
@@ -31,6 +32,8 @@ import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Radius;
+import squidpony.squidgrid.gui.gdx.Radiance;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GreasedRegion;
@@ -54,7 +57,7 @@ public class Eruption extends Ability
     {
         super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 1));
         aoe.getReach().limit = AimLimit.FREE;
-        statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED, DamageType.FIRE));
+        statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
     }
 
 
@@ -135,14 +138,24 @@ public class Eruption extends Ability
     }
 
     @Override
+    public void updateAOE(Entity performer)
+    {
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
+
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
+        BlastAOE blastAOE = (BlastAOE) aoe;
+        blastAOE.setMaxRange(statsCmp.getIntel());
+        blastAOE.setRadius(1+statsCmp.getIntel()/3);
+        blastAOE.setOrigin(positionCmp.coord);
+    }
+
+    @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
         if(CmpMapper.getComp(CmpType.AIMING, actor) !=null) return new OrderedMap<>();
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
-        BlastAOE blastAOE = (BlastAOE) aoe;
-        blastAOE.setMaxRange(statsCmp.getIntel());
-        blastAOE.setRadius(1+statsCmp.getIntel()/3);
+
+
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
         ArrayList<Coord> enemyLocations = new ArrayList<>();
@@ -212,8 +225,6 @@ public class Eruption extends Ability
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        TextCellFactory.Glyph glyph = getGlyph();
-
         return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
     }
 
@@ -225,7 +236,12 @@ public class Eruption extends Ability
     @Override
     public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
     {
+        glyph = display.glyph('•',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
+        SColor color = skill.school.color;
 
+        Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));
+        glyph.setName(light.hashCode() + " " + "0" + " temp");
+        lightingHandler.addLight(light.hashCode(), light);
     }
 
     @Override

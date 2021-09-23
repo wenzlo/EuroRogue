@@ -13,7 +13,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.DaggerThrow;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
@@ -119,7 +118,6 @@ import EuroRogue.Systems.RestIdleCampSys;
 import EuroRogue.Systems.AISys;
 import EuroRogue.Systems.TickerSys;
 import squidpony.StringKit;
-import squidpony.squidai.BlastAOE;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.DefaultResources;
@@ -132,9 +130,9 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidgrid.mapping.SectionDungeonGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -148,7 +146,7 @@ public class EuroRogue extends ApplicationAdapter {
     public CmpMapper cmpMapper = new CmpMapper();
     public Integer globalMenuIndex = 0;
     public char[] globalMenuSelectionKeys = "1234567890-=qweruiop[]".toCharArray();
-    public HashMap<Character, MenuCmp> keyLookup = new HashMap();
+    public HashMap<Character, MenuCmp> keyLookup = new HashMap<>();
     public Entity gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, ticker, logWindow, currentLevel;
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows;
     public float lastFrameTime;
@@ -209,7 +207,7 @@ public class EuroRogue extends ApplicationAdapter {
 
 
     }
-    public void initializeWindows()
+    private void initializeWindows()
     {
         dungeonWindow = new Entity();
         Stage dungeonStage = buildStage(42,22,23,23,42,42,cellWidth*3,cellHeight*3, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
@@ -297,7 +295,7 @@ public class EuroRogue extends ApplicationAdapter {
         allWindows = Arrays.asList(gameOverWindow, startWindow, dungeonWindow, campWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
         playingWindows = Arrays.asList(dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
         campingWindows = Arrays.asList(campWindow, focusManaWindow, focusHotBar, inventoryWindow, focusStatsWindow, logWindow);
-        startWindows = Arrays.asList(startWindow);
+        startWindows = Collections.singletonList(startWindow);
         gameOverWindows = Arrays.asList(gameOverWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow );
 
         for(Entity windowEntity : allWindows)
@@ -305,46 +303,8 @@ public class EuroRogue extends ApplicationAdapter {
             ((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
         }
     }
-    @Override
-    public void create ()
+    private void initializeListeners()
     {
-        ticker = new Entity();
-        currentLevel = new Entity();
-        engine.addEntity(currentLevel);
-        engine.addEntity(ticker);
-        ticker.add(new TickerCmp());
-        engine.addSystem(new WinSysGameOver());
-        engine.addSystem(new TickerSys());
-        engine.addSystem(new CodexSys());
-        engine.addSystem(new EventCleanUpSys());
-        engine.addSystem(new WinSysLog());
-        engine.addSystem(new WinSysStats());
-        engine.addSystem(new ActionSys());
-        engine.addSystem(new ReactionSys());
-        engine.addSystem(new AnimationsSys());
-        engine.addSystem(new RestIdleCampSys());
-        engine.addSystem(new WinSysHotBar());
-        engine.addSystem(new WinSysStart());
-        engine.addSystem(new WinSysInventory());
-        engine.addSystem(new MovementSys());
-        engine.addSystem(new FOVSys());
-        engine.addSystem(new AISys());
-        engine.addSystem(new DamageApplicationSys());
-        engine.addSystem(new FocusTargetSys());
-        engine.addSystem(new WinSysDungeon());
-        engine.addSystem(new WinSysMana());
-        engine.addSystem(new ItemSys());
-        engine.addSystem(new StatusEffectEvtSys());
-        engine.addSystem(new MenuUpdateSys());
-        engine.addSystem(new GameStateSys());
-        engine.addSystem(new WinSysCamp());
-        engine.addSystem(new StatSys());
-        engine.addSystem(new LightingSys());
-        engine.addSystem(new DeathSys());
-        engine.addSystem(new StatusEffectRemovalSys());
-        engine.addSystem(new NoiseSys());
-        engine.addSystem(new MakeCampSys());
-
         Family actors = Family.all(AICmp.class).get();
         engine.addEntityListener(actors, new ActorListener(this));
         Family items = Family.all(ItemCmp.class, PositionCmp.class).get();
@@ -406,6 +366,52 @@ public class EuroRogue extends ApplicationAdapter {
 
         Family plateArmor = Family.one(PlateArmorEfct.class).get();
         engine.addEntityListener(plateArmor, new PlateArmorListener(this));
+    }
+    private void initializeSystems()
+    {
+        ticker.add(new TickerCmp());
+        engine.addSystem(new WinSysGameOver());
+        engine.addSystem(new TickerSys());
+        engine.addSystem(new CodexSys());
+        engine.addSystem(new EventCleanUpSys());
+        engine.addSystem(new WinSysLog());
+        engine.addSystem(new WinSysStats());
+        engine.addSystem(new ActionSys());
+        engine.addSystem(new ReactionSys());
+        engine.addSystem(new AnimationsSys());
+        engine.addSystem(new RestIdleCampSys());
+        engine.addSystem(new WinSysHotBar());
+        engine.addSystem(new WinSysStart());
+        engine.addSystem(new WinSysInventory());
+        engine.addSystem(new MovementSys());
+        engine.addSystem(new FOVSys());
+        engine.addSystem(new AISys());
+        engine.addSystem(new DamageApplicationSys());
+        engine.addSystem(new FocusTargetSys());
+        engine.addSystem(new WinSysDungeon());
+        engine.addSystem(new WinSysMana());
+        engine.addSystem(new ItemSys());
+        engine.addSystem(new StatusEffectEvtSys());
+        engine.addSystem(new MenuUpdateSys());
+        engine.addSystem(new GameStateSys());
+        engine.addSystem(new WinSysCamp());
+        engine.addSystem(new StatSys());
+        engine.addSystem(new LightingSys());
+        engine.addSystem(new DeathSys());
+        engine.addSystem(new StatusEffectRemovalSys());
+        engine.addSystem(new NoiseSys());
+        engine.addSystem(new MakeCampSys());
+    }
+    @Override
+    public void create ()
+    {
+        ticker = new Entity();
+        currentLevel = new Entity();
+        engine.addEntity(currentLevel);
+        engine.addEntity(ticker);
+
+        initializeSystems();
+        initializeListeners();
 
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
@@ -422,6 +428,8 @@ public class EuroRogue extends ApplicationAdapter {
         // This filters colors in a way we adjust over time, producing a sort of hue shift effect.
         // It can also be used to over- or under-saturate colors, change their brightness, or any combination of these.
         FloatFilters.YCwCmFilter warmMildFilter = new FloatFilters.YCwCmFilter(0.875f, 0.6f, 0.6f);
+        FloatFilters.ColorizeFilter sepiaFilter = new FloatFilters.ColorizeFilter(SColor.CLOVE_BROWN, 0.6f, 0.0f);
+        FloatFilters.LerpFilter burningFilter = new FloatFilters.LerpFilter(SColor.SAFETY_ORANGE.toFloatBits(), 0.2f);
 
         // FilterBatch is exactly like libGDX' SpriteBatch, except it is a fair bit faster when the Batch color is set
         // often (which is always true for SquidLib's text-based display), and it allows a FloatFilter to be optionally
@@ -457,18 +465,11 @@ public class EuroRogue extends ApplicationAdapter {
 
 
         startInput = new SquidInput((key, alt, ctrl, shift) -> {
-            for(Character chr : keyLookup.keySet())
+            if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
             {
-                if(chr == key)
-                {
-                    keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
-                    return;
-                }
-                if(getShiftChar(chr)==key)
-                {
-                    keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
-                    return;
-                }
+                if(shift) keyLookup.get(getUnshiftedChar(key)).menuMap.get(getUnshiftedChar(key)).runSecondaryAction();
+                else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
+                return;
             }
             switch (key)
             {
@@ -477,11 +478,7 @@ public class EuroRogue extends ApplicationAdapter {
                     return;
             }
 
-
-
             playerName = playerName + key;
-
-
         },
                 //The second parameter passed to a SquidInput can be a SquidMouse, which takes mouse or touchscreen
                 //input and converts it to grid coordinates (here, a cell is 10 wide and 20 tall, so clicking at the
@@ -494,8 +491,6 @@ public class EuroRogue extends ApplicationAdapter {
                 }));
 
         campInput = new SquidInput((key, alt, ctrl, shift) -> {
-
-            //System.out.println(keyLookup.keySet());
 
             if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
             {
@@ -541,7 +536,6 @@ public class EuroRogue extends ApplicationAdapter {
                 AISys aiSys = engine.getSystem(AISys.class);
                 aiSys.scheduleRestEvt(getFocus());
             }
-
         },
 
                 new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {}));
@@ -554,21 +548,11 @@ public class EuroRogue extends ApplicationAdapter {
 
             if(aimingCmp==null) return;
 
-            for(Character chr : keyLookup.keySet())
+            if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
             {
-
-                if(chr == key)
-                {
-
-
-                    keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
-                    return;
-                }
-                if(getShiftChar(chr)==key)
-                {
-                    keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
-                    return;
-                }
+                if(shift) keyLookup.get(getUnshiftedChar(key)).menuMap.get(getUnshiftedChar(key)).runSecondaryAction();
+                else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
+                return;
             }
 
             Direction direction = Direction.NONE;
@@ -631,19 +615,11 @@ public class EuroRogue extends ApplicationAdapter {
             TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, ticker);
             if(!tickerCmp.getScheduledActions(getFocus()).isEmpty()) return;
 
-
-            for(Character chr : keyLookup.keySet())
+            if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
             {
-                if(chr == key)
-                {
-                    keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
-                    return;
-                }
-                if(getShiftChar(chr)==key)
-                {
-                    keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
-                    return;
-                }
+                if(shift) keyLookup.get(getUnshiftedChar(key)).menuMap.get(getUnshiftedChar(key)).runSecondaryAction();
+                else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
+                return;
             }
 
             int newX = focusPosition.x;
@@ -1220,7 +1196,7 @@ public class EuroRogue extends ApplicationAdapter {
     }
     public void updateAbility(Ability abilityCmp, Entity entity)
     {
-        abilityCmp.scroll();
+        abilityCmp.updateAOE(entity);
         TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, ticker);
         if(!tickerCmp.getScheduledActions(entity).isEmpty()) return;
         Skill skill = abilityCmp.getSkill();
@@ -1250,8 +1226,6 @@ public class EuroRogue extends ApplicationAdapter {
             abilityCmp.setAvailable(canAfford && !abilityCmp.getIdealLocations(entity, levelCmp).isEmpty() && abilityCmp.getActive());
         }
         else if(abilityCmp.getTargetType() == TargetType.AOE) abilityCmp.setAvailable(canAfford);
-
-        //else abilityCmp.setAvailable(false);
 
         if(skill==Skill.DAGGER_THROW && abilityCmp.isAvailable()) abilityCmp.setAvailable( weaponType == skill.weaponReq);
 

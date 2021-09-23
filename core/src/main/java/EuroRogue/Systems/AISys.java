@@ -373,7 +373,12 @@ public class AISys extends MyEntitySystem
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, entity);
         Integer targetID;
-        if(targetType==SELF) targetID=entity.hashCode();
+        if(targetType==SELF)
+        {
+            System.out.println(ability.getSkill()+" "+ ability.getDamage());
+
+            targetID=entity.hashCode();
+        }
         else targetID = aiCmp.target;
         HashMap<Integer, Integer> targets = new HashMap<>();
         targets.put(targetID, ability.getDamage());

@@ -120,6 +120,9 @@ public class AnimationsSys extends MyEntitySystem
                             display.tint(0f, glyphsCmp.glyph, SColor.SAFETY_ORANGE.toFloatBits(),0.75f, postRunnable);
                         }
                     }
+                    Light light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
+                    display.removeGlyph(animation.glyph);
+                    windowCmp.lightingHandler.removeLight(light.hashCode());
                     break;
 
                 case PROJ_MAGIC:
@@ -132,7 +135,7 @@ public class AnimationsSys extends MyEntitySystem
 
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     SColor color = actionEvt.skill.school.color;
-                    Light light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
+                    light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
 
                     Entity target = getGame().getEntity(actionEvt.targetsDmg.get(0));
                     TextCellFactory.Glyph targetGlyph = null;

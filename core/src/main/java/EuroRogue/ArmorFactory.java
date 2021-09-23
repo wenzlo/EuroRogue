@@ -40,7 +40,7 @@ public class ArmorFactory
         armor.add(new CharCmp('Ω', armorType.color));
         armor.add(new ArmorCmp(armorType));
         EquipmentCmp equipmentCmp = new EquipmentCmp(new EquipmentSlot[]{EquipmentSlot.CHEST});
-        equipmentCmp.statusEffects.put(armorType.grantedEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER, DamageType.NONE));
+        equipmentCmp.statusEffects.put(armorType.grantedEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER));
         armor.add(equipmentCmp);
         if(loc!=null) armor.add(new PositionCmp(loc));
 
@@ -77,7 +77,7 @@ public class ArmorFactory
     public static void addOnEquipSE (Entity weaponEntity, StatusEffect statusEffect)
     {
         EquipmentCmp equipmentCmp = (EquipmentCmp) CmpMapper.getComp(CmpType.EQUIPMENT, weaponEntity);
-        equipmentCmp.statusEffects.put(statusEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER, statusEffect.resistance));
+        equipmentCmp.statusEffects.put(statusEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER));
         NameCmp nameCmp = (NameCmp) CmpMapper.getComp(CmpType.NAME, weaponEntity);
         nameCmp.name = statusEffect.name+" "+nameCmp.name;
 
