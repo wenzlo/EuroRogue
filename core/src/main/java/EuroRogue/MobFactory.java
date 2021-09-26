@@ -120,7 +120,6 @@ public class MobFactory
         int spentLimit = stats.getIntel() + 3;
         List<Skill> skillPool = new ArrayList<>(Arrays.asList(Skill.values()));
         skillPool.remove(Skill.MELEE_ATTACK);
-        System.out.println(skillPool);
 
         manaPool.spent.addAll(Arrays.asList(Skill.MELEE_ATTACK.prepCost));
         manaPool.spent.addAll(Arrays.asList(Skill.MELEE_ATTACK.castingCost));
@@ -162,7 +161,7 @@ public class MobFactory
         if(codex.prepared.contains(Skill.DAGGER_THROW))
         {
             Entity daggerEntity = game.weaponFactory.newBasicWeapon(WeaponType.DAGGER);
-            game.weaponFactory.addOnHitSERnd(daggerEntity, TargetType.ENEMY);
+            //game.weaponFactory.addOnHitSERnd(daggerEntity, TargetType.ENEMY);
             ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, daggerEntity);
             InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, mob);
             itemCmp.ownerID= mob.hashCode();

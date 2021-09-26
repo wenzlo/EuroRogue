@@ -459,12 +459,10 @@ public class EuroRogue extends ApplicationAdapter {
 
         startInput = new SquidInput((key, alt, ctrl, shift) ->
         {
-            System.out.println("Getting start Input "+key);
-            System.out.println(keyLookup.get(key));
+
+
             if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
             {
-                System.out.println("Looking up "+key);
-                System.out.println(keyLookup.get(key).menuMap.get(key).label);
                 if(shift) keyLookup.get(getUnshiftedChar(key)).menuMap.get(getUnshiftedChar(key)).runSecondaryAction();
                 else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
                 return;

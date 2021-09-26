@@ -28,7 +28,6 @@ public class BleedingListener implements EntityListener {
         Bleeding bleeding = (Bleeding) CmpMapper.getStatusEffectComp(StatusEffect.BLEEDING, targetEntity);
         if(bleeding!=null)
         {
-            System.out.println("increasing bleed dmg");
             bleeding.damagePerMove ++;
             bleeding.name = "Bleeding "+bleeding.damagePerMove;
         }

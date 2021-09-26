@@ -200,9 +200,6 @@ public class LevelSys extends MyEntitySystem
         }
         //player.add(new FocusCmp());
         spwnCrds.remove(stairsUpFOV);
-        System.out.println(spwnCrds);
-        System.out.println(new GreasedRegion(newLevel.decoDungeon, '~'));
-
 
         for(int i=0;i<10;i++)
         {

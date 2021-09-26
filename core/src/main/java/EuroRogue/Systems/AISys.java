@@ -245,7 +245,7 @@ public class AISys extends MyEntitySystem
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                 }
             }
-            /*else if(!ai.visibleItems.isEmpty())
+            else if(!ai.visibleItems.isEmpty())
             {
 
                 Coord targetLoc = ai.getTargetLocations(ITEM, getGame()).get(0);
@@ -260,7 +260,7 @@ public class AISys extends MyEntitySystem
                     double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                 }
-            }*/
+            }
             else scheduleRestEvt(entity);
         }
     }
@@ -383,12 +383,7 @@ public class AISys extends MyEntitySystem
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, entity);
         Integer targetID;
-        if(targetType==SELF)
-        {
-            System.out.println(ability.getSkill()+" "+ ability.getDamage(entity));
-
-            targetID=entity.hashCode();
-        }
+        if(targetType==SELF) targetID=entity.hashCode();
         else targetID = aiCmp.target;
         HashMap<Integer, Integer> targets = new HashMap<>();
         targets.put(targetID, ability.getDamage(entity));

@@ -200,7 +200,6 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 
     public static Ability newAbilityCmp(Skill skill)
     {
-        System.out.println(skill);
         switch (skill)
         {
             case ENLIGHTEN:
