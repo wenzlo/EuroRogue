@@ -38,8 +38,6 @@ public class WinSysStart extends MyEntitySystem
         MySparseLayers display = window.display;
         if(display.isVisible()==false) return;
 
-        getGame().globalMenuIndex = 1;
-
         MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, getGame().startWindow);
 
         Stage stage = window.stage;

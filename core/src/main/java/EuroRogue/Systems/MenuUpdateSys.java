@@ -124,7 +124,7 @@ public class MenuUpdateSys extends MyEntitySystem {
                 chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
                 getGame().globalMenuIndex++;
             }
-            abilityLabel = getActionLabel(abilityCmp, chr, finalLength);
+            abilityLabel = getActionLabel(focusEntity, abilityCmp, chr, finalLength);
 
             MenuItem menuItem = new MenuItem(abilityLabel);
             Runnable primaryAction = new Runnable()
@@ -140,14 +140,17 @@ public class MenuUpdateSys extends MyEntitySystem {
             {
 
                 PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, focusEntity);
-                Coord aimCoord = positionCmp.coord;
+                Coord aimCoord = Coord.get(0,0);
+                if(positionCmp!=null)
+                aimCoord = positionCmp.coord;
+                Coord finalAimCoord = aimCoord;
                 primaryAction = new Runnable() {
                     @Override
                     public void run()
                     {
                         if(abilityCmp.isAvailable())
                         {
-                            abilityCmp.apply(positionCmp.coord, aimCoord);
+                            abilityCmp.apply(positionCmp.coord, finalAimCoord);
                             getGame().getFocus().add(new AimingCmp(abilityCmp.getSkill()));
                             Entity eventEntity = new Entity();
                             GameStateEvt gameStateEvt = new GameStateEvt(GameState.AIMING);
@@ -166,43 +169,47 @@ public class MenuUpdateSys extends MyEntitySystem {
         }
 
         List<Ability> scrollAbilities = new ArrayList<>();
-        for (Integer itemID : inventoryCmp.getScrollsIDs()) {
-            Entity itemEntity = getGame().getEntity(itemID);
-            ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
-            if (scrollCmp != null)
-                scrollAbilities.add((Ability) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity));
-        }
-        finalLength = window.columnIndexes[2] - window.columnIndexes[1] - 5;
-        x = 1;
-        y = 0;
-        Collections.sort(scrollAbilities, new SortAbilityBySkillType());
-        for (Ability abilityCmp : scrollAbilities)
+        if(inventoryCmp!=null)
         {
-            Coord coord = Coord.get(x, y);
-            Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
-            IColoredString.Impl abilityLabel;
-            if(getGame().gameState!= GameState.CAMPING)
-            {
-                abilityLabel = getScrollLabel(abilityCmp, chr, finalLength);
-                getGame().globalMenuIndex++;
+            for (Integer itemID : inventoryCmp.getScrollsIDs()) {
+                Entity scrollEntity = getGame().getEntity(itemID);
+                ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, scrollEntity);
+                if (scrollCmp != null)
+                    scrollAbilities.add((Ability) CmpMapper.getAbilityComp(scrollCmp.skill, scrollEntity));
             }
-            else abilityLabel = getActionLabel(abilityCmp, null, finalLength);
-
-            MenuItem menuItem = new MenuItem(abilityLabel);
-            Runnable primaryAction = new Runnable()
+            finalLength = window.columnIndexes[2] - window.columnIndexes[1] - 5;
+            x = 1;
+            y = 0;
+            Collections.sort(scrollAbilities, new SortAbilityBySkillType());
+            for (Ability abilityCmp : scrollAbilities)
             {
-                @Override
-                public void run()
+                Coord coord = Coord.get(x, y);
+                Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+                IColoredString.Impl abilityLabel;
+                if(getGame().gameState!= GameState.CAMPING)
                 {
-                    if(abilityCmp.isAvailable())
-                        getEngine().getSystem(AISys.class).scheduleActionEvt(focusEntity, abilityCmp);
+                    abilityLabel = getScrollLabel(getGame().getScrollForSkill(abilityCmp.getSkill(), getGame().getFocus()), abilityCmp, chr, finalLength);
+                    getGame().globalMenuIndex++;
                 }
-            };
-            menuItem.addPrimaryAction(primaryAction);
-            menuCmp.menuMap.put(coord, chr, menuItem);
-            getGame().keyLookup.put(chr, menuCmp);
-            y++;
+                else abilityLabel = getActionLabel(focusEntity, abilityCmp, null, finalLength);
+
+                MenuItem menuItem = new MenuItem(abilityLabel);
+                Runnable primaryAction = new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        if(abilityCmp.isAvailable())
+                            getEngine().getSystem(AISys.class).scheduleActionEvt(focusEntity, abilityCmp);
+                    }
+                };
+                menuItem.addPrimaryAction(primaryAction);
+                menuCmp.menuMap.put(coord, chr, menuItem);
+                getGame().keyLookup.put(chr, menuCmp);
+                y++;
+            }
         }
+
 
         List<Ability> preparedReactions = new ArrayList<>();
         for (Skill skill : codexCmp.getPreparedReactions()) {
@@ -215,8 +222,8 @@ public class MenuUpdateSys extends MyEntitySystem {
         for (Ability abilityCmp : preparedReactions)
         {
             Coord coord = Coord.get(x, y);
-            Character chr = null;
-            IColoredString.Impl abilityLabel = getActionLabel(abilityCmp, chr, 25);
+
+            IColoredString.Impl abilityLabel = getActionLabel(focusEntity, abilityCmp, null, 25);
             MenuItem menuItem = new MenuItem(abilityLabel);
             menuCmp.menuMap.put(coord, null, menuItem);
             y++;
@@ -260,7 +267,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         for (Ability abilityCmp : preparedAbilities)
         {
             Coord coord = Coord.get(x, y);
-            IColoredString.Impl abilityLabel = getActionLabel(abilityCmp, null, finalLength);
+            IColoredString.Impl abilityLabel = getActionLabel(focusTarget, abilityCmp, null, finalLength);
             MenuItem menuItem = new MenuItem(abilityLabel);
             menuCmp.menuMap.put(coord, null, menuItem);
             y++;
@@ -282,7 +289,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         for (Ability abilityCmp : scrollAbilities)
         {
             Coord coord = Coord.get(x, y);
-            IColoredString.Impl abilityLabel = getScrollLabel(abilityCmp, null, finalLength);
+            IColoredString.Impl abilityLabel = getScrollLabel(getGame().getScrollForSkill(abilityCmp.getSkill(), getGame().getFocusTarget()), abilityCmp, null, finalLength);
             MenuItem menuItem = new MenuItem(abilityLabel);
             menuCmp.menuMap.put(coord, null, menuItem);
             y++;
@@ -302,7 +309,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         {
             Coord coord = Coord.get(x, y);
 
-            IColoredString.Impl abilityLabel = getActionLabel(abilityCmp, null, finalLength);
+            IColoredString.Impl abilityLabel = getActionLabel(focusTarget, abilityCmp, null, finalLength);
             MenuItem menuItem = new MenuItem(abilityLabel);
             menuCmp.menuMap.put(coord, null, menuItem);
             y++;
@@ -316,7 +323,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, focusTarget);
             Coord coord = Coord.get(x, y);
             IColoredString.Impl statusEffectLabel = new IColoredString.Impl();
-            statusEffectLabel.append(statusEffect.name);
+            statusEffectLabel.append(statusEffectCmp.name);
             if(statusEffectCmp.lastTick!=null)
                 statusEffectLabel.append(" "+(statusEffectCmp.lastTick-tickerCmp.tick), SColor.WHITE);
             MenuItem menuItem = new MenuItem(statusEffectLabel);
@@ -330,6 +337,7 @@ public class MenuUpdateSys extends MyEntitySystem {
 
         MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, entity);
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, focusEntity);
+        if(inventoryCmp==null)return;
 
         int x = 0;
         int y = 0;
@@ -388,55 +396,54 @@ public class MenuUpdateSys extends MyEntitySystem {
         MenuItem menuItem = new MenuItem(abilityLabel);
         menuCmp.menuMap.put(Coord.get(0,13),null, menuItem);
 
-
-        x=1;
-        y=0;
-        for(EquipmentSlot slot : inventoryCmp.equipmentSlots.keySet())
+        if(getGame().gameState==GameState.PLAYING || getGame().gameState==GameState.CAMPING)
         {
-            Character chr = null;
-            Integer equipmentID = inventoryCmp.getSlotEquippedID(slot);
-            Entity itemEntity = null;
-            Runnable primaryAction=null;
-            Runnable secondaryAction=null;
-            if(equipmentID!=null)
+            x=1;
+            y=0;
+            for(EquipmentSlot slot : inventoryCmp.equipmentSlots.keySet())
             {
-                chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
-                getGame().globalMenuIndex++;
-                itemEntity = getGame().getEntity(equipmentID);
-                Entity finalItemEntity = itemEntity;
-                primaryAction = new Runnable()
+                Character chr = null;
+                Integer equipmentID = inventoryCmp.getSlotEquippedID(slot);
+                Entity itemEntity = null;
+                Runnable primaryAction=null;
+                Runnable secondaryAction=null;
+                if(equipmentID!=null)
                 {
-                    @Override
-                    public void run()
+                    chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+                    getGame().globalMenuIndex++;
+                    itemEntity = getGame().getEntity(equipmentID);
+                    Entity finalItemEntity = itemEntity;
+                    primaryAction = new Runnable()
                     {
-                        Entity eventEntity = new Entity();
-                        ItemEvt itemEvt = new ItemEvt(finalItemEntity.hashCode(), focusEntity.hashCode(), ItemEvtType.UNEQUIP);
-                        eventEntity.add(itemEvt);
-                        getGame().engine.addEntity(eventEntity);
-                    }
-                };
-                secondaryAction = new Runnable()
-                {
-                    @Override
-                    public void run()
+                        @Override
+                        public void run()
+                        {
+                            Entity eventEntity = new Entity();
+                            ItemEvt itemEvt = new ItemEvt(finalItemEntity.hashCode(), focusEntity.hashCode(), ItemEvtType.UNEQUIP);
+                            eventEntity.add(itemEvt);
+                            getGame().engine.addEntity(eventEntity);
+                        }
+                    };
+                    secondaryAction = new Runnable()
                     {
-                        Entity eventEntity = new Entity();
-                        ItemEvt itemEvt = new ItemEvt(finalItemEntity.hashCode(), focusEntity.hashCode(), ItemEvtType.DROP);
-                        eventEntity.add(itemEvt);
-                        getGame().engine.addEntity(eventEntity);
-                    }
-                };
-                getGame().keyLookup.put(chr, menuCmp);
+                        @Override
+                        public void run()
+                        {
+                            Entity eventEntity = new Entity();
+                            ItemEvt itemEvt = new ItemEvt(finalItemEntity.hashCode(), focusEntity.hashCode(), ItemEvtType.DROP);
+                            eventEntity.add(itemEvt);
+                            getGame().engine.addEntity(eventEntity);
+                        }
+                    };
+                    getGame().keyLookup.put(chr, menuCmp);
+                }
+                menuItem = new MenuItem(getSlotLabel(equipmentID, chr, slot));
+                menuItem.addPrimaryAction(primaryAction);
+                menuItem.addSecondaryAction(secondaryAction);
+                menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
+                y++;
             }
-            menuItem = new MenuItem(getSlotLabel(equipmentID, chr, slot));
-            menuItem.addPrimaryAction(primaryAction);
-            menuItem.addSecondaryAction(secondaryAction);
-            menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
-            y++;
         }
-
-
-
     }
     private void updateCampMenu(Entity entity)
     {
@@ -578,15 +585,41 @@ public class MenuUpdateSys extends MyEntitySystem {
             @Override
             public void run()
             {
+                System.out.println("Starting game");
                 getGame().newGame();
             }
         };
-        MenuItem menuItem = new MenuItem(new IColoredString.Impl("1) New Game", SColor.WHITE));
+        char chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+        MenuItem menuItem = new MenuItem(new IColoredString.Impl(chr+") New Game", SColor.WHITE));
         menuItem.addPrimaryAction(primaryAction);
-        menuCmp.menuMap.put(Coord.get(1,1), '1', menuItem );
-        getGame().keyLookup.put('1', menuCmp);
+
+
+        menuCmp.menuMap.put(Coord.get(1,1), chr, menuItem );
+        getGame().keyLookup.put(chr, menuCmp);
+        getGame().globalMenuIndex++;
+
+        Entity focus = getGame().getFocus();
+
+        primaryAction = new Runnable() {
+            @Override
+            public void run()
+            {
+                getEngine().removeEntity(focus);
+                getGame().player = getGame().mobFactory.generateRndPlayer();
+                getEngine().addEntity(getGame().player);
+            }
+        };
+        chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+        menuItem = new MenuItem(new IColoredString.Impl(chr+") New Character", SColor.WHITE));
+        menuItem.addPrimaryAction(primaryAction);
+
+
+        menuCmp.menuMap.put(Coord.get(1,2), chr, menuItem );
+        getGame().keyLookup.put(chr, menuCmp);;
+        getGame().globalMenuIndex++;
+
     }
-    private IColoredString.Impl getActionLabel(Ability abilityCmp, Character selectionKey, int totalLength)
+    private IColoredString.Impl getActionLabel(Entity performer, Ability abilityCmp, Character selectionKey, int totalLength)
     {
         Skill skill = abilityCmp.getSkill();
         float abilityColor = skill.school.color.toFloatBits();
@@ -601,10 +634,10 @@ public class MenuUpdateSys extends MyEntitySystem {
         for (School mana : skill.castingCost) {
             coloredString.append('■', mana.color);
         }
-        coloredString.append(" " + ((Technique) abilityCmp).aoe.getMaxRange() + " " + abilityCmp.getDamage());
+        coloredString.append(" " + ((Technique) abilityCmp).aoe.getMaxRange() + " " + abilityCmp.getDamage(performer));
         return coloredString;
     }
-    private IColoredString.Impl getScrollLabel(Ability abilityCmp, Character selectionKey, int totalLength)
+    private IColoredString.Impl getScrollLabel(Entity scrollEntity, Ability abilityCmp, Character selectionKey, int totalLength)
     {
         Skill skill = abilityCmp.getSkill();
         float abilityColor = skill.school.color.toFloatBits();
@@ -618,7 +651,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             coloredString.append(' ', SColor.TRANSPARENT);
 
         coloredString.append('%', skill.school.color);
-        coloredString.append(String.valueOf(" "+((Technique)abilityCmp).aoe.getMaxRange())+" "+abilityCmp.getDamage() );
+        coloredString.append(String.valueOf(" "+((Technique)abilityCmp).aoe.getMaxRange())+" "+abilityCmp.getDamage(scrollEntity) );
 
         return coloredString;
     }

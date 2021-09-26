@@ -11,6 +11,7 @@ public class StatusEffectCmp implements Component
 {
     public HashMap<StatType, Float> statMultipliers = new HashMap<>();
     public StatusEffect statusEffect;
+    public String name = "default";
     public SERemovalType seRemovalType;
     public Integer lastTick;
     public boolean lightChange = false;

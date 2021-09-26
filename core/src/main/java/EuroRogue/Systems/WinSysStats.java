@@ -50,6 +50,7 @@ public class WinSysStats extends MyEntitySystem
     public void update(float deltaTime)
     {
         if(!((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().focusStatsWindow)).display.isVisible()) return;
+
         MySparseLayers display = null;
         Stage stage = null;
         SColor bgColor;

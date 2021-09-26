@@ -187,8 +187,7 @@ public class LightingSys extends MyEntitySystem
             AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
             Ability aimAbility = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getGame().getFocus());
-
-            for(Coord coord : aimAbility.possibleTargets(positionCmp.coord) )
+            for(Coord coord : aimAbility.possibleTargets(positionCmp.coord, levelCmp.resistance) )
             {
                 if(aimAbility.aoe.findArea().keySet().contains(coord) || !levelCmp.floors.contains(coord)) continue;
                 for(int x=-0; x<3; x++){

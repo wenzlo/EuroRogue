@@ -6,6 +6,7 @@ public class LeatherArmorEfct extends StatusEffectCmp
 {
     public LeatherArmorEfct()
     {
+
         statMultipliers.put(StatType.TT_MELEE, 1.25f);
         statMultipliers.put(StatType.TT_MOVE, 1.25f);
         statMultipliers.put(StatType.TT_CAST, 1.25f);
@@ -15,6 +16,7 @@ public class LeatherArmorEfct extends StatusEffectCmp
         statMultipliers.put(StatType.BLUDG_DEF, 1.25f);
         statMultipliers.put(StatType.MOVE_SND_LVL, 1.5f);
         statusEffect = StatusEffect.L_ARMOR_EFCT;
+        name = statusEffect.name;
         seRemovalType = SERemovalType.OTHER;
         lightChange = false;
     }

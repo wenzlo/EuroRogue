@@ -62,7 +62,7 @@ public enum StatusEffect
                 break;
             case ENRAGED:
                 int str = targetStats.getStr();
-                statusEffectCmp = new Enraged();
+                statusEffectCmp = new Enraged(targetStats);
                 statusEffectCmp.statMultipliers.put(StatType.ATTACK_PWR, statusEffectCmp.statMultipliers.get(StatType.ATTACK_PWR)+(str*0.05f));
                 break;
             case CALESCENT:
@@ -119,7 +119,7 @@ public enum StatusEffect
                 statusEffectCmp = new Bleeding();
                 break;
             case ENLIGHTENED:
-                statusEffectCmp = new Enlightened(SERemovalType.SHORT_REST, targetStats);
+                statusEffectCmp = new Enlightened(targetStats);
                 break;
             case STAGGERED:
                 statusEffectCmp = new Staggered();

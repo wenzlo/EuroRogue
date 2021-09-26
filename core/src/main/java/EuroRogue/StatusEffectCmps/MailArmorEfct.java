@@ -6,6 +6,7 @@ public class MailArmorEfct extends StatusEffectCmp
 {
     public MailArmorEfct()
     {
+
         statMultipliers.put(StatType.TT_MELEE, 1.5f);
         statMultipliers.put(StatType.TT_MOVE, 1.5f);
         statMultipliers.put(StatType.TT_CAST, 1.5f);
@@ -17,6 +18,7 @@ public class MailArmorEfct extends StatusEffectCmp
         statMultipliers.put(StatType.MOVE_SND_LVL, 2.0f);
 
         statusEffect = StatusEffect.M_ARMOR_EFCT;
+        name = statusEffect.name;
         seRemovalType = SERemovalType.OTHER;
         lightChange = false;
     }

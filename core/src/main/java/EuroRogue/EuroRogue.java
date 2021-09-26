@@ -44,7 +44,9 @@ import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.EventComponents.LevelEvt;
+import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.Listeners.ActorListener;
+import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.Enlightened;
 import EuroRogue.StatusEffectCmps.Exhausted;
 import EuroRogue.StatusEffectCmps.Hungry;
@@ -57,6 +59,7 @@ import EuroRogue.StatusEffectCmps.Staggered;
 import EuroRogue.StatusEffectCmps.Starving;
 import EuroRogue.StatusEffectCmps.WaterWalking;
 import EuroRogue.StatusEffectCmps.WellFed;
+import EuroRogue.StatusEffectListeners.BleedingListener;
 import EuroRogue.StatusEffectListeners.BurningListener;
 import EuroRogue.StatusEffectListeners.CalescentListener;
 import EuroRogue.StatusEffectListeners.ChilledListener;
@@ -140,7 +143,7 @@ import java.util.List;
 public class EuroRogue extends ApplicationAdapter {
 
     public MyEngine engine = new MyEngine(this);
-    public MobFactory mobFactory;
+    public MobFactory mobFactory, characterFactory;
     public WeaponFactory weaponFactory;
     public ArmorFactory armorFactory;
     public FoodFactory foodFactory;
@@ -157,7 +160,7 @@ public class EuroRogue extends ApplicationAdapter {
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
     // a type of random number generator, see below
-    public GWTRNG rng;
+    public GWTRNG rng, characterGenRng;
 
     public SectionDungeonGenerator dungeonGen;
     public Placement placement;
@@ -179,33 +182,19 @@ public class EuroRogue extends ApplicationAdapter {
 
     public void newGame()
     {
-        rng = new GWTRNG(playerName);
-        mobFactory = new MobFactory(this, rng.nextInt());
-        weaponFactory = new WeaponFactory(rng.nextInt());
-        armorFactory = new ArmorFactory(rng.nextInt());
-        foodFactory = new FoodFactory();
-        engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory));
+
         dungeonGen = new SectionDungeonGenerator(42, 42, new GWTRNG(rng.nextInt()));
         dungeonGen.addDoors(100, false);
         dungeonGen.addGrass(3, 15);
         //dungeonGen.addMaze(35);
         //dungeonGen.addWater(3, 15);
         dungeonGen.addLake(35);
-
         //dungeonGen.utility.closeDoors(preDungeon);
-        currentLevel = new Entity();
-        engine.addEntity(currentLevel);
 
-
-        player = mobFactory.generateSkillessPlayer();
-        player.add(new FocusCmp());
         Entity levelEvtEntity = new Entity();
         LevelEvt levelEvt = new LevelEvt();
         levelEvtEntity.add(levelEvt);
         engine.addEntity(levelEvtEntity);
-
-
-
     }
     private void initializeWindows()
     {
@@ -295,7 +284,7 @@ public class EuroRogue extends ApplicationAdapter {
         allWindows = Arrays.asList(gameOverWindow, startWindow, dungeonWindow, campWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
         playingWindows = Arrays.asList(dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
         campingWindows = Arrays.asList(campWindow, focusManaWindow, focusHotBar, inventoryWindow, focusStatsWindow, logWindow);
-        startWindows = Collections.singletonList(startWindow);
+        startWindows = Arrays.asList(focusManaWindow, inventoryWindow, focusHotBar, focusStatsWindow, startWindow);
         gameOverWindows = Arrays.asList(gameOverWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow );
 
         for(Entity windowEntity : allWindows)
@@ -305,8 +294,12 @@ public class EuroRogue extends ApplicationAdapter {
     }
     private void initializeListeners()
     {
+        Family bleedingEvt = Family.one(StatusEffectEvt.class).get();
+        engine.addEntityListener(bleedingEvt, new BleedingListener(this));
+
         Family actors = Family.all(AICmp.class).get();
         engine.addEntityListener(actors, new ActorListener(this));
+
         Family items = Family.all(ItemCmp.class, PositionCmp.class).get();
         engine.addEntityListener(items, new ItemListener(this));
 
@@ -342,6 +335,8 @@ public class EuroRogue extends ApplicationAdapter {
 
         Family exhausted = Family.one(Exhausted.class).get();
         engine.addEntityListener(exhausted, new ExhaustedListener(this));
+
+
 
         Family staggered = Family.one(Staggered.class).get();
         engine.addEntityListener(staggered, new StaggeredListener(this));
@@ -401,6 +396,8 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new StatusEffectRemovalSys());
         engine.addSystem(new NoiseSys());
         engine.addSystem(new MakeCampSys());
+        engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory));
+
     }
     @Override
     public void create ()
@@ -410,8 +407,7 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addEntity(currentLevel);
         engine.addEntity(ticker);
 
-        initializeSystems();
-        initializeListeners();
+
 
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
@@ -458,15 +454,17 @@ public class EuroRogue extends ApplicationAdapter {
         //MySparseLayers manaMySparseLayers = new MySparseLayers(8, 10, cellWidth, cellHeight*2,
                 //DefaultResources.getStretchableCodeFont(), 0, 0);
 
-
-
         initializeWindows();
         SColor.LIMITED_PALETTE[3] = SColor.DB_GRAPHITE;
 
-
-        startInput = new SquidInput((key, alt, ctrl, shift) -> {
+        startInput = new SquidInput((key, alt, ctrl, shift) ->
+        {
+            System.out.println("Getting start Input "+key);
+            System.out.println(keyLookup.get(key));
             if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
             {
+                System.out.println("Looking up "+key);
+                System.out.println(keyLookup.get(key).menuMap.get(key).label);
                 if(shift) keyLookup.get(getUnshiftedChar(key)).menuMap.get(getUnshiftedChar(key)).runSecondaryAction();
                 else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
                 return;
@@ -475,10 +473,12 @@ public class EuroRogue extends ApplicationAdapter {
             {
                 case SquidInput.BACKSPACE:
                     playerName = StringKit.safeSubstring(playerName, 0, playerName.length()-1);
+                    ((NameCmp) CmpMapper.getComp(CmpType.NAME, player)).name = playerName;
                     return;
             }
 
             playerName = playerName + key;
+            ((NameCmp) CmpMapper.getComp(CmpType.NAME, player)).name = playerName;
         },
                 //The second parameter passed to a SquidInput can be a SquidMouse, which takes mouse or touchscreen
                 //input and converts it to grid coordinates (here, a cell is 10 wide and 20 tall, so clicking at the
@@ -824,7 +824,7 @@ public class EuroRogue extends ApplicationAdapter {
                     getFocus().remove(StatsCmp.class);
                     getFocus().remove(CodexCmp.class);
                     getFocus().remove(ManaPoolCmp.class);
-                    getFocus().add(getRandomStats(12));
+                    getFocus().add(mobFactory.getRandomStats(12));
                     StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getFocus());
                     getFocus().add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
                     getFocus().add( new CodexCmp());
@@ -980,6 +980,20 @@ public class EuroRogue extends ApplicationAdapter {
         campInput.setIgnoreInput(true);
         Gdx.input.setInputProcessor(inputProcessor);
 
+        rng = new GWTRNG(playerName);
+
+        mobFactory = new MobFactory(this, rng.nextInt());
+        weaponFactory = new WeaponFactory(rng.nextInt());
+        armorFactory = new ArmorFactory(rng.nextInt());
+        foodFactory = new FoodFactory();
+        initializeSystems();
+        initializeListeners();
+
+        currentLevel = new Entity();
+        engine.addEntity(currentLevel);
+        player = mobFactory.generateRndPlayer();
+        player.add(new FocusCmp());
+        engine.addEntity(player);
 
         lastFrameTime = System.currentTimeMillis();
         Entity eventEntity = new Entity();
@@ -1042,7 +1056,7 @@ public class EuroRogue extends ApplicationAdapter {
         scroll.add(new ItemCmp(ItemType.SCROLL));
         scroll.add(new CharCmp('%', skill.school.color));
         scroll.add(new ScrollCmp(skill));
-        Ability ability = Ability.newAbilityCmp(skill, ((LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel)).bareDungeon);
+        Ability ability = Ability.newAbilityCmp(skill);
         ability.setScrollID(scroll.hashCode());
         ability.setScroll(true);
         scroll.add(ability);
@@ -1197,6 +1211,7 @@ public class EuroRogue extends ApplicationAdapter {
     public void updateAbility(Ability abilityCmp, Entity entity)
     {
         abilityCmp.updateAOE(entity);
+
         TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, ticker);
         if(!tickerCmp.getScheduledActions(entity).isEmpty()) return;
         Skill skill = abilityCmp.getSkill();
@@ -1235,9 +1250,6 @@ public class EuroRogue extends ApplicationAdapter {
             ((DaggerThrow)abilityCmp).chr = weaponType.chr;
             ((DaggerThrow)abilityCmp).statusEffects = ((MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, entity)).getStatusEffects();
         }
-
-        abilityCmp.setDamage(entity);
-        abilityCmp.setTTPerform(entity);
     }
     public ArrayList<StatusEffect> getStatusEffects(Entity entity)
     {
@@ -1341,32 +1353,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         }
     }
-    public StatsCmp getRandomStats(int total)
-    {
-        HashMap<StatType, Integer> stats = new HashMap<>();
-        stats.put(StatType.STR, 1);
-        stats.put(StatType.DEX, 1);
-        stats.put(StatType.CON, 1);
-        stats.put(StatType.INTEL, 1);
-        stats.put(StatType.PERC, 1);
 
-        for (int i = 0; i < total-5; i++)
-        {
-            StatType stat = rng.getRandomElement(stats.keySet());
-            stats.put(stat, stats.get(stat)+1);
-        }
-
-        StatsCmp statsCmp = new StatsCmp();
-        statsCmp.setStr(stats.get(StatType.STR));
-        statsCmp.setDex(stats.get(StatType.DEX));
-        statsCmp.setCon(stats.get(StatType.CON));
-        statsCmp.setPerc(stats.get(StatType.PERC));
-        statsCmp.setIntel(stats.get(StatType.INTEL));
-        statsCmp.hp=statsCmp.getMaxHP();
-
-        return statsCmp;
-
-    }
 }
 // An explanation of hexadecimal float/double literals was mentioned earlier, so here it is.
 // The literal 0x1p-9f is a good example; it is essentially the same as writing 0.001953125f,

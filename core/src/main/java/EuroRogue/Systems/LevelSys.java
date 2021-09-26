@@ -9,7 +9,9 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.AICmp;
+import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.GlyphsCmp;
@@ -101,7 +103,6 @@ public class LevelSys extends MyEntitySystem
             levelEvt.processed=true;
 
             newLevel();
-            if(getGame().depth==0) getGame().mobFactory.setRandomSkillSet(getGame().player);
         }
     }
 
@@ -188,27 +189,28 @@ public class LevelSys extends MyEntitySystem
         aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(aiCmp.decoDungeon));
         player.add(new FOVCmp(getGame().bigWidth,getGame().bigHeight));
         newLevel.actors.add(getGame().dungeonGen.stairsUp, player.hashCode(), player.hashCode());
-        getGame().placement = new Placement(getGame().dungeonGen.finder);
+
         GreasedRegion spwnCrds = new GreasedRegion();
-        spwnCrds.addAll(getGame().placement.getHidingPlaces(Radius.CIRCLE, 7));
+        spwnCrds.addAll(new GreasedRegion(newLevel.decoDungeon, '.'));
+
         GreasedRegion stairsUpFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(newLevel.resistance, new double[newLevel.resistance.length][newLevel.resistance[0].length] , getGame().dungeonGen.stairsUp.x, getGame().dungeonGen.stairsUp.y),0.0).not();
         if(getGame().getEntity(player.hashCode())==null)
         {
             getEngine().addEntity(player);
         }
-        player.add(new FocusCmp());
+        //player.add(new FocusCmp());
+        spwnCrds.remove(stairsUpFOV);
+        System.out.println(spwnCrds);
+        System.out.println(new GreasedRegion(newLevel.decoDungeon, '~'));
 
 
-
-        System.out.println(getGame().placement.getHidingPlaces(Radius.CIRCLE, 5));
         for(int i=0;i<10;i++)
         {
 
-            Coord itemLoc = getGame().placement.getHidingPlaces(Radius.CIRCLE,5).randomItem(rng);
+            Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
 
             Skill skill = rng.getRandomElement(Arrays.asList(Skill.values()));
-            if(skill==Skill.DAGGER_THROW) continue;
             getEngine().addEntity(getGame().generateScroll(itemLoc, skill));
 
             itemLoc = rng.getRandomElement(spwnCrds);
@@ -226,15 +228,19 @@ public class LevelSys extends MyEntitySystem
 
             //engine.addEntity(weaponFactory.newTorch(itemLoc));
 
-        }
-        spwnCrds.andNot(stairsUpFOV);
 
+        }
         for(int i=0;i<10;i++)
         {
             loc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(loc);
 
-            mobFactory.generateRndMob(loc, "Enemy "+i, getGame().depth);
+            Entity mob = mobFactory.generateRndMob(loc, "Enemy "+i, getGame().depth);
+            CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, mob);
+            for(Skill skill : codexCmp.prepared)
+            {
+                CmpMapper.getAbilityComp(skill, mob).setMap(newLevel.bareDungeon);
+            }
 
         }
         for(int i=0;i<2;i++)
@@ -243,6 +249,11 @@ public class LevelSys extends MyEntitySystem
             spwnCrds.remove(itemLoc);
             getEngine().addEntity(getGame().foodFactory.generateFoodITem(itemLoc));
         }
+        CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, getGame().player);
+        for(Skill skill : codexCmp.prepared)
+        {
+            CmpMapper.getAbilityComp(skill, getGame().player).setMap(newLevel.bareDungeon);
+        }
 
         getEngine().getSystem(NoiseSys.class);
         Entity eventEntity = new Entity();
@@ -250,8 +261,4 @@ public class LevelSys extends MyEntitySystem
         getEngine().addEntity(eventEntity);
 
     }
-
-
-
-
 }

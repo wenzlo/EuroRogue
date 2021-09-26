@@ -157,14 +157,10 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 
 
     @Override
-    public int getDamage() {
+    public int getDamage(Entity performer) {
         return 0;
     }
 
-    @Override
-    public void setDamage(Entity performer) {
-
-    }
 
     @Override
     public DamageType getDmgType(Entity performer) {
@@ -173,13 +169,8 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 
 
     @Override
-    public int getTTPerform() {
+    public int getTTPerform(Entity performer) {
         return 0;
-    }
-
-    @Override
-    public void setTTPerform(Entity performer) {
-
     }
 
     @Override
@@ -207,53 +198,43 @@ public class Ability extends Technique implements IAbilityCmpSubSys
         return super.apply(user, aimAt);
     }
 
-    public static Ability newAbilityCmp(Skill skill, char[][] map)
+    public static Ability newAbilityCmp(Skill skill)
     {
+        System.out.println(skill);
         switch (skill)
         {
             case ENLIGHTEN:
                 Enlighten enlighten= new Enlighten();
-                enlighten.setMap(map);
                 return  enlighten;
             case ICE_SHIELD:
                 IceShield iceShield = new IceShield();
-                iceShield.setMap(map);
                 return  new IceShield();
             case MAGIC_MISSILE:
                 MagicMissile magicMissile = new MagicMissile();
-                magicMissile.setMap(map);
                 return magicMissile;
             case ERUPTION:
                 Eruption eruption = new Eruption();
-                eruption.setMap(map);
                 return  eruption;
             case ARCANE_TOUCH:
                 ArcaneTouch arcaneTouch = new ArcaneTouch();
-                arcaneTouch.setMap(map);
                 return arcaneTouch;
             case DAGGER_THROW:
                 DaggerThrow daggerThrow = new DaggerThrow();
-                daggerThrow.setMap(map);
                 return daggerThrow;
             case CHILL:
                 Chill chill = new Chill();
-                chill.setMap(map);
                 return chill;
             case IMMOLATE:
                 Immolate immolate = new Immolate();
-                immolate.setMap(map);
                 return immolate;
             case DODGE:
                 Dodge dodge = new Dodge();
-                dodge.setMap(map);
                 return dodge;
             case ENRAGE:
                 Enrage enrage = new Enrage();
-                enrage.setMap(map);
                 return enrage;
             case MELEE_ATTACK:
                 MeleeAttack meleeAttack = new MeleeAttack();
-                meleeAttack.setMap(map);
                 return meleeAttack;
             //case OPPORTUNITY: return new Opportunity();
         }

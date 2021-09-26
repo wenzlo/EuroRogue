@@ -51,6 +51,7 @@ public class StatusEffectEvtSys extends MyEntitySystem
             for(Entity entity:entities)
             {
                 StatusEffectEvt statusEffectEvt = (StatusEffectEvt) CmpMapper.getComp(CmpType.STATUS_EFFECT_EVT, entity);
+                System.out.println("processing SEEvt "+statusEffectEvt.effect);
 
                 if(statusEffectEvt.isProcessed()) return;
                 statusEffectEvt.processed = true;

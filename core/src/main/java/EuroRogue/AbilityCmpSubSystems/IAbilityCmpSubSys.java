@@ -54,11 +54,9 @@ public interface IAbilityCmpSubSys extends Component
     float       getDmgReduction(StatsCmp statsCmp);
     TargetType
                 getTargetType();
-    int         getDamage();
-    void        setDamage(Entity performer);
+    int         getDamage(Entity performer);
     DamageType  getDmgType(Entity performer);
-    int         getTTPerform();
-    void        setTTPerform(Entity performer);
+    int         getTTPerform(Entity performer);
     double      getNoiseLvl(Entity performer);
 
 

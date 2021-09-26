@@ -60,9 +60,6 @@ public class GameStateSys extends MyEntitySystem
             setInputProcessor(newGameState);
             ((GameStateEvt)CmpMapper.getComp(CmpType.GAMESTATE_EVT, entity)).setProcessed(true);
             getGame().gameState=newGameState;
-
-
-
         }
 
     }
@@ -74,9 +71,7 @@ public class GameStateSys extends MyEntitySystem
 
             case STARTING:
                 for(Entity windowEntity : getGame().allWindows)
-                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
-
-                ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().startWindow)).display.setVisible(true);
+                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().startWindows.contains(windowEntity));
                 break;
             case LOADING:
                 for(Entity windowEntity : getGame().allWindows)
@@ -87,15 +82,13 @@ public class GameStateSys extends MyEntitySystem
             case AIMING:
                 for(Entity windowEntity : getGame().allWindows)
                 {
-                    if(getGame().playingWindows.contains(windowEntity)) ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(true);
-                    else  ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
+                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().playingWindows.contains(windowEntity));
                 }
                 break;
             case CAMPING:
                 for(Entity windowEntity : getGame().allWindows)
                 {
-                    if(getGame().campingWindows.contains(windowEntity)) ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(true);
-                    else  ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
+                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().campingWindows.contains(windowEntity));
                 }
                 break;
             case GAME_OVER:
@@ -120,17 +113,25 @@ public class GameStateSys extends MyEntitySystem
                 getGame().campInput.setIgnoreInput(true);
                 getGame().input.setIgnoreInput(false);
                 getGame().aimInput.setIgnoreInput(true);
+                getGame().startInput.setIgnoreInput(true);
                 break;
             case AIMING:
                 getGame().campInput.setIgnoreInput(true);
                 getGame().input.setIgnoreInput(true);
                 getGame().aimInput.setIgnoreInput(false);
+                getGame().startInput.setIgnoreInput(true);
                 break;
             case CAMPING:
-            case STARTING:
                 getGame().campInput.setIgnoreInput(false);
                 getGame().input.setIgnoreInput(true);
                 getGame().aimInput.setIgnoreInput(true);
+                getGame().startInput.setIgnoreInput(true);
+                break;
+            case STARTING:
+                getGame().campInput.setIgnoreInput(true);
+                getGame().input.setIgnoreInput(true);
+                getGame().aimInput.setIgnoreInput(true);
+                getGame().startInput.setIgnoreInput(false);
                 break;
             case LOADING:
             case GAME_OVER:

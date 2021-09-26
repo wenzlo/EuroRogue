@@ -38,9 +38,7 @@ public class MagicMissile extends Ability
     private boolean active = true;
     private  boolean scroll = false;
     private Integer scrollID = null;
-    private int damage;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    private int ttPerform;
     public TextCellFactory.Glyph glyph;
     private Coord targetedLocation;
     private boolean available = false;
@@ -202,14 +200,9 @@ public class MagicMissile extends Ability
     }
 
     @Override
-    public int getDamage() {
-        return damage;
-    }
-
-    @Override
-    public  void setDamage(Entity performer)
+    public int getDamage(Entity performer)
     {
-        damage = ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getSpellPower();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getSpellPower();
 
     }
 
@@ -220,14 +213,9 @@ public class MagicMissile extends Ability
     }
 
     @Override
-    public int getTTPerform() {
-        return ttPerform;
-    }
-
-    @Override
-    public void setTTPerform(Entity performer)
+    public int getTTPerform(Entity performer)
     {
-        ttPerform = ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTCast();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTCast();
     }
 
     @Override

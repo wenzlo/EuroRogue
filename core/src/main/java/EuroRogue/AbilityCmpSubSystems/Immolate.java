@@ -40,9 +40,7 @@ public class Immolate extends Ability
     private Integer scrollID = null;
     private Coord targetedLocation;
     private boolean available = false;
-    private int damage;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    private int ttPerform;
     public TextCellFactory.Glyph glyph;
 
     public Immolate()
@@ -141,13 +139,10 @@ public class Immolate extends Ability
     }
 
     @Override
-    public int getDamage() { return damage; }
-
-    @Override
-    public void setDamage(Entity performer)
+    public int getDamage(Entity performer)
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        damage = Math.round(statsCmp.getSpellPower()*0.5f);
+        return Math.round(statsCmp.getSpellPower()*0.5f);
     }
 
     @Override
@@ -157,14 +152,9 @@ public class Immolate extends Ability
     }
 
     @Override
-    public int getTTPerform() {
-        return ttPerform;
-    }
-
-    @Override
-    public void setTTPerform(Entity performer)
+    public int getTTPerform(Entity performer)
     {
-        ttPerform = ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTCast();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTCast();
     }
 
     @Override

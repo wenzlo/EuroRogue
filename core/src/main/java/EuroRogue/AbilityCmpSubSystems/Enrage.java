@@ -39,7 +39,6 @@ public class Enrage extends Ability
     private Skill skill = Skill.ENRAGE;
     private  boolean scroll = false;
     private Integer scrollID = null;
-    private int ttPerform;
     private Coord targetedLocation;
     private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
@@ -188,11 +187,8 @@ public class Enrage extends Ability
         return TargetType.SELF;
     }
     @Override
-    public int getDamage() {
+    public int getDamage(Entity performer) {
         return 0;
-    }
-    @Override
-    public void setDamage(Entity performer) {
     }
 
     @Override
@@ -201,13 +197,9 @@ public class Enrage extends Ability
     }
 
     @Override
-    public int getTTPerform() {
-        return ttPerform;
-    }
-    @Override
-    public void setTTPerform(Entity performer)
+    public int getTTPerform(Entity performer)
     {
-        ttPerform = ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTMelee();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTMelee();
     }
 
     @Override

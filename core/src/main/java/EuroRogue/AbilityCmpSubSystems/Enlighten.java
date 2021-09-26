@@ -36,7 +36,6 @@ public class Enlighten extends Ability
     private Skill skill = Skill.ENLIGHTEN;
     public  boolean scroll = false;
     private Integer scrollID = null;
-    private int ttPerform;
     private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available;
@@ -180,11 +179,8 @@ public class Enlighten extends Ability
         return TargetType.SELF;
     }
     @Override
-    public int getDamage() {
+    public int getDamage(Entity performer) {
         return 0;
-    }
-    @Override
-    public void setDamage(Entity performer) {
     }
 
     @Override
@@ -193,13 +189,9 @@ public class Enlighten extends Ability
     }
 
     @Override
-    public int getTTPerform() {
-        return ttPerform;
-    }
-    @Override
-    public void setTTPerform(Entity performer)
+    public int getTTPerform(Entity performer)
     {
-        ttPerform = ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTCast();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTCast();
     }
 
     @Override

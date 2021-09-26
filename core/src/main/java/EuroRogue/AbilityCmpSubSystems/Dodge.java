@@ -184,12 +184,10 @@ public class Dodge extends Ability
     {
         return TargetType.SELF;
     }
+
     @Override
-    public int getDamage() {
+    public int getDamage(Entity performer) {
         return 0;
-    }
-    @Override
-    public void setDamage(Entity performer) {
     }
 
     @Override
@@ -198,11 +196,8 @@ public class Dodge extends Ability
     }
 
     @Override
-    public int getTTPerform() {
+    public int getTTPerform(Entity performer) {
         return 0;
-    }
-    @Override
-    public void setTTPerform(Entity performer) {
     }
 
     @Override

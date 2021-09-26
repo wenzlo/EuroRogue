@@ -37,16 +37,15 @@ public class MeleeAttack extends Ability
     private Integer scrollID = null;
     private Coord targetedLocation;
     private boolean available = false;
-    private int damage;
     public DamageType damageType =  DamageType.BLUDGEONING;
     private HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    private int ttPerform;
     public char chr = '•';
     public TextCellFactory.Glyph glyph;
 
     public MeleeAttack()
     {
         super("Melee Attack", new PointAOE(Coord.get(-1,-1), 1, 1));
+        System.out.println("New Melee ability");
     }
 
 
@@ -153,14 +152,9 @@ public class MeleeAttack extends Ability
     }
 
     @Override
-    public int getDamage() {
-        return damage;
-    }
-
-    @Override
-    public void setDamage(Entity performer)
+    public int getDamage(Entity performer)
     {
-        damage = ((StatsCmp) CmpMapper.getComp(CmpType.STATS, performer)).getWeaponDamage();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS, performer)).getWeaponDamage();
     }
 
     @Override
@@ -170,14 +164,9 @@ public class MeleeAttack extends Ability
     }
 
     @Override
-    public int getTTPerform() {
-        return ttPerform;
-    }
-
-    @Override
-    public void setTTPerform(Entity performer)
+    public int getTTPerform(Entity performer)
     {
-        ttPerform = ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTMelee();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTMelee();
     }
 
     @Override

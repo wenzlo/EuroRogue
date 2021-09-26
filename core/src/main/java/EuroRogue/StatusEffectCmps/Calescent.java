@@ -12,6 +12,7 @@ public class Calescent extends StatusEffectCmp
         statMultipliers.put(StatType.FIRE_DEF, 0.75f);
         statMultipliers.put(StatType.ICE_DEF, 1.5f);
         statusEffect = StatusEffect.CALESCENT;
+        name = statusEffect.name;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;
     }

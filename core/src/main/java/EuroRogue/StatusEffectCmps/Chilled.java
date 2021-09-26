@@ -6,6 +6,7 @@ public class Chilled extends StatusEffectCmp
 {
     public Chilled()
     {
+
         statMultipliers.put(StatType.TT_MOVE, 1.5f);
         statMultipliers.put(StatType.TT_MELEE, 1.5f);
         statMultipliers.put(StatType.BLUDG_DEF, .75f);
@@ -14,6 +15,7 @@ public class Chilled extends StatusEffectCmp
         statMultipliers.put(StatType.ICE_DEF, .75f);
         statMultipliers.put(StatType.FIRE_DEF, 1.25f);
         statusEffect = StatusEffect.CHILLED;
+        name = statusEffect.name;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;
     }

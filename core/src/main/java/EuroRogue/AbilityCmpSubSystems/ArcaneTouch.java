@@ -39,9 +39,7 @@ public class ArcaneTouch extends Ability
     private Integer scrollID = null;
     private Coord targetedLocation;
     private boolean available = false;
-    private int damage;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    private int ttPerform;
     private TextCellFactory.Glyph glyph;
 
     public ArcaneTouch()
@@ -142,13 +140,10 @@ public class ArcaneTouch extends Ability
     }
 
     @Override
-    public int getDamage() { return damage; }
-
-    @Override
-    public void setDamage(Entity performer)
+    public int getDamage(Entity performer)
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        damage = statsCmp.getSpellPower();
+        return statsCmp.getSpellPower();
     }
 
     @Override
@@ -158,14 +153,9 @@ public class ArcaneTouch extends Ability
     }
 
     @Override
-    public int getTTPerform() {
-        return ttPerform;
-    }
-
-    @Override
-    public void setTTPerform(Entity performer)
+    public int getTTPerform(Entity performer)
     {
-        ttPerform = ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTCast();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTCast();
     }
 
     @Override

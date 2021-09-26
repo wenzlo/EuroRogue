@@ -196,8 +196,18 @@ public class AISys extends MyEntitySystem
             ArrayList<Ability> availableAbilities = getAvailableActions(entity);
             if(!availableAbilities.isEmpty() &! ai.visibleEnemies.isEmpty())
             {
-                Ability abilityToSchedule = rng.getRandomElement(availableAbilities);
-                scheduleActionEvt(entity, abilityToSchedule);
+                Collections.shuffle(availableAbilities);
+                for(Ability ability : availableAbilities)
+                {
+                    if(!ability.getIdealLocations(entity, level).isEmpty())
+                    {
+                        scheduleActionEvt(entity, ability);
+                        return;
+                    }
+
+                }
+
+
 
             }
             else if(manaPool.active.size()<manaPool.spent.size() || manaPool.active.size()==0){
@@ -235,7 +245,7 @@ public class AISys extends MyEntitySystem
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                 }
             }
-            else if(!ai.visibleItems.isEmpty())
+            /*else if(!ai.visibleItems.isEmpty())
             {
 
                 Coord targetLoc = ai.getTargetLocations(ITEM, getGame()).get(0);
@@ -250,7 +260,7 @@ public class AISys extends MyEntitySystem
                     double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                 }
-            }
+            }*/
             else scheduleRestEvt(entity);
         }
     }
@@ -369,19 +379,19 @@ public class AISys extends MyEntitySystem
 
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         int gameTick = ticker.tick;
-        int scheduledTick = gameTick + ability.getTTPerform();
+        int scheduledTick = gameTick + ability.getTTPerform(entity);
 
         AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, entity);
         Integer targetID;
         if(targetType==SELF)
         {
-            System.out.println(ability.getSkill()+" "+ ability.getDamage());
+            System.out.println(ability.getSkill()+" "+ ability.getDamage(entity));
 
             targetID=entity.hashCode();
         }
         else targetID = aiCmp.target;
         HashMap<Integer, Integer> targets = new HashMap<>();
-        targets.put(targetID, ability.getDamage());
+        targets.put(targetID, ability.getDamage(entity));
         if(ability.getTargetType()==AOE) targets.clear();
 
         ActionEvt actionEvt = new ActionEvt(entity.hashCode(), ability.getScrollID(), ability.getSkill(), targets, ability.getStatusEffects());
@@ -394,6 +404,7 @@ public class AISys extends MyEntitySystem
         if(ability.getTargetType()==AOE && getGame().gameState!=GameState.AIMING)
         {
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+
             Coord location = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity)).coord;
             ability.apply(location, ability.getIdealLocations(entity, levelCmp).keySet().first());
         }

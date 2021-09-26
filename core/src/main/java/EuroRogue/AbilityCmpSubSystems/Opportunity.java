@@ -39,9 +39,7 @@ public class Opportunity extends Ability
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
     private boolean available = false;
-    private int damage;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    private int ttPerform;
 
     public Opportunity()
     {
@@ -138,14 +136,9 @@ public class Opportunity extends Ability
     }
 
     @Override
-    public int getDamage() {
-        return damage;
-    }
-
-    @Override
-    public void setDamage(Entity performer)
+    public int getDamage(Entity performer)
     {
-        damage = ((StatsCmp) CmpMapper.getComp(CmpType.STATS, performer)).getWeaponDamage();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS, performer)).getWeaponDamage();
     }
 
     @Override
@@ -155,14 +148,8 @@ public class Opportunity extends Ability
     }
 
     @Override
-    public int getTTPerform() {
-        return ttPerform;
-    }
-
-    @Override
-    public void setTTPerform(Entity performer)
-    {
-        ttPerform = 0;
+    public int getTTPerform(Entity performer) {
+        return 0;
     }
 
     @Override

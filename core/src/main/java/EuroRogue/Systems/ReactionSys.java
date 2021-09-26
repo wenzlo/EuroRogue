@@ -116,8 +116,8 @@ public class ReactionSys extends MyEntitySystem
                 }
             }
             if (reactionAbility == null) return;
-            StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, reactor);
-            int dmg = Math.round(actionAbility.getDamage() - actionAbility.getDamage() * reactionAbility.getDmgReduction(statsCmp));
+            StatsCmp reactorStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, reactor);
+            int dmg = Math.round(actionAbility.getDamage(actor) - actionAbility.getDamage(actor) * reactionAbility.getDmgReduction(reactorStats));
             actionEvt.targetsDmg.replace(targetID, dmg);
 
             if (!reactionAbility.scroll()) {
@@ -125,7 +125,7 @@ public class ReactionSys extends MyEntitySystem
                 if (reactionAbility.getActive())
                 {
                     HashMap<Integer,Integer> targets = new HashMap<>();
-                    targets.put(actor.hashCode(),reactionAbility.getDamage());
+                    targets.put(actor.hashCode(),reactionAbility.getDamage(reactor));
 
                     ActionEvt reaction = new ActionEvt(reactor.hashCode(), null, reactionAbility.getSkill(), targets, reactionAbility.getStatusEffects());
                     Entity eventEntity = new Entity();
@@ -136,7 +136,7 @@ public class ReactionSys extends MyEntitySystem
 
                 Entity scrollEntity = getGame().getScrollForSkill(reactionAbility.getSkill(), reactor);
                 HashMap<Integer,Integer> targets = new HashMap<>();
-                targets.put(actor.hashCode(),reactionAbility.getDamage());
+                targets.put(actor.hashCode(),reactionAbility.getDamage(reactor));
                 ActionEvt reaction = new ActionEvt(reactor.hashCode(), scrollEntity.hashCode(), reactionAbility.getSkill(), targets, reactionAbility.getStatusEffects());
 
                 Entity eventEntity = new Entity();
@@ -181,7 +181,7 @@ public class ReactionSys extends MyEntitySystem
                         if (reactionAbility.getActive()) {
 
                             HashMap<Integer,Integer> targets = new HashMap<>();
-                            targets.put(actor.hashCode(),reactionAbility.getDamage());
+                            targets.put(actor.hashCode(),reactionAbility.getDamage(reactor));
 
                             ActionEvt reaction = new ActionEvt(reactor.hashCode(), null, reactionAbility.getSkill(), targets, reactionAbility.getStatusEffects());
 
@@ -192,7 +192,7 @@ public class ReactionSys extends MyEntitySystem
                     } else {
 
                         HashMap<Integer,Integer> targets = new HashMap<>();
-                        targets.put(actor.hashCode(),reactionAbility.getDamage());
+                        targets.put(actor.hashCode(),reactionAbility.getDamage(reactor));
 
                         Entity scrollEntity = getGame().getScrollForSkill(reactionAbility.getSkill(), reactor);
                         ActionEvt reaction = new ActionEvt(reactor.hashCode(), scrollEntity.hashCode(), reactionAbility.getSkill(), targets, reactionAbility.getStatusEffects());

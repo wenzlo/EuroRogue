@@ -123,7 +123,6 @@ public class IceShield extends Ability
         friendLocations.add(positionCmp.coord);
         return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
     }
-
     @Override
     public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }
 
@@ -200,11 +199,8 @@ public class IceShield extends Ability
         return TargetType.ENEMY;
     }
     @Override
-    public int getDamage() {
+    public int getDamage(Entity performer) {
         return 0;
-    }
-    @Override
-    public void setDamage(Entity performer) {
     }
 
     @Override
@@ -213,11 +209,8 @@ public class IceShield extends Ability
     }
 
     @Override
-    public int getTTPerform() {
+    public int getTTPerform(Entity performer) {
         return 0;
-    }
-    @Override
-    public void setTTPerform(Entity performer) {
     }
 
     @Override

@@ -10,6 +10,7 @@ import java.util.Set;
 import EuroRogue.MyMapUtility;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.SpatialMap;
+import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.LineKit;
 import squidpony.squidgrid.mapping.Placement;
@@ -25,9 +26,23 @@ public class LevelCmp implements Component
     public GreasedRegion floors;
     public SpatialMap<Integer, Integer> actors = new SpatialMap();
     public SpatialMap<Integer, Integer> items = new SpatialMap();
+    public Coord stairsUp;
+    public Coord stairsDown;
 
 
-    public LevelCmp(){}
+   /* public LevelCmp(DungeonGenerator dungeonGenerator)
+    {
+        this.decoDungeon=dungeonGenerator.getDungeon();
+        this.bareDungeon=dungeonGenerator.getBareDungeon();
+        this.lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
+        this.prunedDungeon = new char[decoDungeon[0].length][decoDungeon.length];
+        LineKit.pruneLines(this.lineDungeon, new GreasedRegion(), prunedDungeon);
+        this.environment = dungeonGenerator.e;
+        this.resistance = DungeonUtility.generateResistances(decoDungeon);
+        this.bgColors = MyMapUtility.generateDefaultBGColorsFloat(decoDungeon);
+        this.colors = MyMapUtility.generateDefaultColorsFloat(decoDungeon);
+        this.floors = new GreasedRegion(bareDungeon, '.');
+    }*/
     public LevelCmp (char[][] decoDungeon, char[][] bareDungeon, int[][] environment)
     {
         this.decoDungeon=decoDungeon;

@@ -93,7 +93,7 @@ public class ActionSys extends MyEntitySystem
                 {
                     Entity aoeTarEnt = getGame().getEntity(targetId);
                     PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, aoeTarEnt);
-                    int dmg = (int) (abilityCmp.aoe.findArea().get(positionCmp.coord)*abilityCmp.getDamage());
+                    int dmg = (int) (abilityCmp.aoe.findArea().get(positionCmp.coord)*abilityCmp.getDamage(performerEntity));
                     System.out.println(dmg);
                     action.targetsDmg.put(targetId, dmg);
                 }

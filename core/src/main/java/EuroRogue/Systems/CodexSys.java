@@ -6,20 +6,17 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
-import EuroRogue.Components.CodexCmp;
-import EuroRogue.Components.LevelCmp;
-import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.CodexCmp;
+import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.EventComponents.CodexEvt;
 import EuroRogue.MyEntitySystem;
 
 public class CodexSys extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
-
-
 
     /**
      * Called when this EntitySystem is added to an {@link Engine}.
@@ -58,6 +55,7 @@ public class CodexSys extends MyEntitySystem
         codex.known.add(skill);
     }
     private boolean prepareSkill(Skill skill, Entity entity) {
+
         CodexCmp codex = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
         if(codex.prepared.contains(skill) || !codex.known.contains(skill)) return false;
         codex.prepared.add(skill);
@@ -79,8 +77,8 @@ public class CodexSys extends MyEntitySystem
 
     private void addAbilityCmp (Skill skill, Entity entity)
     {
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        entity.add((Ability.newAbilityCmp(skill, levelCmp.bareDungeon)));
+        System.out.println(skill);
+        entity.add(Ability.newAbilityCmp(skill));
 
     }
     private void removeAbilityCmp (Skill skill, Entity entity)
