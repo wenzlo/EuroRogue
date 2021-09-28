@@ -585,7 +585,6 @@ public class MenuUpdateSys extends MyEntitySystem {
             @Override
             public void run()
             {
-                System.out.println("Starting game");
                 getGame().newGame();
             }
         };

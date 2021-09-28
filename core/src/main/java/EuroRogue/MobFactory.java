@@ -120,7 +120,6 @@ public class MobFactory
         int spentLimit = stats.getIntel() + 3;
         List<Skill> skillPool = new ArrayList<>(Arrays.asList(Skill.values()));
         skillPool.remove(Skill.MELEE_ATTACK);
-        System.out.println(skillPool);
 
         manaPool.spent.addAll(Arrays.asList(Skill.MELEE_ATTACK.prepCost));
         manaPool.spent.addAll(Arrays.asList(Skill.MELEE_ATTACK.castingCost));

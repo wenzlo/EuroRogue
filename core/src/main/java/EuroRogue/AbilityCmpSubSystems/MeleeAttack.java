@@ -45,7 +45,6 @@ public class MeleeAttack extends Ability
     public MeleeAttack()
     {
         super("Melee Attack", new PointAOE(Coord.get(-1,-1), 1, 1));
-        System.out.println("New Melee ability");
     }
 
 
