@@ -69,11 +69,13 @@ Controls-
 __________________________________________________________________________________________________________
 Start Menu-
 
-	A default Character name is already entered. Use BackSpace to clear it and enter a different one.
+	A default Character name is already entered.
+	Use BackSpace to clear it and enter a different one.
 	The character name is the game seed and determines the Character build, enemies and dungeon level generation.
 	UI HotKey to start game. 
 	
-	"1) New Game" -> pres num_row 1 to start the game. 
+	"1) New Game"      -> pres num_row 1 to start the game.
+	"2) New Character" -> pres num_row 2 to re-roll your Character.
 
 __________________________________________________________________________________________________________	
 Abilities-
