@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.ShrineCmp;
@@ -77,6 +78,8 @@ public class ShrineSys extends MyEntitySystem
         Entity shrineEntity = entities.get(0);
         ShrineEvt shrineEvt = (ShrineEvt) CmpMapper.getComp(CmpType.SHRINE_EVT, shrineEntity);
         ShrineCmp shrineCmp = (ShrineCmp)CmpMapper.getComp(CmpType.SHRINE, shrineEntity);
+        Entity focus = getGame().getFocus();
+        CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focus);
 
         if(shrineCmp.charges==0)
         {
@@ -88,23 +91,25 @@ public class ShrineSys extends MyEntitySystem
             lightCmp.strobe=0f;
             lightCmp.flicker=0f;
             shrineEntity.remove(ShrineEvt.class);
+
+            for(Skill skill : codexCmp.prepared)
+            {
+                Ability ability = CmpMapper.getAbilityComp(skill, focus);
+                ability.setMap(((LevelCmp)CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel)).decoDungeon);
+            }
             return;
         }
         if(shrineEvt.processed) return;
         shrineEvt.processed = true;
 
-        Entity focus = getGame().getFocus();
 
-        CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focus);
+
+
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, focus);
 
         int charges = Collections.frequency(manaPoolCmp.attuned, shrineCmp.school);
-        if(charges==0)
-        {
-            shrineEntity.remove(ShrineEvt.class);
-            return;
-        }
-        if(shrineCmp.charges==-1)shrineCmp.charges = charges;
+
+        if(shrineCmp.charges==-1)shrineCmp.charges = charges+1;
 
 
         Entity gameStateEvtEnt = new Entity();

@@ -162,7 +162,7 @@ public class EuroRogue extends ApplicationAdapter {
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows, shrineWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Tleilaxian";
+    public String playerName = "Tleilax";
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
@@ -189,6 +189,12 @@ public class EuroRogue extends ApplicationAdapter {
 
     public void newGame()
     {
+        rng = new GWTRNG(playerName);
+        mobFactory = new MobFactory(this, rng.nextInt());
+        weaponFactory = new WeaponFactory(rng.nextInt());
+        armorFactory = new ArmorFactory(rng.nextInt());
+        foodFactory = new FoodFactory();
+        objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
 
         dungeonGen = new SectionDungeonGenerator(42, 42, new GWTRNG(rng.nextInt()));
         dungeonGen.addDoors(100, false);
@@ -502,6 +508,7 @@ public class EuroRogue extends ApplicationAdapter {
 
             playerName = playerName + key;
             ((NameCmp) CmpMapper.getComp(CmpType.NAME, player)).name = playerName;
+
         },
                 //The second parameter passed to a SquidInput can be a SquidMouse, which takes mouse or touchscreen
                 //input and converts it to grid coordinates (here, a cell is 10 wide and 20 tall, so clicking at the

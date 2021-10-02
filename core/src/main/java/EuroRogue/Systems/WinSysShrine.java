@@ -196,34 +196,33 @@ public class WinSysShrine extends MyEntitySystem
                 y++;
             }
         }
-        if(manaPoolCmp.spent.contains(school))
+
+        for(Skill skill : shrineCmp.skillOffer)
         {
-            for(Skill skill : shrineCmp.skillOffer)
-            {
-                Runnable primaryAction = new Runnable() {
-                    @Override
-                    public void run() {
-                        Entity eventEntity = new Entity();
-                        CodexEvt codexEvt = new CodexEvt(focusEntity.hashCode(), Arrays.asList(skill), null, null);
-                        eventEntity.add(codexEvt);
-                        getEngine().addEntity(eventEntity);
-                        shrineCmp.skillOffer.remove(skill);
-                        manaPoolCmp.spent.remove(school);
-                        shrineCmp.charges = shrineCmp.charges-1;
+            Runnable primaryAction = new Runnable() {
+                @Override
+                public void run() {
+                    Entity eventEntity = new Entity();
+                    CodexEvt codexEvt = new CodexEvt(focusEntity.hashCode(), Arrays.asList(skill), null, null);
+                    eventEntity.add(codexEvt);
+                    getEngine().addEntity(eventEntity);
+                    shrineCmp.skillOffer.remove(skill);
+                    manaPoolCmp.spent.remove(school);
+                    shrineCmp.charges = shrineCmp.charges-1;
 
-                    }
-                };
+                }
+            };
 
-                char chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
-                MenuItem menuItem = new MenuItem(getSkillLabel(skill, chr));
-                menuItem.addPrimaryAction(primaryAction);
+            char chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+            MenuItem menuItem = new MenuItem(getSkillLabel(skill, chr));
+            menuItem.addPrimaryAction(primaryAction);
 
-                menuCmp.menuMap.put(Coord.get(x, y), chr, menuItem);
-                getGame().keyLookup.put(chr, menuCmp);
-                getGame().globalMenuIndex++;
-                y++;
-            }
+            menuCmp.menuMap.put(Coord.get(x, y), chr, menuItem);
+            getGame().keyLookup.put(chr, menuCmp);
+            getGame().globalMenuIndex++;
+            y++;
         }
+
     }
 
     private IColoredString.Impl getShrineScrollLabel(Skill skill, Character selectionKey)
@@ -261,9 +260,8 @@ public class WinSysShrine extends MyEntitySystem
         IColoredString.Impl coloredString = new IColoredString.Impl();
 
         coloredString.append(selectionKey.toString() + ") ", SColor.WHITE);
-        coloredString.append("■", skill.school.color);
-        coloredString.append(" »» ", SColor.WHITE);
-        coloredString.append(skill.name + " ", skill.school.color);
+
+        coloredString.append(skill.name, skill.school.color);
 
 
 

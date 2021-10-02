@@ -107,6 +107,7 @@ public class ArcaneTouch extends Ability
     @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
+        if(actor == null) return new OrderedMap<>();
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
 
 

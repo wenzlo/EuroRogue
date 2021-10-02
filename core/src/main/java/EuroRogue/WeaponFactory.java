@@ -55,8 +55,8 @@ public class WeaponFactory
     {
         WeaponType weaponType = rng.getRandomElement(WeaponType.values());
         Entity weapon = newBasicWeapon(weaponType, loc);
-        if(rng.nextInt()%20==0) addOnHitSERnd(weapon, TargetType.ENEMY);
-        if(rng.nextInt()%20==0) addOnEquipSERnd(weapon);
+        /*if(rng.nextInt()%20==0) addOnHitSERnd(weapon, TargetType.ENEMY);
+        if(rng.nextInt()%20==0) addOnEquipSERnd(weapon);*/
 
         return weapon;
     }

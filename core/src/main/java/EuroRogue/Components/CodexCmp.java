@@ -45,7 +45,7 @@ public class CodexCmp implements Component
         List<School> schools = new ArrayList<>();
         for(Skill skill:prepared)
         {
-            if(!schools.contains(skill.school)) schools.add(School.gtExclusionFor(skill.school));
+            if(!schools.contains(skill.school)) schools.add(School.getExclusionFor(skill.school));
         }
         return  schools;
     }

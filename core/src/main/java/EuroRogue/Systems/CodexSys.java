@@ -10,9 +10,16 @@ import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.CodexCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
+import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.TickerCmp;
+import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.CodexEvt;
+import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
+import squidpony.squidgrid.gui.gdx.SColor;
 
 public class CodexSys extends MyEntitySystem
 {
@@ -48,6 +55,7 @@ public class CodexSys extends MyEntitySystem
             for(Skill skill:codexEvt.addToKnown) addSkill(skill, codex);
             for(Skill skill:codexEvt.prepare) prepareSkill(skill, actorEntity);
             for(Skill skill:codexEvt.unPrepare) unPrepSkill(skill, actorEntity);
+            generateLogEvts(codexEvt);
         }
     }
     private void addSkill(Skill skill, CodexCmp codex)
@@ -82,6 +90,45 @@ public class CodexSys extends MyEntitySystem
     private void removeAbilityCmp (Skill skill, Entity entity)
     {
         entity.remove(skill.cls);
+    }
+
+    private void generateLogEvts (CodexEvt codexEvt)
+    {
+        for(Skill skill : codexEvt.addToKnown)
+        {
+            IColoredString.Impl<SColor> coloredEvtText = new IColoredString.Impl<>();
+
+            Integer tick = ((TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker)).tick;
+            coloredEvtText.append(tick.toString(), SColor.WHITE);
+
+            String name = ((NameCmp) CmpMapper.getComp(CmpType.NAME, getGame().getEntity(codexEvt.actorID))).name;
+            coloredEvtText.append(" "+name+ " learns ", SColor.WHITE);
+
+            coloredEvtText.append(skill.name, skill.school.color);
+
+            LogEvt logEvt = new LogEvt(tick, coloredEvtText);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(logEvt.entry);
+
+        }
+
+        for(Skill skill : codexEvt.prepare)
+        {
+            IColoredString.Impl<SColor> coloredEvtText = new IColoredString.Impl<>();
+
+            Integer tick = ((TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker)).tick;
+            coloredEvtText.append(tick.toString(), SColor.WHITE);
+
+            String name = ((NameCmp) CmpMapper.getComp(CmpType.NAME, getGame().getEntity(codexEvt.actorID))).name;
+            coloredEvtText.append(" "+name+ " prepares ", SColor.WHITE);
+
+            coloredEvtText.append(skill.name, skill.school.color);
+
+            LogEvt logEvt = new LogEvt(tick, coloredEvtText);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(logEvt.entry);
+
+        }
+
+
     }
 
 }

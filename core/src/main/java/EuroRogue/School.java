@@ -18,13 +18,10 @@ public enum School
         this.name = name;
         this.color = color;
     }
-    public static School gtExclusionFor(School school)
+    public static School getExclusionFor(School school)
     {
         switch (school)
         {
-            case PHY: return ARC;
-
-            case ARC: return PHY;
 
             case FIR: return ICE;
 

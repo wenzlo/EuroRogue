@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.Components.AimingCmp;
+import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.EquipmentSlot;
@@ -351,12 +352,20 @@ public class MenuUpdateSys extends MyEntitySystem {
             Coord coord = Coord.get(x, y);
             IColoredString.Impl abilityLabel;
             Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+            CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntity);
             if(getGame().gameState==GameState.PLAYING)
             {
-                abilityLabel = new IColoredString.Impl(chr+") "+name, SColor.WHITE);
+                abilityLabel = new IColoredString.Impl(chr+") ", SColor.WHITE);
+                abilityLabel.append(charCmp.chr,charCmp.color);
+                abilityLabel.append(" "+name,charCmp.color);
                 getGame().globalMenuIndex++;
             }
-            else abilityLabel = new IColoredString.Impl(name, SColor.WHITE);
+            else {
+
+                abilityLabel = new IColoredString.Impl();
+                abilityLabel.append(charCmp.chr,charCmp.color);
+                abilityLabel.append(" "+name,charCmp.color);
+            }
 
             MenuItem menuItem = new MenuItem(abilityLabel);
             EquipmentCmp equipmentCmp = (EquipmentCmp) CmpMapper.getComp(CmpType.EQUIPMENT, itemEntity);
@@ -661,17 +670,19 @@ public class MenuUpdateSys extends MyEntitySystem {
         IColoredString.Impl slotLabel = new IColoredString.Impl();
 
         Entity itemEntity = getGame().getEntity(itemID);
-        if(chr!=null)
-        {
-            slotLabel.append(chr+") "+ slot.abr+" ", SColor.WHITE);
 
-        }
-        else slotLabel.append("   "+slot.abr, SColor.WHITE);
         if(itemEntity!=null)
         {
             String name = ((NameCmp)CmpMapper.getComp(CmpType.NAME, itemEntity)).name;
-            slotLabel.append(name, SColor.WHITE);
+            CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntity);
+            slotLabel.append(chr+")", SColor.WHITE);
+            slotLabel.append(" "+slot.abr+" ", SColor.WHITE);
+            slotLabel.append(charCmp.chr, charCmp.color);
+            slotLabel.append(" "+name, charCmp.color);
         }
+
+        else slotLabel.append("   "+slot.abr, SColor.WHITE);
+
 
         return slotLabel;
     }

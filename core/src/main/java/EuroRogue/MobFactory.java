@@ -139,6 +139,7 @@ public class MobFactory
         while (spentLimit > 0 && skillPool.size()>0)
         {
             Skill skill = rng.getRandomElement(skillPool);
+
             skillPool.remove(skill);
             if(spentLimit - skill.prepCost.length-1 < 0) continue;
 
@@ -161,7 +162,6 @@ public class MobFactory
         if(codex.prepared.contains(Skill.DAGGER_THROW))
         {
             Entity daggerEntity = game.weaponFactory.newBasicWeapon(WeaponType.DAGGER);
-            game.weaponFactory.addOnHitSERnd(daggerEntity, TargetType.ENEMY);
             ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, daggerEntity);
             InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, mob);
             itemCmp.ownerID= mob.hashCode();

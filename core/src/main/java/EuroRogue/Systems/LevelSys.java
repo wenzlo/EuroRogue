@@ -58,6 +58,7 @@ import squidpony.squidgrid.mapping.SerpentMapGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
 import squidpony.squidmath.GreasedRegion;
+import squidpony.squidmath.OrderedSet;
 
 
 public class LevelSys extends MyEntitySystem
@@ -199,23 +200,55 @@ public class LevelSys extends MyEntitySystem
         spwnCrds.addAll(new GreasedRegion(newLevel.decoDungeon, '.'));
 
         GreasedRegion stairsUpFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(newLevel.resistance, new double[newLevel.resistance.length][newLevel.resistance[0].length] , getGame().dungeonGen.stairsUp.x, getGame().dungeonGen.stairsUp.y),0.0).not();
+        GreasedRegion stairsDownFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(newLevel.resistance, new double[newLevel.resistance.length][newLevel.resistance[0].length] , getGame().dungeonGen.stairsDown.x, getGame().dungeonGen.stairsDown.y),0.0).not();
+
         if(getGame().getEntity(player.hashCode())==null)
         {
             getEngine().addEntity(player);
         }
         //player.add(new FocusCmp());
+
+        Coord shrine1Coord = null;
+        Coord shrine2Coord = null;
+        for(OrderedSet<Coord> centers : getGame().dungeonGen.placement.getCenters())
+        {
+            if(stairsUpFOV.contains(centers.first()) && shrine1Coord==null)
+            {
+
+                shrine1Coord = centers.first();
+                Entity shrine = objectFactory.getRndObject(ObjectType.SHRINE, shrine1Coord);
+                getEngine().addEntity(shrine);
+
+
+            }
+            if(stairsDownFOV.contains(centers.first()) && shrine2Coord==null)
+            {
+
+                shrine2Coord = centers.first();
+                Entity shrine = objectFactory.getRndObject(ObjectType.SHRINE, shrine2Coord);
+                getEngine().addEntity(shrine);
+
+            }
+        }
+        if(shrine1Coord==null || shrine2Coord==null )
+        {
+            newLevel();
+            return;
+        }
+
+
         spwnCrds.andNot(stairsUpFOV);
 
         for(int i=0;i<10;i++)
         {
 
-            Coord itemLoc = rng.getRandomElement(spwnCrds);
+            /*Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
 
             Skill skill = rng.getRandomElement(Arrays.asList(Skill.values()));
-            getEngine().addEntity(getGame().generateScroll(itemLoc, skill));
+            getEngine().addEntity(getGame().generateScroll(itemLoc, skill));*/
 
-            itemLoc = rng.getRandomElement(spwnCrds);
+            Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
 
             getEngine().addEntity(weaponFactory.newRndWeapon(itemLoc));
@@ -256,8 +289,7 @@ public class LevelSys extends MyEntitySystem
             CmpMapper.getAbilityComp(skill, getGame().player).setMap(newLevel.bareDungeon);
         }
 
-        Entity shrine = objectFactory.getRndObject(ObjectType.SHRINE, rng.getRandomElement(stairsUpFOV.remove(playerPositionCmp.coord)));
-        getEngine().addEntity(shrine);
+
         getEngine().getSystem(NoiseSys.class);
         Entity eventEntity = new Entity();
         eventEntity.add(new GameStateEvt(GameState.PLAYING));

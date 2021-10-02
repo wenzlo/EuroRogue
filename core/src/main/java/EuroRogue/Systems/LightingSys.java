@@ -195,7 +195,7 @@ public class LightingSys extends MyEntitySystem
         if(getGame().gameState==GameState.AIMING)
         {
             AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
-            Ability aimAbility = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
+            Ability aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getGame().getFocus());
             for(Coord coord : aimAbility.possibleTargets(positionCmp.coord, levelCmp.resistance) )
             {
@@ -215,7 +215,7 @@ public class LightingSys extends MyEntitySystem
                     for(int y=0; y<3; y++)
                     {
 
-                        lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y] = SColor.lerpFloatColors(lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y], SColor.SAFETY_ORANGE.toFloatBits(), 0.15f);
+                        lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y] = SColor.lerpFloatColors(lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y], SColor.SAFETY_ORANGE.toFloatBits(), (float) (aimAbility.aoe.findArea().get(coord)*1f));
                     }
                 }
             }
