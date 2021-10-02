@@ -4,7 +4,6 @@ import squidpony.squidgrid.gui.gdx.SColor;
 
 public enum School
 {
-    DEF("Default", SColor.LIGHT_YELLOW_DYE),
     PHY("Physical", SColor.LIGHT_YELLOW_DYE),
     ARC("Arcane", SColor.PSYCHEDELIC_PURPLE),
     FIR("Fire", SColor.SAFETY_ORANGE),
@@ -23,8 +22,6 @@ public enum School
     {
         switch (school)
         {
-            case DEF:
-                break;
             case PHY: return ARC;
 
             case ARC: return PHY;
@@ -33,6 +30,6 @@ public enum School
 
             case ICE: return FIR;
         }
-        return  DEF;
+        return  null;
     }
 }

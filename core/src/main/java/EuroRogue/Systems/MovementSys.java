@@ -13,13 +13,16 @@ import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.DamageEvent;
+import EuroRogue.EventComponents.GameStateEvt;
+import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.IColoredString;
 import EuroRogue.CmpType;
 
 import EuroRogue.EuroRogue;
-
+import EuroRogue.GameState;
 import EuroRogue.EventComponents.MoveEvt;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatusEffectCmps.Bleeding;
@@ -62,6 +65,7 @@ public class MovementSys extends MyEntitySystem
             actorMap.move(oldPos, newPos);
             if(actorMap.get(newPos) == null) return;
             if((Integer) actorMap.get(newPos)!=actor.hashCode()) return;
+
             positionCmp.coord = newPos;
             positionCmp.orientation = moveEvt.direction;
 
@@ -74,7 +78,6 @@ public class MovementSys extends MyEntitySystem
                 Entity damageEvtEntity = new Entity();
                 damageEvtEntity.add(new DamageEvent(actor.hashCode(), bleeding.damagePerMove, DamageType.NONE, StatusEffect.BLEEDING));
                 getEngine().addEntity(damageEvtEntity);
-
             }
            /* for(StatusEffect statusEffect : getGame().getStatusEffects(entity))
             {

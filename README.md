@@ -26,8 +26,9 @@ Legend-
 	, = Shallow water tiles
 	~ = Deep Water tiles
 	: = Bridge tiles
+	§ = Shrines - Convert mana, Buy skills
 	Box Drawing Chars = walls
-	! = Noise Alert icon. You heard a noise from this postion.
+	! = Noise Alert icon. You heard a noise from this position.
 	
 	anything else is an item that can be picked up, equipped etc... Torch/Weapon/Armor/Mana/ƒood
 __________________________________________________________________________________________________________
@@ -35,24 +36,31 @@ Controls-
 
 	Movement
 	
-		8 Way Numpad Movement  
+		8 Way Numpad Movement
 		4 Way Arrow Keys Movement 
 		8 Way VI Key Movement
 
 		Numpad_5 / SPACE BAR  = Short Rest - Replenishes Acttive Mana
 
+    Actions
 
-	UI HotKeys are variable = ?)
+	    UI HotKeys are variable = ?)
 	
 		Abilities/Scrolls  - ?) Perform Ability/Use Scroll if Available
 
 		Inventory	   - ?) Equip/Unequip Item
 				   - Shift + ?) Drop Item
 					
-	g)   -> Grab or Pickup Item
-	c)   -> Make Camp(Long Rest) / Resume Playing toggle
-	TAB) -> Cycle Enemy Target Selection.
-	>)   -> Decend Stairs i.e. Shift + .)
+        g)   -> Grab or Pickup Item
+        c)   -> Make Camp(Long Rest) / Resume Playing toggle
+        >)   -> Decend Stairs i.e. Shift + .)
+	    TAB) -> Cycle Enemy Target Selection.
+
+
+	Aimed Abilities - Aim Mode
+
+	    8 Way Numpad to adjust aim.
+	    Numpad_5 = cast spell.
 	
 	-Dev Cheats!!!-
 	p)   -> Reroll random charater stats and abilites.
@@ -175,16 +183,16 @@ Mana/Energy Pool-
 	
 	■ ■ ■ ■ ■ ■  <- Active Mana/Energy Pool - Available to spend to perform Abilites
  
-	■ ■ ■ ■ ■ ■	    Spent Mana/Energy Pool - Mana spent on abilites transfers here.
+	■ ■ ■ ■ ■ ■	    Spent Mana/Energy Pool - Mana spent on abilities transfers here.
 	■ ■ ■ ■ ■ ■  <- Mana/Energy randomly drawn from this pool to replenish the Active Row.
-	■ ■		          Active Row is replenshied by performing a Short Rest
+	■ ■		          Active Row is replenished by performing a Short Rest
  
 	■ ■ ■ ■ ████ <- Attuned Mana/Energy Pool -
-  	████████████    Mana slots available to "Attune" mana in order to Prepare and ability.
+  	████████████    Mana slots available to "Attune" mana in order to Prepare an Ability.
 			             Number of open slots is determined by Intelligence.
 					
 			A Short Rest will automatically be performed if your Active Mana is depleted or
-			you can not pay the cost of any Prepared Ability.
+			you can not pay the cost of performing any Ability or Scroll.
    
 __________________________________________________________________________________________________________
 Make Camp (Long Rest)- 

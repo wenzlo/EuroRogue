@@ -34,7 +34,6 @@ public class WinSysCamp extends MyEntitySystem
     public void update(float deltaTime)
     {
 
-
         WindowCmp window = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().campWindow));
         MySparseLayers display = window.display;
         if(display.isVisible()==false) return;

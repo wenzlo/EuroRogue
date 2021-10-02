@@ -34,7 +34,9 @@ import EuroRogue.Components.ManaCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.ObjectCmp;
 import EuroRogue.Components.ScrollCmp;
+import EuroRogue.Components.ShrineCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WeaponCmp;
@@ -44,8 +46,10 @@ import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.EventComponents.LevelEvt;
+import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.Listeners.ActorListener;
+import EuroRogue.Listeners.ObjectListener;
 import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.Enlightened;
 import EuroRogue.StatusEffectCmps.Exhausted;
@@ -99,6 +103,7 @@ import EuroRogue.Systems.LevelSys;
 import EuroRogue.Systems.LightingSys;
 import EuroRogue.Systems.MenuUpdateSys;
 import EuroRogue.Systems.NoiseSys;
+import EuroRogue.Systems.ShrineSys;
 import EuroRogue.Systems.StatSys;
 import EuroRogue.Systems.StatusEffectEvtSys;
 import EuroRogue.Systems.StatusEffectRemovalSys;
@@ -108,6 +113,7 @@ import EuroRogue.Systems.WinSysHotBar;
 import EuroRogue.Systems.WinSysDungeon;
 import EuroRogue.Systems.WinSysLog;
 import EuroRogue.Systems.WinSysMana;
+import EuroRogue.Systems.WinSysShrine;
 import EuroRogue.Systems.WinSysStart;
 import EuroRogue.Systems.WinSysStats;
 import EuroRogue.Systems.WinSysInventory;
@@ -147,15 +153,16 @@ public class EuroRogue extends ApplicationAdapter {
     public WeaponFactory weaponFactory;
     public ArmorFactory armorFactory;
     public FoodFactory foodFactory;
+    public ObjectFactory objectFactory;
     public CmpMapper cmpMapper = new CmpMapper();
     public Integer globalMenuIndex = 0;
     public char[] globalMenuSelectionKeys = "1234567890-=qweruiop[]".toCharArray();
     public HashMap<Character, MenuCmp> keyLookup = new HashMap<>();
-    public Entity gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, ticker, logWindow, currentLevel;
-    public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows;
+    public Entity shrineWindow, gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, ticker, logWindow, currentLevel;
+    public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows, shrineWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Jalopnik";
+    public String playerName = "Tleilaxian";
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
@@ -175,7 +182,7 @@ public class EuroRogue extends ApplicationAdapter {
     private static final int cellWidth = 9;
     /** The pixel height of a cell */
     private static final int cellHeight = 9;
-    public SquidInput input, aimInput, campInput, startInput;
+    public SquidInput input, aimInput, campInput, startInput, shrineInput;
     public InputMultiplexer inputProcessor;
     private final Color bgColor=Color.BLACK;
     public int depth = 0;
@@ -198,6 +205,14 @@ public class EuroRogue extends ApplicationAdapter {
     }
     private void initializeWindows()
     {
+
+        shrineWindow = new Entity();
+        Stage shrineStage = buildStage(46, 58,24,15,24,15,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
+        shrineWindow.add(new WindowCmp((MySparseLayers) shrineStage.getActors().get(0),shrineStage, false));
+        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, shrineWindow)).columnIndexes = new int[]{3,25};
+        shrineWindow.add(new MenuCmp());
+        engine.addEntity(shrineWindow);
+
         dungeonWindow = new Entity();
         Stage dungeonStage = buildStage(42,22,23,23,42,42,cellWidth*3,cellHeight*3, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
         dungeonWindow.add(new WindowCmp((MySparseLayers) dungeonStage.getActors().get(0),dungeonStage, true));
@@ -216,6 +231,8 @@ public class EuroRogue extends ApplicationAdapter {
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, gameOverWindow)).columnIndexes = new int[]{1,25,40};
         //gameOverWindow.add(new MenuCmp());
         engine.addEntity(gameOverWindow);
+
+
 
         campWindow = new Entity();
         Stage campWinStage = buildStage(42,21,69,30,69,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
@@ -281,14 +298,17 @@ public class EuroRogue extends ApplicationAdapter {
         targetHotBar.add(new MenuCmp());
         engine.addEntity(targetHotBar);
 
-        allWindows = Arrays.asList(gameOverWindow, startWindow, dungeonWindow, campWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
+        allWindows = Arrays.asList(shrineWindow, gameOverWindow, startWindow, dungeonWindow, campWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
         playingWindows = Arrays.asList(dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
+        shrineWindows = Arrays.asList(shrineWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
         campingWindows = Arrays.asList(campWindow, focusManaWindow, focusHotBar, inventoryWindow, focusStatsWindow, logWindow);
         startWindows = Arrays.asList(focusManaWindow, inventoryWindow, focusHotBar, focusStatsWindow, startWindow);
         gameOverWindows = Arrays.asList(gameOverWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow );
 
+
         for(Entity windowEntity : allWindows)
         {
+
             ((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
         }
     }
@@ -302,6 +322,9 @@ public class EuroRogue extends ApplicationAdapter {
 
         Family items = Family.all(ItemCmp.class, PositionCmp.class).get();
         engine.addEntityListener(items, new ItemListener(this));
+
+        Family objects = Family.all(ObjectCmp.class).get();
+        engine.addEntityListener(objects, new ObjectListener(this));
 
         Family burning = Family.one(Burning.class).get();
         engine.addEntityListener(burning, new BurningListener(this));
@@ -364,8 +387,11 @@ public class EuroRogue extends ApplicationAdapter {
     }
     private void initializeSystems()
     {
+
         ticker.add(new TickerCmp());
+        engine.addSystem(new WinSysShrine());
         engine.addSystem(new WinSysGameOver());
+        engine.addSystem(new ShrineSys());
         engine.addSystem(new TickerSys());
         engine.addSystem(new CodexSys());
         engine.addSystem(new EventCleanUpSys());
@@ -396,7 +422,8 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new StatusEffectRemovalSys());
         engine.addSystem(new NoiseSys());
         engine.addSystem(new MakeCampSys());
-        engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory));
+        engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory, objectFactory));
+
 
     }
     @Override
@@ -406,9 +433,6 @@ public class EuroRogue extends ApplicationAdapter {
         currentLevel = new Entity();
         engine.addEntity(currentLevel);
         engine.addEntity(ticker);
-
-
-
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
         // cause the usage of an RNG to change). You can randomize the dungeon and several other initial settings by
@@ -489,6 +513,41 @@ public class EuroRogue extends ApplicationAdapter {
 
                 }));
 
+        shrineInput = new SquidInput((key, alt, ctrl, shift) -> {
+
+            if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
+            {
+                if(shift) keyLookup.get(getUnshiftedChar(key)).menuMap.get(getUnshiftedChar(key)).runSecondaryAction();
+                else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
+                return;
+            }
+            /*for(Character chr : keyLookup.keySet())
+            {
+
+                if(chr == key)
+                {
+
+
+                    keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
+                    return;
+                }
+                if(getShiftChar(chr)==key)
+                {
+                    keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
+                    return;
+                }
+            }*/
+            if(key=='c'|| key == SquidInput.ESCAPE)
+            {
+                shrineInput.setIgnoreInput(true);
+                Entity gameStateEvtEnt = new Entity();
+                engine.addEntity(gameStateEvtEnt);
+                gameStateEvtEnt.add(new GameStateEvt(GameState.PLAYING));
+
+            }
+        },
+
+                new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {}));
         campInput = new SquidInput((key, alt, ctrl, shift) -> {
 
             if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
@@ -534,6 +593,14 @@ public class EuroRogue extends ApplicationAdapter {
                 }
                 AISys aiSys = engine.getSystem(AISys.class);
                 aiSys.scheduleRestEvt(getFocus());
+
+                CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, getFocus());
+                LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
+                for(Skill skill : codexCmp.prepared)
+                {
+                    Ability ability = CmpMapper.getAbilityComp(skill, getFocus());
+                    ability.setMap(levelCmp.decoDungeon);
+                }
             }
         },
 
@@ -542,7 +609,7 @@ public class EuroRogue extends ApplicationAdapter {
         aimInput = new SquidInput((key, alt, ctrl, shift) -> {
 
             AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getFocus());
-            Ability ability = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
+            Ability ability = CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
 
             if(aimingCmp==null) return;
@@ -593,7 +660,7 @@ public class EuroRogue extends ApplicationAdapter {
 
 
             }
-            Ability aimAbility = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
+            Ability aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getFocus());
             Coord newAimCoord = aimAbility.getTargetedLocation().translate(direction);
             if(ability.possibleTargets(positionCmp.coord).contains(newAimCoord)
@@ -612,6 +679,8 @@ public class EuroRogue extends ApplicationAdapter {
             Entity focus = getFocus();
             Coord focusPosition  = focus.getComponent(PositionCmp.class).coord;
             TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, ticker);
+            LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
+            CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focus);
             if(!tickerCmp.getScheduledActions(getFocus()).isEmpty()) return;
 
             if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
@@ -762,7 +831,6 @@ public class EuroRogue extends ApplicationAdapter {
 
                 case 'g':
                 case 'G':
-                    LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
                     Coord focusLocation = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, focus)).coord;
                     for(Coord location:levelCmp.items.positions())
                     {
@@ -817,7 +885,7 @@ public class EuroRogue extends ApplicationAdapter {
                     CodexCmp codexCm = (CodexCmp)CmpMapper.getComp(CmpType.CODEX,getFocus());
                     for(Skill skill : codexCm.prepared)
                     {
-                        Ability ability = (Ability) CmpMapper.getAbilityComp(skill, getFocus());
+                        Ability ability = CmpMapper.getAbilityComp(skill, getFocus());
                         if(ability!=null) getFocus().remove(ability.getClass());
                     }
                     getFocus().remove(StatsCmp.class);
@@ -858,15 +926,20 @@ public class EuroRogue extends ApplicationAdapter {
                 case 'm':
                     //ScreenShotFactory.saveScreenshot();
 
-
-
-
             }
 
             Coord newPosition = Coord.get(newX,newY);
             if(focusPosition.equals(newPosition)) return;
             AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI,getFocus());
             Direction direction = Direction.toGoTo(focusPosition, newPosition);
+            if(levelCmp.decoDungeon[newX][newY]=='§')
+            {
+                Integer shrineID = levelCmp.objects.get( Coord.get(newX, newY));
+                Entity shrineEntity = getEntity(shrineID);
+                ShrineCmp shrineCmp  = (ShrineCmp)CmpMapper.getComp(CmpType.SHRINE, shrineEntity);
+                shrineEntity.add(new ShrineEvt(focus.hashCode(), shrineID, shrineCmp.school));
+                return;
+            }
             if (newX >= 0 && newY >= 0 && newX < bigWidth && newY < bigHeight
                     && aiCmp.dijkstraMap.costMap[newX][newY]!= DijkstraMap.WALL)
             {
@@ -975,7 +1048,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         input.setRepeatGap(180);
         campInput.setRepeatGap(240);
-        inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, startInput, input, campInput, aimInput);
+        inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, shrineInput, startInput, input, campInput, aimInput);
         campInput.setIgnoreInput(true);
         Gdx.input.setInputProcessor(inputProcessor);
 
@@ -985,6 +1058,7 @@ public class EuroRogue extends ApplicationAdapter {
         weaponFactory = new WeaponFactory(rng.nextInt());
         armorFactory = new ArmorFactory(rng.nextInt());
         foodFactory = new FoodFactory();
+        objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
         initializeSystems();
         initializeListeners();
 
@@ -1025,6 +1099,7 @@ public class EuroRogue extends ApplicationAdapter {
         Gdx.graphics.setTitle("EuroRogue Demo running at FPS: " + Gdx.graphics.getFramesPerSecond());
 
         engine.update(System.currentTimeMillis()-lastFrameTime);
+        engine.getSystem(WinSysShrine.class).update(System.currentTimeMillis()-lastFrameTime);
 
     }
     @Override
@@ -1059,7 +1134,7 @@ public class EuroRogue extends ApplicationAdapter {
         ability.setScrollID(scroll.hashCode());
         ability.setScroll(true);
         scroll.add(ability);
-        ((Ability) CmpMapper.getAbilityComp(skill, scroll)).setScroll(true);
+        (CmpMapper.getAbilityComp(skill, scroll)).setScroll(true);
         StatsCmp statsCmp = new StatsCmp();
         statsCmp.setStr(skill.strReq);
         statsCmp.setDex(skill.dexReq);
@@ -1120,14 +1195,14 @@ public class EuroRogue extends ApplicationAdapter {
         ArrayList<Ability> abilities = new ArrayList<>();
         for(Skill skill:codexCmp.prepared)
         {
-            Ability abilityCmp = (Ability)CmpMapper.getAbilityComp(skill, actor);
+            Ability abilityCmp = CmpMapper.getAbilityComp(skill, actor);
             if(abilityCmp.isAvailable())abilities.add(abilityCmp);
         }
         for(Integer scrollID:getScrollIDs(actor))
         {
             Entity scrollEntity = getEntity(scrollID);
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL,scrollEntity);
-            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
+            Ability abilityCmp = CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
             if(abilityCmp.isAvailable())abilities.add(abilityCmp);
 
         }
@@ -1142,7 +1217,7 @@ public class EuroRogue extends ApplicationAdapter {
         {
             Entity scrollEntity = getEntity(scrollID);
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL,scrollEntity);
-            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
+            Ability abilityCmp = CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
             if(abilityCmp.isAvailable())scrolls.add(scrollEntity);
 
         }
@@ -1183,11 +1258,10 @@ public class EuroRogue extends ApplicationAdapter {
         if(entity==null || gameState == GameState.AIMING) return;
         ArrayList<Ability> codexAbilityCmps = new ArrayList<>();
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
 
         for(Skill skill : codexCmp.prepared)
         {
-            Ability ability = (Ability) CmpMapper.getAbilityComp(skill,entity);
+            Ability ability = CmpMapper.getAbilityComp(skill,entity);
             if(ability!=null) codexAbilityCmps.add(ability);
 
         }
@@ -1196,7 +1270,7 @@ public class EuroRogue extends ApplicationAdapter {
             Entity itemEntity = getEntity(itemID);
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
 
-            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
+            Ability abilityCmp = CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
             AICmp aiCmp = ((AICmp) CmpMapper.getComp(CmpType.AI, entity));
 
             updateAbility(abilityCmp, entity);
@@ -1209,6 +1283,7 @@ public class EuroRogue extends ApplicationAdapter {
     }
     public void updateAbility(Ability abilityCmp, Entity entity)
     {
+        if(abilityCmp==null || entity ==null) return;
         abilityCmp.updateAOE(entity);
 
         TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, ticker);
@@ -1247,7 +1322,7 @@ public class EuroRogue extends ApplicationAdapter {
         {
             ((DaggerThrow)abilityCmp).itemID = weaponEntity.hashCode();
             ((DaggerThrow)abilityCmp).chr = weaponType.chr;
-            ((DaggerThrow)abilityCmp).statusEffects = ((MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, entity)).getStatusEffects();
+            ((DaggerThrow)abilityCmp).statusEffects = CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, entity).getStatusEffects();
         }
     }
     public ArrayList<StatusEffect> getStatusEffects(Entity entity)
@@ -1350,9 +1425,14 @@ public class EuroRogue extends ApplicationAdapter {
                 if(startInput.hasNext()) startInput.next();
                 break;
 
+            case SHRINE:
+
+                if(shrineInput.hasNext()) shrineInput.next();
+                break;
+
+
         }
     }
-
 }
 // An explanation of hexadecimal float/double literals was mentioned earlier, so here it is.
 // The literal 0x1p-9f is a good example; it is essentially the same as writing 0.001953125f,

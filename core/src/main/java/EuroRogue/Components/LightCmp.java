@@ -15,4 +15,13 @@ public class LightCmp implements Component
         this.color = color;
     }
 
+    public LightCmp(int level, float color, float flicker, float strobe)
+    {
+        this.level = level;
+        this.color = color;
+        this.flicker = flicker;
+        this.strobe = strobe;
+
+    }
+
 }
