@@ -138,6 +138,16 @@ public class LightingSys extends MyEntitySystem
             }
         }
 
+        for(Integer id : levelCmp.objects.identities())
+        {
+            Entity owner= getGame().getEntity(id);
+            LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, owner);
+            lightingHandler.lightList.get(id).radiance.range=lightCmp.level;
+            lightingHandler.lightList.get(id).radiance.color = lightCmp.color;
+            lightingHandler.lightList.get(id).radiance.flicker = lightCmp.flicker;
+            lightingHandler.lightList.get(id).radiance.strobe = lightCmp.strobe;
+        }
+
         lightingCmp.bgLighting=new float[(levelCmp.decoDungeon[0].length)*3][(levelCmp.decoDungeon.length)*3];
         lightingCmp.fgLightLevel =new double[(levelCmp.decoDungeon[0].length)][levelCmp.decoDungeon.length];
         lightingCmp.fgLighting=new float[(levelCmp.decoDungeon[0].length)][levelCmp.decoDungeon.length];

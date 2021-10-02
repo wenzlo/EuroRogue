@@ -1,5 +1,6 @@
 package EuroRogue.AbilityCmpSubSystems;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import EuroRogue.Components.ManaPoolCmp;
@@ -11,7 +12,7 @@ import EuroRogue.WeaponType;
 
 public enum Skill
 {
-    MELEE_ATTACK(         "Melee Attack", MeleeAttack.class,   AnimationsSys.AnimationType.BUMP,         SkillType.ACTION,  School.DEF, new School[]{School.PHY},      new School[]{School.PHY}, null,       null,  0, 0, 0, 0, 0),
+    MELEE_ATTACK(         "Melee Attack", MeleeAttack.class,   AnimationsSys.AnimationType.BUMP,         SkillType.ACTION,  School.PHY, new School[0],      new School[]{School.PHY}, null,       null,  0, 0, 0, 0, 0),
     ENLIGHTEN(               "Enlighten", Enlighten.class,     AnimationsSys.AnimationType.SELF_BUFF,      SkillType.BUFF,  School.ARC, new School[]{School.ARC},      new School[]{School.ARC}, null,          StatusEffect.ENLIGHTENED,  0, 0, 0, 0, 3),
     ICE_SHIELD(               "Ice Shield", IceShield.class,     AnimationsSys.AnimationType.MELEE_MAGIC,      SkillType.REACTION,  School.ICE, new School[]{School.ICE, School.PHY},      new School[]{School.ICE}, null,           StatusEffect.CHILLED,  0, 0, 1, 2, 1),
     MAGIC_MISSILE(       "Magic Missile", MagicMissile.class,  AnimationsSys.AnimationType.PROJ_MAGIC,   SkillType.ACTION,  School.ARC, new School[]{School.ARC, School.ARC}, new School[]{School.ARC, School.ARC}, null,  null,  0, 0, 0, 0, 3),
@@ -75,6 +76,15 @@ public enum Skill
         }
         if(manaPoolCmp.numAttunedSlots<(skill.prepCost.length+ manaPoolCmp.attuned.size())) return false;
         return true;
+    }
+    public static ArrayList<Skill> getSkillsBySchool(School school)
+    {
+        ArrayList<Skill> skills = new ArrayList<>();
+        for(Skill skill : Skill.values())
+        {
+            if(skill.school==school) skills.add(skill);
+        }
+        return skills;
     }
 
 }

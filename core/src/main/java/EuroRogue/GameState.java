@@ -7,5 +7,6 @@ public enum GameState
     PLAYING,
     CAMPING,
     LOADING,
+    SHRINE,
     GAME_OVER
 }

@@ -195,6 +195,7 @@ public class Ability extends Technique implements IAbilityCmpSubSys
      */
     @Override
     public OrderedMap<Coord, Double> apply(Coord user, Coord aimAt) {
+        System.out.println(user+" "+aimAt);
         return super.apply(user, aimAt);
     }
 

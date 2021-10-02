@@ -4,7 +4,6 @@ import com.badlogic.ashley.core.Component;
 
 public class ItemCmp implements Component
 {
-    public Integer levelID;
     public Integer ownerID;
     public ItemType type;
 

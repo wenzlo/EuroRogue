@@ -146,7 +146,7 @@ public class DeathSys extends MyEntitySystem
         for(Coord pos : dropLocations)
         {
 
-            if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
+            if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos) &! manaPoolCmp.attuned.isEmpty())
             {
                 getEngine().addEntity(getGame().generateManaITem(pos, manaPoolCmp.attuned.get(0)));
 

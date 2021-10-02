@@ -261,7 +261,7 @@ public class AISys extends MyEntitySystem
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                 }
             }*/
-            else scheduleRestEvt(entity);
+            else if(!manaPool.spent.isEmpty())scheduleRestEvt(entity);
         }
     }
     public void observe(Entity entity)

@@ -56,7 +56,7 @@ public class GameStateSys extends MyEntitySystem
 
             }
 
-            setWindowVisiblity(newGameState);
+            setWindowVisibility(newGameState);
             setInputProcessor(newGameState);
             ((GameStateEvt)CmpMapper.getComp(CmpType.GAMESTATE_EVT, entity)).setProcessed(true);
             getGame().gameState=newGameState;
@@ -64,7 +64,7 @@ public class GameStateSys extends MyEntitySystem
 
     }
 
-    private void setWindowVisiblity(GameState gameState)
+    private void setWindowVisibility(GameState gameState)
     {
         switch (gameState)
         {
@@ -83,6 +83,12 @@ public class GameStateSys extends MyEntitySystem
                 for(Entity windowEntity : getGame().allWindows)
                 {
                     ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().playingWindows.contains(windowEntity));
+                }
+                break;
+            case SHRINE:
+                for(Entity windowEntity : getGame().allWindows)
+                {
+                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().shrineWindows.contains(windowEntity));
                 }
                 break;
             case CAMPING:
@@ -108,34 +114,45 @@ public class GameStateSys extends MyEntitySystem
     {
         switch (gameState)
         {
-
             case PLAYING:
+                getGame().shrineInput.setIgnoreInput(true);
                 getGame().campInput.setIgnoreInput(true);
                 getGame().input.setIgnoreInput(false);
                 getGame().aimInput.setIgnoreInput(true);
                 getGame().startInput.setIgnoreInput(true);
                 break;
             case AIMING:
+                getGame().shrineInput.setIgnoreInput(true);
                 getGame().campInput.setIgnoreInput(true);
                 getGame().input.setIgnoreInput(true);
                 getGame().aimInput.setIgnoreInput(false);
                 getGame().startInput.setIgnoreInput(true);
                 break;
             case CAMPING:
+                getGame().shrineInput.setIgnoreInput(true);
                 getGame().campInput.setIgnoreInput(false);
                 getGame().input.setIgnoreInput(true);
                 getGame().aimInput.setIgnoreInput(true);
                 getGame().startInput.setIgnoreInput(true);
                 break;
             case STARTING:
+                getGame().shrineInput.setIgnoreInput(true);
                 getGame().campInput.setIgnoreInput(true);
                 getGame().input.setIgnoreInput(true);
                 getGame().aimInput.setIgnoreInput(true);
                 getGame().startInput.setIgnoreInput(false);
+                break;
+            case SHRINE:
+                getGame().shrineInput.setIgnoreInput(false);
+                getGame().campInput.setIgnoreInput(true);
+                getGame().input.setIgnoreInput(true);
+                getGame().aimInput.setIgnoreInput(true);
+                getGame().startInput.setIgnoreInput(true);
                 break;
             case LOADING:
             case GAME_OVER:
                 break;
         }
     }
+
 }

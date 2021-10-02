@@ -184,14 +184,14 @@ public class MenuUpdateSys extends MyEntitySystem {
             for (Ability abilityCmp : scrollAbilities)
             {
                 Coord coord = Coord.get(x, y);
-                Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+                Character chr = null;
                 IColoredString.Impl abilityLabel;
-                if(getGame().gameState!= GameState.CAMPING)
+                if(getGame().gameState == GameState.PLAYING)
                 {
-                    abilityLabel = getScrollLabel(getGame().getScrollForSkill(abilityCmp.getSkill(), getGame().getFocus()), abilityCmp, chr, finalLength);
+                    chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
                     getGame().globalMenuIndex++;
                 }
-                else abilityLabel = getActionLabel(focusEntity, abilityCmp, null, finalLength);
+                abilityLabel = getScrollLabel(focusEntity, abilityCmp, chr, finalLength);
 
                 MenuItem menuItem = new MenuItem(abilityLabel);
                 Runnable primaryAction = new Runnable()
@@ -618,6 +618,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         getGame().globalMenuIndex++;
 
     }
+
     private IColoredString.Impl getActionLabel(Entity performer, Ability abilityCmp, Character selectionKey, int totalLength)
     {
         Skill skill = abilityCmp.getSkill();
@@ -654,6 +655,7 @@ public class MenuUpdateSys extends MyEntitySystem {
 
         return coloredString;
     }
+
     private IColoredString.Impl getSlotLabel(Integer itemID, Character chr, EquipmentSlot slot)
     {
         IColoredString.Impl slotLabel = new IColoredString.Impl();

@@ -17,6 +17,7 @@ import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightingCmp;
+import EuroRogue.Components.ObjectType;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
@@ -42,8 +43,10 @@ import EuroRogue.GameState;
 import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MobFactory;
+import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
+import EuroRogue.ObjectFactory;
 import EuroRogue.TerrainType;
 import EuroRogue.WeaponFactory;
 import squidpony.squidgrid.Radius;
@@ -64,13 +67,15 @@ public class LevelSys extends MyEntitySystem
     private MobFactory mobFactory;
     private WeaponFactory weaponFactory;
     private ArmorFactory armorFactory;
+    private ObjectFactory objectFactory;
 
-    public LevelSys(int seed, MobFactory mobFactory, WeaponFactory weaponFactory, ArmorFactory armorFactory)
+    public LevelSys(int seed, MobFactory mobFactory, WeaponFactory weaponFactory, ArmorFactory armorFactory, ObjectFactory objectFactory)
     {
         this.rng = new GWTRNG(seed);
         this.mobFactory = mobFactory;
         this.weaponFactory = weaponFactory;
         this.armorFactory = armorFactory;
+        this.objectFactory = objectFactory;
     }
 
 
@@ -156,16 +161,16 @@ public class LevelSys extends MyEntitySystem
         LevelCmp newLevel  = new LevelCmp(getGame().dungeonGen.generate(preDungeon, serpentMapGenerator.getEnvironment()), getGame().dungeonGen.getBareDungeon(), serpentMapGenerator.getEnvironment());
         newLevel.decoDungeon[getGame().dungeonGen.stairsUp.x][getGame().dungeonGen.stairsUp.y]='<';
         newLevel.decoDungeon[getGame().dungeonGen.stairsDown.x][getGame().dungeonGen.stairsDown.y]='>';
-        LightingCmp lightingCmp = new LightingCmp(newLevel.lineDungeon);
+        LightingCmp lightingCmp = new LightingCmp(newLevel.decoDungeon);
         getGame().currentLevel.add(newLevel);
         getGame().currentLevel.remove(LightingCmp.class);
         getGame().currentLevel.add(lightingCmp);
 
 
 
-        newLevel.resistance = DungeonUtility.generateSimpleResistances(newLevel.decoDungeon);
+        newLevel.resistance = MyDungeonUtility.generateSimpleResistances(newLevel.decoDungeon);
 
-        dungeonWindowCmp.lightingHandler = new LightHandler(DungeonUtility.generateResistances3x3(newLevel.lineDungeon), SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
+        dungeonWindowCmp.lightingHandler = new LightHandler(MyDungeonUtility.generateResistances3x3(newLevel.lineDungeon), SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
         dungeonWindowCmp.lightingHandler.lightList.clear();
         PositionCmp playerPositionCmp = new PositionCmp(getGame().dungeonGen.stairsUp);
         getGame().player.add(playerPositionCmp);
@@ -199,7 +204,7 @@ public class LevelSys extends MyEntitySystem
             getEngine().addEntity(player);
         }
         //player.add(new FocusCmp());
-        spwnCrds.remove(stairsUpFOV);
+        spwnCrds.andNot(stairsUpFOV);
 
         for(int i=0;i<10;i++)
         {
@@ -224,7 +229,6 @@ public class LevelSys extends MyEntitySystem
             spwnCrds.remove(itemLoc);
 
             //engine.addEntity(weaponFactory.newTorch(itemLoc));
-
 
         }
         for(int i=0;i<10;i++)
@@ -252,6 +256,8 @@ public class LevelSys extends MyEntitySystem
             CmpMapper.getAbilityComp(skill, getGame().player).setMap(newLevel.bareDungeon);
         }
 
+        Entity shrine = objectFactory.getRndObject(ObjectType.SHRINE, rng.getRandomElement(stairsUpFOV.remove(playerPositionCmp.coord)));
+        getEngine().addEntity(shrine);
         getEngine().getSystem(NoiseSys.class);
         Entity eventEntity = new Entity();
         eventEntity.add(new GameStateEvt(GameState.PLAYING));

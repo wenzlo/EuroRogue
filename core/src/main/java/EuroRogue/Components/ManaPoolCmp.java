@@ -41,6 +41,22 @@ public class ManaPoolCmp implements Component
                 attuned + "\n";
 
     }
+    public List<School> allMana()
+    {
+        List<School> allMana = new ArrayList<>();
+        allMana.addAll(active);
+        allMana.addAll(spent);
+        allMana.addAll(attuned);
+        return allMana;
+    }
+    public List<School> unattunedMana()
+    {
+        List<School>mana = new ArrayList<>();
+        mana.addAll(active);
+        mana.addAll(spent);
+        return mana;
+    }
+
     public IColoredString.Impl<SColor> activeToIColoredString()
     {
         IColoredString.Impl<SColor> iColoredString = new IColoredString.Impl<>();
@@ -171,12 +187,20 @@ public class ManaPoolCmp implements Component
         recoverMana(6-active.size());
     }
     public void removeMana (School[] manaArray)
-{
-    for(School mana:manaArray) spent.remove(mana);
-}
+    {
+        for(School mana:manaArray)
+        {
+            if(spent.contains(mana)) spent.remove(mana);
+            else active.remove(mana);
+        }
+    }
     public void removeMana (List<School> manaArray)
     {
-        for(School mana:manaArray) spent.remove(mana);
+        for(School mana:manaArray)
+        {
+            if(spent.contains(mana)) spent.remove(mana);
+            else if(active.contains(mana)) active.remove(mana);
+        }
     }
     public void addMana (School[] manaArray)
     {

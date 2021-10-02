@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyMapUtility;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.SpatialMap;
@@ -26,6 +27,7 @@ public class LevelCmp implements Component
     public GreasedRegion floors;
     public SpatialMap<Integer, Integer> actors = new SpatialMap();
     public SpatialMap<Integer, Integer> items = new SpatialMap();
+    public SpatialMap<Integer, Integer> objects = new SpatialMap();
     public Coord stairsUp;
     public Coord stairsDown;
 
@@ -47,11 +49,11 @@ public class LevelCmp implements Component
     {
         this.decoDungeon=decoDungeon;
         this.bareDungeon=bareDungeon;
-        this.lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
+        this.lineDungeon = MyDungeonUtility.hashesToLines(decoDungeon);
         this.prunedDungeon = new char[decoDungeon[0].length][decoDungeon.length];
         LineKit.pruneLines(this.lineDungeon, new GreasedRegion(), prunedDungeon);
         this.environment = environment;
-        this.resistance = DungeonUtility.generateResistances(decoDungeon);
+        this.resistance = MyDungeonUtility.generateResistances(decoDungeon);
         this.bgColors = MyMapUtility.generateDefaultBGColorsFloat(decoDungeon);
         this.colors = MyMapUtility.generateDefaultColorsFloat(decoDungeon);
         this.floors = new GreasedRegion(bareDungeon, '.');

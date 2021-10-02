@@ -57,8 +57,6 @@ public class WinSysDungeon extends MyEntitySystem
     public void update(float deltaTime)
     {
         if(!((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display.isVisible()) return;
-
-
         putMap(getGame().currentLevel);
 
     }
@@ -77,7 +75,6 @@ public class WinSysDungeon extends MyEntitySystem
         MySparseLayers display = windowCmp.display;
         display.clear();
         display.put(levelCmp.prunedDungeon, lightingCmp.fgLighting, lightingCmp.bgLighting);
-
 
         for (int x = Math.max(0, focusPos.x - (display.gridWidth >> 1) - 1), i = 0; x < levelCmp.decoDungeon[0].length && i < display.gridWidth + 2; x++, i++)
         {

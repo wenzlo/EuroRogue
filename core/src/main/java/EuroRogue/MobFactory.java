@@ -125,7 +125,7 @@ public class MobFactory
         manaPool.spent.addAll(Arrays.asList(Skill.MELEE_ATTACK.castingCost));
         codex.known.add(Skill.MELEE_ATTACK);
         codex.prepared.add(Skill.MELEE_ATTACK);
-        manaPool.spent.add(2, School.PHY);
+        manaPool.spent.add(School.PHY);
         for(School mana:Skill.MELEE_ATTACK.prepCost)
         {
             manaPool.attuned.add(mana);

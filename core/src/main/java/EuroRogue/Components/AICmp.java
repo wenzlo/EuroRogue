@@ -71,11 +71,10 @@ public class AICmp implements Component
                     case ':':
                     case '<':
                     case '>':
-
-
                         terrainCosts[x][y]=1.0;
                         break;
                     case '#':
+                    case '§':
                         terrainCosts[x][y]= DijkstraMap.WALL;
                         break;
                     case ',':

@@ -80,6 +80,7 @@ public class Eruption extends Ability
     public OrderedMap<Coord, Double> apply(Coord user, Coord aimAt)
     {
         setTargetedLocation(aimAt);
+
         return super.apply(user, aimAt);
 
     }
