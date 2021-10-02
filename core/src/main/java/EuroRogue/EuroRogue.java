@@ -633,19 +633,29 @@ public class EuroRogue extends ApplicationAdapter {
 
                 case SquidInput.UP_ARROW:
                     direction = Direction.UP;
-
                     break;
-
+                case SquidInput.UP_RIGHT_ARROW:
+                    direction = Direction.UP_RIGHT;
+                    break;
                 case SquidInput.RIGHT_ARROW:
                     direction = Direction.RIGHT;
+                    break;
+                case SquidInput.DOWN_RIGHT_ARROW:
+                    direction = Direction.DOWN_RIGHT;
                     break;
 
                 case SquidInput.DOWN_ARROW:
                     direction = Direction.DOWN;
                     break;
 
+                case SquidInput.DOWN_LEFT_ARROW:
+                    direction = Direction.DOWN_LEFT;
+                    break;
                 case SquidInput.LEFT_ARROW:
                     direction = Direction.LEFT;
+                    break;
+                case SquidInput.UP_LEFT_ARROW:
+                    direction = Direction.UP_LEFT;
                     break;
 
                 case SquidInput.CENTER_ARROW:
