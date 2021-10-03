@@ -75,6 +75,7 @@ public class ShrineSys extends MyEntitySystem
     public void update(float deltaTime)
     {
        if(entities.size()==0 ) return;
+       System.out.println("Processing Shrine Event");
         Entity shrineEntity = entities.get(0);
         ShrineEvt shrineEvt = (ShrineEvt) CmpMapper.getComp(CmpType.SHRINE_EVT, shrineEntity);
         ShrineCmp shrineCmp = (ShrineCmp)CmpMapper.getComp(CmpType.SHRINE, shrineEntity);

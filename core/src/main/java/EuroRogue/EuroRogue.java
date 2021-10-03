@@ -951,6 +951,7 @@ public class EuroRogue extends ApplicationAdapter {
             Direction direction = Direction.toGoTo(focusPosition, newPosition);
             if(levelCmp.decoDungeon[newX][newY]=='§')
             {
+                System.out.println("Shrine Event");
                 Integer shrineID = levelCmp.objects.get( Coord.get(newX, newY));
                 Entity shrineEntity = getEntity(shrineID);
                 ShrineCmp shrineCmp  = (ShrineCmp)CmpMapper.getComp(CmpType.SHRINE, shrineEntity);

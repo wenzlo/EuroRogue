@@ -38,6 +38,7 @@ import squidpony.squidmath.Coord;
 public class WinSysShrine extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
+    private Integer shrineID;
 
 
 
@@ -65,12 +66,19 @@ public class WinSysShrine extends MyEntitySystem
     @Override
     public void update(float deltaTime)
     {
-       if(getGame().gameState==GameState.SHRINE)
-       {
+        if(entities.size()>0)
+        {
+            ShrineEvt shrineEvt = (ShrineEvt) CmpMapper.getComp(CmpType.SHRINE_EVT, entities.get(0));
+            if(shrineEvt!=null) shrineID = shrineEvt.shrineID;
+        }
+
+
+        if(getGame().gameState==GameState.SHRINE)
+        {
            getGame().globalMenuIndex = 0;
            getGame().keyLookup.clear();
-           ShrineEvt shrineEvt = (ShrineEvt) CmpMapper.getComp(CmpType.SHRINE_EVT, entities.get(0));
-           Entity shrineEntity = getGame().getEntity(shrineEvt.shrineID);
+
+           Entity shrineEntity = getGame().getEntity(shrineID);
            ShrineCmp shrineCmp = ((ShrineCmp) CmpMapper.getComp(CmpType.SHRINE, shrineEntity));
 
            WindowCmp window = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().shrineWindow));
@@ -84,7 +92,7 @@ public class WinSysShrine extends MyEntitySystem
            Stage stage = window.stage;
 
            display.clear();
-           display.putBorders(shrineEvt.school.color.toFloatBits(), shrineCmp.school.name + " Shrine");
+           display.putBorders(shrineCmp.school.color.toFloatBits(), shrineCmp.school.name + " Shrine");
            for(Coord coord : menuCmp.menuMap.positions())
            {
                display.put(window.columnIndexes[coord.x], coord.y+1, menuCmp.menuMap.get(coord).label);

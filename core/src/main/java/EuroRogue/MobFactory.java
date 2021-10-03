@@ -92,7 +92,7 @@ public class MobFactory
         mob.add(new CodexCmp());
         mob.add(new PositionCmp(loc));
         mob.add(new CharCmp('E', SColor.RED_BIRCH));
-        GlyphsCmp glyphsCmp = new GlyphsCmp(display, 'E', SColor.RED_BIRCH, loc.x, loc.y);
+        GlyphsCmp glyphsCmp = new GlyphsCmp(display, 'ß', SColor.RED_BIRCH, loc.x, loc.y);
         glyphsCmp.leftGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         glyphsCmp.rightGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         mob.add(glyphsCmp);
