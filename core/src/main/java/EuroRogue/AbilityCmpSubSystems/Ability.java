@@ -8,7 +8,9 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
 import EuroRogue.Components.PositionCmp;
+import EuroRogue.EuroRogue;
 import EuroRogue.LightHandler;
 import EuroRogue.TargetType;
 import EuroRogue.DamageType;
@@ -28,6 +30,11 @@ import squidpony.squidmath.OrderedMap;
 
 public class Ability extends Technique implements IAbilityCmpSubSys
 {
+    public boolean aimable = false;
+    public boolean aimed = false;
+    private boolean active = true;
+    private boolean scroll = false;
+    private Integer scrollID = null;
     public Ability(String name, AOE aoe) { super(name, aoe); }
 
 
@@ -44,22 +51,23 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 
     @Override
     public boolean scroll() {
-        return false;
+        return scroll;
     }
 
     @Override
     public void setScroll(boolean bool) {
+        scroll = bool;
 
     }
 
     @Override
     public Integer getScrollID() {
-        return null;
+        return scrollID;
     }
 
     @Override
     public void setScrollID(Integer id) {
-
+        scrollID=id;
     }
 
     @Override
@@ -74,25 +82,53 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 
     @Override
     public boolean getActive() {
-        return false;
+        return active;
     }
 
     @Override
     public void activate() {
+        active=true;
 
     }
 
     @Override
     public void inactivate() {
-
+        active =false;
     }
 
     @Override
     public void updateAOE(Entity performer) { }
 
+
     @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp) {
-        return null;
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
+    {
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+
+
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+
+        return idealLocations(positionCmp.coord, aiCmp.getEnemyLocations(levelCmp), aiCmp.getFriendLocations(levelCmp));
+    }
+
+    @Override
+    public HashMap<Integer, Integer> getAOEtargetsDmg(LevelCmp levelCmp, EuroRogue game)
+    {
+        HashMap<Integer, Integer> targets = new HashMap<>();
+        Integer performerID = levelCmp.actors.get(aoe.getOrigin());
+        Entity performerEntity = game.getEntity(performerID);
+        for(Coord coord : aoe.findArea().keySet())
+        {
+            if(levelCmp.actors.positions().contains(coord))
+            {
+                Integer targetID = levelCmp.actors.get(coord);
+                Entity aoeTarEnt = game.getEntity(targetID);
+                PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, aoeTarEnt);
+                int dmg = (int) (aoe.findArea().get(positionCmp.coord)*getDamage(performerEntity));
+                targets.put(levelCmp.actors.get(coord), dmg);
+            }
+        }
+        return targets;
     }
 
     @Override
@@ -198,45 +234,56 @@ public class Ability extends Technique implements IAbilityCmpSubSys
         return super.apply(user, aimAt);
     }
 
-    public static Ability newAbilityCmp(Skill skill)
+    public static Ability newAbilityCmp(Skill skill, boolean player)
     {
+        Ability ability;
         switch (skill)
         {
             case ENLIGHTEN:
-                Enlighten enlighten= new Enlighten();
-                return  enlighten;
+                ability = new Enlighten();
+                break;
             case ICE_SHIELD:
-                IceShield iceShield = new IceShield();
-                return  new IceShield();
+                ability = new IceShield();
+                break;
             case MAGIC_MISSILE:
-                MagicMissile magicMissile = new MagicMissile();
-                return magicMissile;
+                ability = new MagicMissile();
+                break;
             case ERUPTION:
-                Eruption eruption = new Eruption();
-                return  eruption;
+                ability = new Eruption();
+                break;
+            case SHATTER:
+                ability = new Shatter();
+                break;
+            case CONE_OF_COLD:
+                ability = new ConeOfCold();
+                break;
             case ARCANE_TOUCH:
-                ArcaneTouch arcaneTouch = new ArcaneTouch();
-                return arcaneTouch;
+                ability = new ArcaneTouch();
+                break;
             case DAGGER_THROW:
-                DaggerThrow daggerThrow = new DaggerThrow();
-                return daggerThrow;
+                ability = new DaggerThrow();
+                break;
             case CHILL:
-                Chill chill = new Chill();
-                return chill;
+                ability = new Chill();
+                break;
             case IMMOLATE:
-                Immolate immolate = new Immolate();
-                return immolate;
+                ability = new Immolate();
+                break;
             case DODGE:
-                Dodge dodge = new Dodge();
-                return dodge;
+                ability = new Dodge();
+                break;
             case ENRAGE:
-                Enrage enrage = new Enrage();
-                return enrage;
+                ability = new Enrage();
+                break;
             case MELEE_ATTACK:
-                MeleeAttack meleeAttack = new MeleeAttack();
-                return meleeAttack;
+                ability = new MeleeAttack();
+                break;
             //case OPPORTUNITY: return new Opportunity();
+            default:
+                throw new IllegalStateException("Unexpected value: " + skill);
         }
-        return null;
+        if(player && ability.aimable) ability.aimed=true;
+
+        return ability;
     }
 }

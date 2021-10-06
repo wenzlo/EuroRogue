@@ -33,9 +33,6 @@ public class Opportunity extends Ability
 {
     //private Skill skill = Skill.OPPORTUNITY;
     private Skill skill = null;
-    private boolean active = true;
-    private  boolean scroll = false;
-    private Integer scrollID = null;
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
     private boolean available = false;
@@ -55,20 +52,6 @@ public class Opportunity extends Ability
     }
 
     @Override
-    public boolean scroll() {
-        return scroll;
-    }
-
-    @Override
-    public void setScroll(boolean bool) {scroll = bool; }
-
-    @Override
-    public Integer getScrollID() { return scrollID; }
-
-    @Override
-    public void setScrollID(Integer id) { scrollID = id;}
-
-    @Override
     public boolean isAvailable() {
         return available;
     }
@@ -77,22 +60,6 @@ public class Opportunity extends Ability
     public void setAvailable(boolean available)
     {
         this.available=available;
-    }
-
-    @Override
-    public boolean getActive()
-    {
-        return active;
-    }
-    @Override
-    public void activate()
-    {
-        active=true;
-    }
-    @Override
-    public void inactivate()
-    {
-        active=false;
     }
 
     @Override

@@ -210,6 +210,7 @@ public class AISys extends MyEntitySystem
 
 
             }
+
             else if(manaPool.active.size()<manaPool.spent.size() || manaPool.active.size()==0){
 
                scheduleRestEvt(entity);
@@ -245,10 +246,30 @@ public class AISys extends MyEntitySystem
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                 }
             }
-            /*else if(!ai.visibleItems.isEmpty())
+            else if(ai.pathToFollow.size()>0)
+            {
+                Coord step = ai.pathToFollow.remove(0);
+                double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
+                scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
+                continue;
+            }
+            /*else if(ai.visibleFriendlies.size()>2)
+            {
+                ArrayList<Coord> buffer = new ArrayList<>();
+                ai.pathToFollow = ai.dijkstraMap.findFleePath(buffer,25, 50, (double) 1.2,buffer, buffer, position.coord, ai.getFriendLocations(level).get(0), ai.getFriendLocations(level).get(1)d);
+
+                if(ai.pathToFollow.size()>0)
+                {
+                    Coord step = ai.pathToFollow.remove(0);
+                    double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
+                    scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
+                    continue;
+                }
+            }*/
+            else if(!ai.visibleItems.isEmpty() &! inventoryCmp.isFull() && inventoryCmp.getEquippedIDs().size()<3)
             {
 
-                Coord targetLoc = ai.getTargetLocations(ITEM, getGame()).get(0);
+                Coord targetLoc = ai.getItemLocations(level).get(0);
                 if(targetLoc == ai.location)
                 {
                     scheduleItemEvt(entity, level.items.getIdentity(targetLoc), ItemEvtType.PICKUP);
@@ -259,8 +280,10 @@ public class AISys extends MyEntitySystem
                     Coord step = ai.pathToFollow.remove(0);
                     double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
+                    continue;
                 }
-            }*/
+            }
+
             else if(!manaPool.spent.isEmpty())scheduleRestEvt(entity);
         }
     }
@@ -275,7 +298,6 @@ public class AISys extends MyEntitySystem
         GreasedRegion goals = new GreasedRegion();
         FactionCmp.Faction myFaction = ((FactionCmp) CmpMapper.getComp(CmpType.FACTION, entity)).faction;
         LevelCmp levelCmp = (LevelCmp)CmpMapper.getComp(CmpType.LEVEL,getGame().currentLevel);
-
         for(Coord entPos:levelCmp.actors.positions())
         {
             if(entPos==ai.location) continue;
@@ -402,7 +424,8 @@ public class AISys extends MyEntitySystem
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
 
             Coord location = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity)).coord;
-            ability.apply(location, ability.getIdealLocations(entity, levelCmp).keySet().first());
+            if(levelCmp.actors.getPosition(aiCmp.target)!=null)
+                ability.apply(location, levelCmp.actors.getPosition(aiCmp.target));
         }
 
         return scheduledTick;

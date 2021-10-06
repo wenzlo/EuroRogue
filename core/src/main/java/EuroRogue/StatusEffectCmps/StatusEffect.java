@@ -49,10 +49,16 @@ public enum StatusEffect
         this.intensifies = intensifies;
     }
 
-    public static StatusEffectCmp newStatusEffectCmp(StatusEffectEvt seEvent, StatsCmp targetStats)
+    public static StatusEffectCmp newStatusEffectCmp(StatusEffectEvt seEvent,  StatsCmp targetStats)
+    {
+        return newStatusEffectCmp(seEvent.effect, seEvent.seRemovalType, seEvent.tick, seEvent.duration, targetStats);
+    }
+
+
+    public static StatusEffectCmp newStatusEffectCmp(StatusEffect effect, SERemovalType seRemovalType, Integer tick, Integer duration,  StatsCmp targetStats)
     {
         StatusEffectCmp statusEffectCmp;
-        switch (seEvent.effect)
+        switch (effect)
         {
             case EXHAUSTED:
                 statusEffectCmp = new Exhausted();
@@ -137,13 +143,13 @@ public enum StatusEffect
                 statusEffectCmp = new WaterWalking();
                 break;
             default:
-                throw new IllegalStateException("Unexpected value: " + seEvent.effect);
+                throw new IllegalStateException("Unexpected value: " + effect);
         }
-        statusEffectCmp.seRemovalType = seEvent.seRemovalType;
-        if(seEvent.seRemovalType==SERemovalType.TIMED)
+        if(seRemovalType==SERemovalType.TIMED)
         {
-            statusEffectCmp.lastTick = seEvent.tick+seEvent.duration;
+            statusEffectCmp.lastTick = tick + duration;
         }
+        statusEffectCmp.seRemovalType=seRemovalType;
 
         return  statusEffectCmp;
     }

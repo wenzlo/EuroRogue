@@ -9,6 +9,7 @@ import java.util.List;
 
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.LightHandler;
 import EuroRogue.StatusEffectCmps.SEParameters;
@@ -38,6 +39,8 @@ public interface IAbilityCmpSubSys extends Component
     void        updateAOE(Entity performer);
     OrderedMap<Coord, ArrayList<Coord>>
                 getIdealLocations(Entity actor, LevelCmp levelCmp);
+    HashMap<Integer, Integer>
+                getAOEtargetsDmg(LevelCmp levelCmp, EuroRogue game);
     void        setTargetedLocation(Coord targetLocation);
     Coord       getTargetedLocation();
 

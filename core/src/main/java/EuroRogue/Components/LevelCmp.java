@@ -28,8 +28,6 @@ public class LevelCmp implements Component
     public SpatialMap<Integer, Integer> actors = new SpatialMap();
     public SpatialMap<Integer, Integer> items = new SpatialMap();
     public SpatialMap<Integer, Integer> objects = new SpatialMap();
-    public Coord stairsUp;
-    public Coord stairsDown;
 
 
    /* public LevelCmp(DungeonGenerator dungeonGenerator)

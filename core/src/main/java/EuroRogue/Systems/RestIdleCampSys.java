@@ -66,8 +66,6 @@ public class RestIdleCampSys extends MyEntitySystem
         restingEnts = engine.getEntitiesFor(Family.all(RestEvt.class).get());
         frozenEnts = engine.getEntitiesFor(Family.all(FrozenEvt.class).get());
         campingEnts = engine.getEntitiesFor(Family.all(CampEvt.class).get());
-
-
     }
 
     /**
@@ -94,7 +92,11 @@ public class RestIdleCampSys extends MyEntitySystem
             for(StatusEffect statusEffect : getGame().getStatusEffects(actor))
             {
                 StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, actor);
-                if(statusEffectCmp.seRemovalType == SERemovalType.SHORT_REST) actor.remove(statusEffect.cls);
+                System.out.println(statusEffectCmp.seRemovalType);
+                if(statusEffectCmp.seRemovalType == SERemovalType.SHORT_REST)
+                {
+                    actor.remove(statusEffect.cls);
+                }
             }
             if(((AICmp)CmpMapper.getComp(CmpType.AI, getGame().getFocus())).visibleEnemies.contains(actor.hashCode()))
             {
@@ -142,7 +144,7 @@ public class RestIdleCampSys extends MyEntitySystem
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX,entity);
         for(Skill skill : codexCmp.prepared)
         {
-            Ability abilityCmpSubSys = (Ability) CmpMapper.getAbilityComp(skill,entity);
+            Ability abilityCmpSubSys = CmpMapper.getAbilityComp(skill,entity);
             abilityCmpSubSys.activate();
         }
 

@@ -10,12 +10,14 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import java.util.Arrays;
 import java.util.Collections;
 
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.ScrollCmp;
@@ -23,6 +25,7 @@ import EuroRogue.Components.ShrineCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.CodexEvt;
+import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.GameState;
@@ -85,7 +88,7 @@ public class WinSysShrine extends MyEntitySystem
            MySparseLayers display = window.display;
            if(display.isVisible()==false) return;
 
-           updateShrineMenu(getGame().shrineWindow, shrineCmp);
+           updateShrineMenu(getGame().shrineWindow, shrineEntity);
            //getGame().globalMenuIndex = 1; //key=1;
            MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, getGame().shrineWindow);
 
@@ -104,8 +107,29 @@ public class WinSysShrine extends MyEntitySystem
        }
     }
 
-    private void updateShrineMenu(Entity windowEntity, ShrineCmp shrineCmp)
+    private void updateShrineMenu(Entity windowEntity, Entity shrineEntity)
     {
+        ShrineCmp shrineCmp = (ShrineCmp) CmpMapper.getComp(CmpType.SHRINE, shrineEntity);
+        if(shrineCmp.charges==0)
+        {
+            Entity focusEntity = getGame().getFocus();
+            CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focusEntity);
+            Entity gameStateEvtEnt = new Entity();
+            gameStateEvtEnt.add(new GameStateEvt(GameState.PLAYING));
+            getEngine().addEntity(gameStateEvtEnt);
+            LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, shrineEntity);
+            lightCmp.level=0;
+            lightCmp.strobe=0f;
+            lightCmp.flicker=0f;
+            shrineEntity.remove(ShrineEvt.class);
+
+            for(Skill skill : codexCmp.prepared)
+            {
+                Ability ability = CmpMapper.getAbilityComp(skill, focusEntity);
+                ability.setMap(((LevelCmp)CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel)).decoDungeon);
+            }
+            return;
+        }
         School school = shrineCmp.school;
         TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         Entity focusEntity = getGame().getFocus();
@@ -215,7 +239,6 @@ public class WinSysShrine extends MyEntitySystem
                     eventEntity.add(codexEvt);
                     getEngine().addEntity(eventEntity);
                     shrineCmp.skillOffer.remove(skill);
-                    manaPoolCmp.spent.remove(school);
                     shrineCmp.charges = shrineCmp.charges-1;
 
                 }

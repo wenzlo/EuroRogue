@@ -73,6 +73,7 @@ public class DamageApplicationSys extends MyEntitySystem
     }
     public void genStatusEffectEvts(ActionEvt actionEvt, Entity performer)
     {
+
         TickerCmp tickerCmp = (TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         Ability ability = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, performer);
         if(actionEvt.scrollID!=null)

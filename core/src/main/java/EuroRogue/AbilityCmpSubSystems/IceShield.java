@@ -35,10 +35,7 @@ import squidpony.squidmath.OrderedMap;
 
 public class IceShield extends Ability
 {
-    private boolean active = true;
     private Skill skill = Skill.ICE_SHIELD;
-    private  boolean scroll = false;
-    private Integer scrollID = null;
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
     private boolean available;
@@ -61,23 +58,6 @@ public class IceShield extends Ability
     public List<Skill> getReactions()  {
         return Arrays.asList();
     }
-    @Override
-    public boolean scroll()
-    {
-        return scroll;
-    }
-    @Override
-    public void setScroll(boolean bool)
-    {
-        scroll = bool;
-    }
-
-    @Override
-    public Integer getScrollID() { return scrollID; }
-
-    @Override
-    public void setScrollID(Integer id) { scrollID = id; }
-
 
     @Override
     public boolean isAvailable() {
@@ -88,40 +68,12 @@ public class IceShield extends Ability
     {
         this.available=available;
     }
-    @Override
-    public boolean getActive()
-    {
-        return active;
-    }
-    @Override
-    public void activate()
-    {
-        active=true;
-    }
-    @Override
-    public void inactivate()
-    {
-        active=false;
-    }
 
     @Override
     public void updateAOE(Entity performer)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
         aoe.setOrigin(positionCmp.coord);
-    }
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
-    {
-        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
-        ArrayList<Coord> enemyLocations = new ArrayList<>();
-        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
-        ArrayList<Coord> friendLocations = new ArrayList<>();
-        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
-        friendLocations.add(positionCmp.coord);
-        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
     }
     @Override
     public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }

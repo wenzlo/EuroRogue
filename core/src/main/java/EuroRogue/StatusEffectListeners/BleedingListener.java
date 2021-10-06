@@ -3,7 +3,6 @@ package EuroRogue.StatusEffectListeners;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 
-import EuroRogue.Components.NameCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.CmpType;
@@ -29,7 +28,7 @@ public class BleedingListener implements EntityListener {
         if(bleeding!=null)
         {
             bleeding.damagePerMove ++;
-            bleeding.name = "Bleeding "+bleeding.damagePerMove;
+            bleeding.name = bleeding.name+"I";
         }
 
     }

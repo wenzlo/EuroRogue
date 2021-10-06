@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.Arrays;
 
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
@@ -250,6 +251,7 @@ public class ItemSys extends MyEntitySystem
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, actorEntity);
         ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, actorEntity);
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         switch (itemCmp.type)
         {
             case FOOD:
@@ -264,6 +266,9 @@ public class ItemSys extends MyEntitySystem
 
             case SCROLL:
                 ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
+                Ability ability = CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
+                if(getGame().getFocus() == actorEntity && ability.aimable)
+                    ability.aimable=true;
                 StatsCmp ownerStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
                 if(!codexCmp.known.contains(scrollCmp.skill) )
                 {

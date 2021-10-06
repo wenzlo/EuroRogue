@@ -14,6 +14,7 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -21,29 +22,56 @@ import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
+import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
-import squidpony.squidai.AOE;
-import squidpony.squidai.PointAOE;
+import squidpony.squidai.AimLimit;
+import squidpony.squidai.BlastAOE;
+import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class ArcaneTouch extends Ability
+public class Shatter extends Ability
 {
-    private Skill skill = Skill.ARCANE_TOUCH;
+    private Skill skill = Skill.SHATTER;
     private Coord targetedLocation;
     private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    private TextCellFactory.Glyph glyph;
+    public TextCellFactory.Glyph glyph;
 
-    public ArcaneTouch()
+
+    public Shatter()
     {
-        super("Arcane Touch", new PointAOE(Coord.get(-1,-1), 1, 1));
+        super("Shatter", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 0));
     }
+    /**
+     * -Need to override this for any Ability with a non-Point AOE to set targetedLocation-ER
+     *
+     * This does one last validation of the location aimAt (checking that it is within the valid range for this
+     * Technique) before getting the area affected by the AOE targeting that cell. It considers the origin of the AOE
+     * to be the Coord parameter user, for purposes of directional limitations and for AOE implementations that need
+     * the user's location, such as ConeAOE and LineAOE.
+     * <p>
+     * YOU MUST CALL setMap() with the current map status at some point before using this method, and call it again if
+     * the map changes. Failure to do so can cause serious bugs, from logic errors where monsters consider a door
+     * closed when it is open or vice versa, to an ArrayIndexOutOfBoundsException being thrown if the player moved to a
+     * differently-sized map and the Technique tries to use the previous map with coordinates from the new one.
+     *
+     * @param user  The position of the Technique's user, x first, y second.
+     * @param aimAt A target Coord typically obtained from idealLocations that determines how to position the AOE.
+     * @return a HashMap of Coord keys to Double values from 1.0 (fully affected) to 0.0 (unaffected).
+     */
+    @Override
+    public OrderedMap<Coord, Double> apply(Coord user, Coord aimAt)
+    {
+        setTargetedLocation(aimAt);
 
+        return super.apply(user, aimAt);
+
+    }
 
     public Skill getSkill() {
         return skill;
@@ -54,7 +82,9 @@ public class ArcaneTouch extends Ability
     }
 
     @Override
-    public boolean isAvailable() {
+    public boolean isAvailable()
+    {
+
         return available;
     }
 
@@ -64,19 +94,49 @@ public class ArcaneTouch extends Ability
         this.available=available;
     }
 
-
     @Override
     public void updateAOE(Entity performer)
     {
+
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
-        aoe.setOrigin(positionCmp.coord);
+
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
+        BlastAOE blastAOE = (BlastAOE) aoe;
+
+        blastAOE.setRadius(statsCmp.getIntel());
+        blastAOE.setOrigin(positionCmp.coord);
+        blastAOE.setCenter(positionCmp.coord);
     }
 
     @Override
-    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation=targetedLocation;}
+    public HashMap<Integer, Integer> getAOEtargetsDmg(LevelCmp levelCmp, EuroRogue game)
+    {
+        HashMap<Integer, Integer> targets = new HashMap<>();
+        Integer performerID = levelCmp.actors.get(aoe.getOrigin());
+        Entity performerEntity = game.getEntity(performerID);
+        for(Coord coord : aoe.findArea().keySet())
+        {
+            if(levelCmp.actors.positions().contains(coord))
+            {
+                Integer targetID = levelCmp.actors.get(coord);
+                Entity aoeTarEnt = game.getEntity(targetID);
+                int dmg = getDamage(performerEntity);
+                if(CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, aoeTarEnt)!=null)
+                    targets.put(levelCmp.actors.get(coord), dmg);
+                if(CmpMapper.getStatusEffectComp(StatusEffect.CHILLED, aoeTarEnt)!=null)
+                    targets.put(levelCmp.actors.get(coord), Math.round(dmg/2f));
+            }
+        }
+        return targets;
+
+    }
+
+    @Override
+    public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }
 
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
+
 
     @Override
     public float getDmgReduction(StatsCmp statsCmp) {
@@ -85,20 +145,20 @@ public class ArcaneTouch extends Ability
 
     @Override
     public TargetType getTargetType() {
-        return TargetType.ENEMY;
+        return TargetType.AOE;
     }
 
     @Override
     public int getDamage(Entity performer)
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        return statsCmp.getSpellPower();
+        return Math.round(statsCmp.getSpellPower()*1f);
     }
 
     @Override
     public DamageType getDmgType(Entity performer)
     {
-        return DamageType.ARCANE;
+        return DamageType.BLUDGEONING;
     }
 
     @Override
@@ -113,16 +173,12 @@ public class ArcaneTouch extends Ability
     }
 
     @Override
-    public ItemEvt genItemEvent(Entity performer, Entity target) {
-        return null;
-    }
+    public ItemEvt genItemEvent(Entity performer, Entity target) { return null; }
 
     @Override
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
-
-        TextCellFactory.Glyph glyph = getGlyph();
 
         return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
     }
@@ -135,14 +191,12 @@ public class ArcaneTouch extends Ability
     @Override
     public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
     {
-
         glyph = display.glyph('•',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
         SColor color = skill.school.color;
 
         Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));
         glyph.setName(light.hashCode() + " " + "0" + " temp");
         lightingHandler.addLight(light.hashCode(), light);
-
     }
 
     @Override
@@ -166,7 +220,7 @@ public class ArcaneTouch extends Ability
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getSpellPower()*15;
+        return statsCmp.getSpellPower()*3;
     }
 
 

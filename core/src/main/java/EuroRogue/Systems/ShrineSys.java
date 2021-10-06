@@ -15,6 +15,7 @@ import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.ShrineCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.EventComponents.CodexEvt;
 import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.IColoredString;
@@ -75,12 +76,13 @@ public class ShrineSys extends MyEntitySystem
     public void update(float deltaTime)
     {
        if(entities.size()==0 ) return;
-       System.out.println("Processing Shrine Event");
+
         Entity shrineEntity = entities.get(0);
         ShrineEvt shrineEvt = (ShrineEvt) CmpMapper.getComp(CmpType.SHRINE_EVT, shrineEntity);
         ShrineCmp shrineCmp = (ShrineCmp)CmpMapper.getComp(CmpType.SHRINE, shrineEntity);
         Entity focus = getGame().getFocus();
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focus);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, focus);
 
         if(shrineCmp.charges==0)
         {
@@ -117,15 +119,18 @@ public class ShrineSys extends MyEntitySystem
         gameStateEvtEnt.add(new GameStateEvt(GameState.SHRINE));
         getEngine().addEntity(gameStateEvtEnt);
 
-        ArrayList<Skill> skills = Skill.getSkillsBySchool(shrineCmp.school);
-        skills.removeAll(codexCmp.known);
-        Collections.shuffle(skills);
-        for(int i=0; i<Math.min(skills.size(), 2); i++)
+        if(shrineCmp.skillOffer.isEmpty())
         {
-            Skill skill = skills.get(i);
-            shrineCmp.skillOffer.add(skill);
+            ArrayList<Skill> skills = Skill.getSkillsBySchool(shrineCmp.school);
+            skills.removeAll(codexCmp.known);
+            Collections.shuffle(skills);
+            for(int i=0; i<Math.min(skills.size(), 2); i++)
+            {
+                Skill skill = skills.get(i);
+                if(Skill.qualify(skill, statsCmp))
+                    shrineCmp.skillOffer.add(skill);
+            }
         }
-
         manaPoolCmp.spent.addAll(manaPoolCmp.active);
         manaPoolCmp.active.clear();
 

@@ -9,7 +9,6 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.Components.LevelCmp;
@@ -38,10 +37,8 @@ import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.CmpType;
 import EuroRogue.TargetType;
-import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
-import squidpony.squidmath.Coord;
 
 public class ActionSys extends MyEntitySystem
 {
@@ -74,6 +71,8 @@ public class ActionSys extends MyEntitySystem
         for(Entity entity:entities)
         {
             ActionEvt action = (ActionEvt) CmpMapper.getComp(CmpType.ACTION_EVT, entity);
+            LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL,getGame().currentLevel);
+
 
             if(action.isProcessed()) return;
             action.processed=true;
@@ -86,18 +85,7 @@ public class ActionSys extends MyEntitySystem
             if(!action.targetsDmg.isEmpty() && targetType != AOE)
                 targetEntity = getGame().getEntity((Integer) action.targetsDmg.keySet().toArray()[0]);
 
-            else
-            {
-                ArrayList<Integer> aoeTargets = getAOEtargets(abilityCmp);
-                for(Integer targetId : aoeTargets)
-                {
-                    Entity aoeTarEnt = getGame().getEntity(targetId);
-                    PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, aoeTarEnt);
-                    int dmg = (int) (abilityCmp.aoe.findArea().get(positionCmp.coord)*abilityCmp.getDamage(performerEntity));
-
-                    action.targetsDmg.put(targetId, dmg);
-                }
-            }
+            else action.targetsDmg = abilityCmp.getAOEtargetsDmg(levelCmp,getGame());
 
 
 
@@ -139,6 +127,7 @@ public class ActionSys extends MyEntitySystem
                 LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
                 if(action.skill.skillType== Skill.SkillType.REACTION) abilityCmp.spawnGlyph(display, lightHandler);
                 AnimateGlyphEvt animateGlyphEvt = abilityCmp.genAnimateGlyphEvt(performerEntity, abilityCmp.getTargetedLocation(), action, display);
+
                 ItemEvt itemEvt = abilityCmp.genItemEvent(performerEntity, targetEntity);
                 if (animateGlyphEvt != null) performerEntity.add(animateGlyphEvt);
                 if(itemEvt != null) performerEntity.add(itemEvt);
@@ -181,16 +170,7 @@ public class ActionSys extends MyEntitySystem
 
         return new LogEvt(tick, coloredEvtText);
     }
-    private ArrayList<Integer> getAOEtargets(Technique ability)
-    {
-        ArrayList<Integer> targets = new ArrayList<>();
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        for(Coord coord : ability.aoe.findArea().keySet())
-        {
-            if(levelCmp.actors.positions().contains(coord)) targets.add(levelCmp.actors.get(coord));
-        }
-        return targets;
-    }
+
 
 
 

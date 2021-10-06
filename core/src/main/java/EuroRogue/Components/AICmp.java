@@ -89,47 +89,7 @@ public class AICmp implements Component
         }
         return terrainCosts;
     }
-    public List<Coord> getTargetLocations(TargetType targetType, EuroRogue game)
-    {
-        List<Coord> targetLocations = new ArrayList();
-        switch (targetType)
-        {
-            case ENEMY:
-            case AOE:
-                for(Integer entID:visibleEnemies)
-                {
-                    Entity entity = game.getEntity(entID);
-                    if(entity==null) continue;
-                    PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION,entity);
-                    targetLocations.add(positionCmp.coord);
-                }
-                break;
-            case FRIENDLY:
-                for(Integer entID:visibleFriendlies)
-                {
-                    Entity entity = game.getEntity(entID);
-                    if(entity==null) continue;
-                    PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION,entity);
-                    targetLocations.add(positionCmp.coord);
-                }
-                break;
-            case ITEM:
-                for(Integer entID:visibleItems)
-                {
-                    Entity entity = game.getEntity(entID);
-                    if(entity==null ) continue;
-                    PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION,entity);
 
-                    targetLocations.add(positionCmp.coord);
-                }
-                break;
-
-            case SELF:
-                targetLocations.add(location);
-        }
-        Collections.sort(targetLocations, new SortByDistance(location));
-        return targetLocations;
-    }
     public void addTraversable(TerrainType terrainType)
     {
         traversable.add(terrainType);
@@ -162,5 +122,35 @@ public class AICmp implements Component
 
         }
         if(index<visibleEnemies.size()) visibleEnemies.remove(index);
+    }
+    public ArrayList<Coord> getEnemyLocations(LevelCmp levelCmp)
+    {
+        ArrayList<Coord> enemyLocations = new ArrayList<>();
+        for(Integer enemyID : visibleEnemies)
+        {
+            Coord coord = levelCmp.actors.getPosition(enemyID);
+            if(enemyLocations!=null) enemyLocations.add(coord);
+        }
+        return enemyLocations;
+    }
+    public ArrayList<Coord> getFriendLocations(LevelCmp levelCmp)
+    {
+        ArrayList<Coord> friendLocations = new ArrayList<>();
+        for(Integer friendID : visibleFriendlies)
+        {
+            Coord coord = levelCmp.actors.getPosition(friendID);
+            if(friendLocations!=null) friendLocations.add(coord);
+        }
+        return friendLocations;
+    }
+    public ArrayList<Coord> getItemLocations(LevelCmp levelCmp)
+    {
+        ArrayList<Coord> itemLocations = new ArrayList<>();
+        for(Integer friendID : visibleItems)
+        {
+            Coord coord = levelCmp.items.getPosition(friendID);
+            if(itemLocations!=null) itemLocations.add(coord);
+        }
+        return itemLocations;
     }
 }

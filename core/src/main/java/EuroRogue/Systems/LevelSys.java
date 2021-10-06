@@ -47,12 +47,14 @@ import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
 import EuroRogue.ObjectFactory;
+import EuroRogue.School;
 import EuroRogue.TerrainType;
 import EuroRogue.WeaponFactory;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.mapping.DungeonUtility;
+import squidpony.squidgrid.mapping.MixedGenerator;
 import squidpony.squidgrid.mapping.Placement;
 import squidpony.squidgrid.mapping.SerpentMapGenerator;
 import squidpony.squidmath.Coord;
@@ -125,7 +127,7 @@ public class LevelSys extends MyEntitySystem
 
 
 
-        LevelCmp oldLevelCmp = (LevelCmp) getGame().currentLevel.remove(LevelCmp.class);
+        LevelCmp oldLevelCmp = getGame().currentLevel.remove(LevelCmp.class);
         if(oldLevelCmp!=null)
         {
             for(Integer id:oldLevelCmp.actors)
@@ -156,9 +158,12 @@ public class LevelSys extends MyEntitySystem
 
         SerpentMapGenerator serpentMapGenerator = new SerpentMapGenerator(42, 42, new GWTRNG(rng.nextInt()));
 
-        serpentMapGenerator.putWalledBoxRoomCarvers(3);
-        char[][] preDungeon = serpentMapGenerator.generate();
 
+        serpentMapGenerator.putWalledBoxRoomCarvers(5);
+        serpentMapGenerator.putWalledRoundRoomCarvers(5);
+        serpentMapGenerator.putCaveCarvers(5);
+        getGame().dungeonGen.addLake(15);
+        char[][] preDungeon = serpentMapGenerator.generate();
         LevelCmp newLevel  = new LevelCmp(getGame().dungeonGen.generate(preDungeon, serpentMapGenerator.getEnvironment()), getGame().dungeonGen.getBareDungeon(), serpentMapGenerator.getEnvironment());
         newLevel.decoDungeon[getGame().dungeonGen.stairsUp.x][getGame().dungeonGen.stairsUp.y]='<';
         newLevel.decoDungeon[getGame().dungeonGen.stairsDown.x][getGame().dungeonGen.stairsDown.y]='>';
@@ -210,13 +215,16 @@ public class LevelSys extends MyEntitySystem
 
         Coord shrine1Coord = null;
         Coord shrine2Coord = null;
+        ArrayList<School> schools = new ArrayList(Arrays.asList(School.values()));
         for(OrderedSet<Coord> centers : getGame().dungeonGen.placement.getCenters())
         {
             if(stairsUpFOV.contains(centers.first()) && shrine1Coord==null)
             {
 
                 shrine1Coord = centers.first();
-                Entity shrine = objectFactory.getRndObject(ObjectType.SHRINE, shrine1Coord);
+                School school = rng.getRandomElement(schools);
+                schools.remove(school);
+                Entity shrine = objectFactory.getShrine(shrine1Coord, school);
                 getEngine().addEntity(shrine);
 
 
@@ -225,7 +233,9 @@ public class LevelSys extends MyEntitySystem
             {
 
                 shrine2Coord = centers.first();
-                Entity shrine = objectFactory.getRndObject(ObjectType.SHRINE, shrine2Coord);
+                School school = rng.getRandomElement(schools);
+                schools.remove(school);
+                Entity shrine = objectFactory.getShrine(shrine2Coord, school);
                 getEngine().addEntity(shrine);
 
             }
@@ -242,18 +252,18 @@ public class LevelSys extends MyEntitySystem
         for(int i=0;i<10;i++)
         {
 
-            /*Coord itemLoc = rng.getRandomElement(spwnCrds);
+           /* Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
 
             Skill skill = rng.getRandomElement(Arrays.asList(Skill.values()));
-            getEngine().addEntity(getGame().generateScroll(itemLoc, skill));*/
+            getEngine().addEntity(getGame().generateScroll(itemLoc, skill, newLevel));*/
 
-            Coord itemLoc = rng.getRandomElement(spwnCrds);
+            /*Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
 
-            getEngine().addEntity(weaponFactory.newRndWeapon(itemLoc));
+            getEngine().addEntity(weaponFactory.newRndWeapon(itemLoc));*/
 
-            itemLoc = rng.getRandomElement(spwnCrds);
+            Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
 
             getEngine().addEntity(armorFactory.newRndArmor(itemLoc));
@@ -275,9 +285,8 @@ public class LevelSys extends MyEntitySystem
             {
                 CmpMapper.getAbilityComp(skill, mob).setMap(newLevel.bareDungeon);
             }
-
         }
-        for(int i=0;i<2;i++)
+        for(int i=0;i<3;i++)
         {
             Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
@@ -288,8 +297,6 @@ public class LevelSys extends MyEntitySystem
         {
             CmpMapper.getAbilityComp(skill, getGame().player).setMap(newLevel.bareDungeon);
         }
-
-
         getEngine().getSystem(NoiseSys.class);
         Entity eventEntity = new Entity();
         eventEntity.add(new GameStateEvt(GameState.PLAYING));

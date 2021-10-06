@@ -5,17 +5,17 @@ import com.badlogic.ashley.core.Entity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
-import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
-import EuroRogue.Components.TickerCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -26,34 +26,31 @@ import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
-import squidpony.squidai.AOE;
 import squidpony.squidai.AimLimit;
 import squidpony.squidai.BlastAOE;
-import squidpony.squidgrid.Direction;
-import squidpony.squidgrid.FOV;
+import squidpony.squidai.ConeAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.OrderedMap;
 
-public class Eruption extends Ability
+public class ConeOfCold extends Ability
 {
-    private Skill skill = Skill.ERUPTION;
+    private Skill skill = Skill.CONE_OF_COLD;
     private Coord targetedLocation;
     private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
 
 
-    public Eruption()
+    public ConeOfCold()
     {
-        super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 1));
-        super.aimable = true;
-        statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
 
+        super("Cone of Cold", new ConeAOE(Coord.get(0,0),1, (double)0, (double)90, Radius.CIRCLE));
+        aoe.getReach().limit = AimLimit.FREE;
+        statusEffects.put(StatusEffect.CHILLED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
     }
 
 
@@ -78,8 +75,10 @@ public class Eruption extends Ability
     public OrderedMap<Coord, Double> apply(Coord user, Coord aimAt)
     {
         setTargetedLocation(aimAt);
+        ConeAOE coneAOE = (ConeAOE) aoe;
+        coneAOE.setEndCenter(aimAt);
 
-        return super.apply(user, aimAt);
+        return coneAOE.findArea();
 
     }
 
@@ -110,21 +109,36 @@ public class Eruption extends Ability
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        BlastAOE blastAOE = (BlastAOE) aoe;
-        blastAOE.setMaxRange(statsCmp.getIntel());
-        blastAOE.setRadius(1+statsCmp.getIntel()/3);
-        blastAOE.setOrigin(positionCmp.coord);
+        ConeAOE coneAOE = (ConeAOE) aoe;
+
+        coneAOE.setRadius(statsCmp.getIntel());
+        coneAOE.setOrigin(positionCmp.coord);
     }
 
     @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
-        if(CmpMapper.getComp(CmpType.AIMING, actor) !=null) return new OrderedMap<>();
-        return super.getIdealLocations(actor, levelCmp);
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        HashSet<Coord> priorityTargets = new HashSet<>();
+        HashSet<Coord> otherTargets = new HashSet<>();
+        otherTargets.addAll(aiCmp.getEnemyLocations(levelCmp));
+        HashSet<Coord> friendlyTargets = new HashSet<>();
+        friendlyTargets.addAll(aiCmp.getFriendLocations(levelCmp));
 
+        Integer priorityTargetID = aiCmp.target;
+        Coord priorityTargetPos = levelCmp.actors.getPosition(priorityTargetID);
+        if(priorityTargetPos!=null)
+        {
+            priorityTargets.add(priorityTargetPos);
+            otherTargets.remove(priorityTargetPos);
+        }
+
+
+        OrderedMap<Coord, ArrayList<Coord>> idealLocations = idealLocations(positionCmp.coord, priorityTargets, otherTargets, friendlyTargets);
+
+        return idealLocations(positionCmp.coord, aiCmp.getEnemyLocations(levelCmp), aiCmp.getFriendLocations(levelCmp));
     }
-
-
 
     @Override
     public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }
@@ -147,13 +161,13 @@ public class Eruption extends Ability
     public int getDamage(Entity performer)
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        return Math.round(statsCmp.getSpellPower()*1f);
+        return 0;
     }
 
     @Override
     public DamageType getDmgType(Entity performer)
     {
-        return DamageType.FIRE;
+        return DamageType.ICE;
     }
 
     @Override
@@ -215,7 +229,7 @@ public class Eruption extends Ability
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getSpellPower()*3;
+        return statsCmp.getSpellPower()*2;
     }
 
 

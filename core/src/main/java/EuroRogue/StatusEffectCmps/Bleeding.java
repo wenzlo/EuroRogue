@@ -6,7 +6,7 @@ public class Bleeding extends StatusEffectCmp
 
     public Bleeding()
     {
-        name = "Bleeding 1";
+        name = "Bleeding I";
         statusEffect = StatusEffect.BLEEDING;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;

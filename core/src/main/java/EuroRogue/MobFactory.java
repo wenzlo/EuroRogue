@@ -38,10 +38,11 @@ public class MobFactory
     EuroRogue game;
     WeaponFactory weaponFactory;
     GWTRNG rng;
-    public MobFactory(EuroRogue game, int seed)
+    public MobFactory(EuroRogue game, int seed, WeaponFactory weaponFactory)
     {
         this.game=game;
         this.rng = new GWTRNG(seed);
+        this.weaponFactory = weaponFactory;
 }
 
     public Entity generateRndPlayer()
@@ -51,9 +52,8 @@ public class MobFactory
         mob.add(new NameCmp(game.playerName));
         mob.add(new CodexCmp());
 
-
         mob.add(new CharCmp('@', SColor.WHITE));
-        StatsCmp statsCmp =getRandomStats(12);
+        StatsCmp statsCmp =getRandomStats(9);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
 
@@ -62,8 +62,9 @@ public class MobFactory
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
         mob.add(new FocusCmp());
 
-        setRandomSkillSet(mob);
+        setRandomSkillSet(mob, true);
         if(((StatsCmp) CmpMapper.getComp(CmpType.STATS, mob)).getPerc()<3) addTorch(mob);
+        addRndWeapon(mob, weaponFactory);
         return mob;
     }
     public Entity generateSkillessPlayer()
@@ -96,7 +97,7 @@ public class MobFactory
         glyphsCmp.leftGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         glyphsCmp.rightGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         mob.add(glyphsCmp);
-        StatsCmp statsCmp =getRandomStats(7+(depth*2));
+        StatsCmp statsCmp =getRandomStats(5+(depth*2));
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
 
@@ -107,12 +108,13 @@ public class MobFactory
         mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
         game.engine.addEntity(mob);
-        setRandomSkillSet(mob);
+        setRandomSkillSet(mob, false);
         if(((StatsCmp) CmpMapper.getComp(CmpType.STATS, mob)).getPerc()<3) addTorch(mob);
+        addRndWeapon(mob, weaponFactory);
         return mob;
     }
 
-    public void setRandomSkillSet(Entity mob)
+    public void setRandomSkillSet(Entity mob, boolean player)
     {
         StatsCmp stats = (StatsCmp)CmpMapper.getComp(CmpType.STATS, mob);
         ManaPoolCmp manaPool = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, mob);
@@ -131,7 +133,7 @@ public class MobFactory
             manaPool.attuned.add(mana);
             manaPool.spent.remove(mana);
         }
-        Ability newAbility = Ability.newAbilityCmp(Skill.MELEE_ATTACK);
+        Ability newAbility = Ability.newAbilityCmp(Skill.MELEE_ATTACK, player);
         mob.add(newAbility);
         spentLimit = spentLimit - Skill.MELEE_ATTACK.prepCost.length;
 
@@ -155,7 +157,7 @@ public class MobFactory
                     manaPool.attuned.add(mana);
                     manaPool.spent.remove(mana);
                 }
-                mob.add(Ability.newAbilityCmp(skill));
+                mob.add(Ability.newAbilityCmp(skill, player));
                 spentLimit = spentLimit - skill.prepCost.length;
             }
         }
@@ -182,6 +184,13 @@ public class MobFactory
         InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob);
         inventoryCmp.put(torch.hashCode());
         game.engine.addEntity(torch);
+    }
+    public void addRndWeapon(Entity mob, WeaponFactory weaponFactory)
+    {
+        Entity weapon  = weaponFactory.newRndWeapon();
+        InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob);
+        inventoryCmp.put(weapon.hashCode());
+        game.engine.addEntity(weapon);
     }
 
     public StatsCmp getRandomStats(int total)

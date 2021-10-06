@@ -19,6 +19,7 @@ import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.AbilityCmpSubSystems.Skill;
@@ -89,6 +90,7 @@ public class DeathSys extends MyEntitySystem
         game.currentLevel.getComponent(LevelCmp.class).actors.remove(entity.hashCode());
 
         AICmp playerAI = ((AICmp) CmpMapper.getComp(CmpType.AI, game.player));
+        StatsCmp playerStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, game.player);
         MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW,getGame().dungeonWindow)).display;
         if(playerAI.target!=null)
         {
@@ -103,8 +105,6 @@ public class DeathSys extends MyEntitySystem
 
         Collections.shuffle(manaPoolCmp.attuned);
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
-
-
 
         CodexCmp playerCodexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, getGame().getFocus());
         CodexCmp entityCodexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
@@ -121,7 +121,7 @@ public class DeathSys extends MyEntitySystem
 
         for(Skill skill : entityCodexCmp.known)
         {
-            if(!playerCodexCmp.known.contains(skill))
+            if(!playerCodexCmp.known.contains(skill) && Skill.qualify(skill, playerStats))
             {
 
 
@@ -130,7 +130,7 @@ public class DeathSys extends MyEntitySystem
                 {
                     if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
                     {
-                        Entity scrollItem = getGame().generateScroll(pos, skill);
+                        Entity scrollItem = getGame().generateScroll(pos, skill, levelCmp);
                         getEngine().addEntity(scrollItem);
 
                         dropLocations.remove(pos);

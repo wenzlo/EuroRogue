@@ -38,6 +38,7 @@ public class StatusEffectListener implements EntityListener
     @Override
     public void entityRemoved(Entity entity)
     {
+
         ArrayList<StatusEffect> currentStatusEffects = getStatusEffects(entity);
         currentStatusEffects.remove(effect);
         setStatMultipliers(entity, currentStatusEffects);
@@ -48,6 +49,7 @@ public class StatusEffectListener implements EntityListener
 
     private void setStatMultipliers(Entity entity, ArrayList<StatusEffect> currentStatusEffects)
     {
+
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
 

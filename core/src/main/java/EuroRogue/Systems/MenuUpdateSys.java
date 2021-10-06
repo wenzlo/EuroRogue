@@ -137,22 +137,19 @@ public class MenuUpdateSys extends MyEntitySystem {
                         getEngine().getSystem(AISys.class).scheduleActionEvt(focusEntity, abilityCmp);
                 }
             };
-            if(abilityCmp.getTargetType()== TargetType.AOE)
+            if(abilityCmp.aimable )
             {
 
                 PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, focusEntity);
-                Coord aimCoord = Coord.get(0,0);
-                if(positionCmp!=null)
-                aimCoord = positionCmp.coord;
-                Coord finalAimCoord = aimCoord;
                 primaryAction = new Runnable() {
                     @Override
                     public void run()
                     {
                         if(abilityCmp.isAvailable())
                         {
-                            abilityCmp.apply(positionCmp.coord, finalAimCoord);
-                            getGame().getFocus().add(new AimingCmp(abilityCmp.getSkill()));
+                            abilityCmp.apply(positionCmp.coord, positionCmp.coord);
+
+                            getGame().getFocus().add(new AimingCmp(abilityCmp.getSkill(), abilityCmp.scroll()));
                             Entity eventEntity = new Entity();
                             GameStateEvt gameStateEvt = new GameStateEvt(GameState.AIMING);
                             eventEntity.add(gameStateEvt);
@@ -176,7 +173,7 @@ public class MenuUpdateSys extends MyEntitySystem {
                 Entity scrollEntity = getGame().getEntity(itemID);
                 ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, scrollEntity);
                 if (scrollCmp != null)
-                    scrollAbilities.add((Ability) CmpMapper.getAbilityComp(scrollCmp.skill, scrollEntity));
+                    scrollAbilities.add(CmpMapper.getAbilityComp(scrollCmp.skill, scrollEntity));
             }
             finalLength = window.columnIndexes[2] - window.columnIndexes[1] - 5;
             x = 1;
@@ -204,6 +201,27 @@ public class MenuUpdateSys extends MyEntitySystem {
                             getEngine().getSystem(AISys.class).scheduleActionEvt(focusEntity, abilityCmp);
                     }
                 };
+                if(abilityCmp.aimable )
+                {
+
+                    PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, focusEntity);
+                    primaryAction = new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            if(abilityCmp.isAvailable())
+                            {
+                                abilityCmp.apply(positionCmp.coord, positionCmp.coord);
+                                getGame().getFocus().add(new AimingCmp(abilityCmp.getSkill(), abilityCmp.scroll()));
+                                Entity eventEntity = new Entity();
+                                GameStateEvt gameStateEvt = new GameStateEvt(GameState.AIMING);
+                                eventEntity.add(gameStateEvt);
+                                getEngine().addEntity(eventEntity);
+
+                            }
+                        }
+                    };
+                }
                 menuItem.addPrimaryAction(primaryAction);
                 menuCmp.menuMap.put(coord, chr, menuItem);
                 getGame().keyLookup.put(chr, menuCmp);
@@ -237,7 +255,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, focusEntity);
             Coord coord = Coord.get(x, y);
             IColoredString.Impl statusEffectLabel = new IColoredString.Impl();
-            statusEffectLabel.append(statusEffect.name);
+            statusEffectLabel.append(statusEffectCmp.name);
             if(statusEffectCmp.lastTick!=null)
                 statusEffectLabel.append(" "+(statusEffectCmp.lastTick-tickerCmp.tick), SColor.WHITE);
             MenuItem menuItem = new MenuItem(statusEffectLabel);
@@ -326,7 +344,10 @@ public class MenuUpdateSys extends MyEntitySystem {
             IColoredString.Impl statusEffectLabel = new IColoredString.Impl();
             statusEffectLabel.append(statusEffectCmp.name);
             if(statusEffectCmp.lastTick!=null)
+            {
+
                 statusEffectLabel.append(" "+(statusEffectCmp.lastTick-tickerCmp.tick), SColor.WHITE);
+            }
             MenuItem menuItem = new MenuItem(statusEffectLabel);
             menuCmp.menuMap.put(coord, null, menuItem);
             y++;

@@ -119,10 +119,9 @@ public class WinSysDungeon extends MyEntitySystem
                             }
                         }
 
-                        else if(!levelCmp.floors.contains(x,y))display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.12f));
-
-
-
+                        else if(!levelCmp.floors.contains(x,y)) display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.12f));
+                        if(getGame().dungeonGen.stairsDown == Coord.get(x,y)  ) display.put(x, y, '>', SColor.SLATE_GRAY);
+                        if(getGame().dungeonGen.stairsUp == Coord.get(x,y)  ) display.put(x, y, '<', SColor.SLATE_GRAY);
 
                 }
                 AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, getGame().getFocus());
@@ -141,8 +140,6 @@ public class WinSysDungeon extends MyEntitySystem
                 }
             }
         }
-
-
 
         Stage stage = windowCmp.stage;
 

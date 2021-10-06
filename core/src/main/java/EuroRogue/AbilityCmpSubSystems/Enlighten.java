@@ -32,10 +32,7 @@ import squidpony.squidmath.OrderedMap;
 
 public class Enlighten extends Ability
 {
-    private boolean active = true;
     private Skill skill = Skill.ENLIGHTEN;
-    public  boolean scroll = false;
-    private Integer scrollID = null;
     private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
     private boolean available;
@@ -55,20 +52,6 @@ public class Enlighten extends Ability
     public List<Skill> getReactions()  {
         return Arrays.asList();
     }
-    @Override
-    public boolean scroll()
-    {
-        return scroll;
-    }
-    @Override
-    public void setScroll(boolean bool)
-    {
-        scroll = bool;
-    }
-    @Override
-    public Integer getScrollID() { return scrollID; }
-    @Override
-    public void setScrollID(Integer id) { scrollID = id; }
 
     @Override
     public boolean isAvailable() {
@@ -78,21 +61,6 @@ public class Enlighten extends Ability
     public void setAvailable(boolean available)
     {
         this.available=available;
-    }
-    @Override
-    public boolean getActive()
-    {
-        return active;
-    }
-    @Override
-    public void activate()
-    {
-        active=true;
-    }
-    @Override
-    public void inactivate()
-    {
-        active=false;
     }
 
     @Override

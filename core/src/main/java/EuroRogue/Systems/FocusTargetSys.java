@@ -7,6 +7,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
 import EuroRogue.Components.FocusTargetCmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.PositionCmp;
@@ -44,6 +45,9 @@ public class FocusTargetSys extends MyEntitySystem
         Coord location = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, focusTarget)).coord;
         if(ftc.indicatorGlyph2==null) ftc.indicatorGlyph2=display.glyph('└', SColor.AURORA_LIGHT_SKIN_5,location.x, location.y);
         else ftc.indicatorGlyph2.setPosition(ftGlyph.glyph.getX()-14, ftGlyph.glyph.getY()-14);
+
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, getGame().getFocus());
+        aiCmp.target = focusTarget.hashCode();
     }
 
 }

@@ -8,11 +8,13 @@ import squidpony.squidmath.Coord;
 public class AimingCmp implements Component
 {
     public Skill skill;
+    public boolean scroll;
 
     public AimingCmp(){}
-    public AimingCmp(Skill skill)
+    public AimingCmp(Skill skill, boolean scroll)
     {
         this.skill = skill;
+        this.scroll = scroll;
     }
 
 }

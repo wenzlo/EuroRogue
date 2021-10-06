@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -19,7 +20,9 @@ import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
+import EuroRogue.SortByDistance;
 import squidpony.squidai.BlastAOE;
+import squidpony.squidai.ConeAOE;
 import squidpony.squidai.Technique;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.Radius;
@@ -82,10 +85,11 @@ public class AnimationsSys extends MyEntitySystem
                 case TINT:
                     break;
                 case BLAST:
-
                     ActionEvt actionEvt = (ActionEvt) animation.sourceEvent;
                     Entity actor = getGame().getEntity(actionEvt.performerID);
-                    Technique ability = (Technique) CmpMapper.getAbilityComp(actionEvt.skill,actor );
+                    Entity scroll = getGame().getEntity(actionEvt.scrollID);
+                    Ability ability = CmpMapper.getAbilityComp(actionEvt.skill,actor );
+                    if(scroll!=null) ability = CmpMapper.getAbilityComp(actionEvt.skill,scroll );
                     BlastAOE blastAOE = (BlastAOE) ability.aoe;
                     Coord center = blastAOE.getCenter();
                     LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
@@ -110,17 +114,105 @@ public class AnimationsSys extends MyEntitySystem
                         if(actionEvt.targetsDmg.isEmpty())
                         {
                             TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actor)).leftGlyph;
-                            display.tint(0f, glyph, SColor.SAFETY_ORANGE.toFloatBits(),0.75f, postRunnable);
+                            display.tint(0f, glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
                         }
                         for(Integer targetID : actionEvt.targetsDmg.keySet())
                         {
 
                             Entity targetActor = getGame().getEntity(targetID);
                             GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
-                            display.tint(0f, glyphsCmp.glyph, SColor.SAFETY_ORANGE.toFloatBits(),0.75f, postRunnable);
+                            display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
                         }
                     }
                     Light light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
+                    display.removeGlyph(animation.glyph);
+                    windowCmp.lightingHandler.removeLight(light.hashCode());
+                    break;
+                case SHATTER:
+
+                    actionEvt = (ActionEvt) animation.sourceEvent;
+                    actor = getGame().getEntity(actionEvt.performerID);
+                    ability = CmpMapper.getAbilityComp(actionEvt.skill,actor );
+                    blastAOE = (BlastAOE) ability.aoe;
+                    lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
+
+                    delay =  0.0f;
+                    blastZone = new ArrayList(blastAOE.findArea().keySet());
+                    Collections.sort(blastZone, new SortByDistance(blastAOE.getCenter()));
+                    for(Coord coord : blastZone)
+                    {
+                        Runnable postRunnable = null;
+                        display.tint(delay,coord.x,coord.y,ability.getSkill().school.color.toFloatBits(), 0.1f, null);
+                        delay = (float) (delay+(0.1/blastAOE.findArea().keySet().size()));
+                        /*ArrayList<Integer> lightList = display.summonWithLight(delay,coord.x, coord.y, coord.x, coord.y, ' ', SColor.WHITE.toFloatBits(), SColor.BABY_BLUE.toFloatBits(), 0.1f,  lightHandler, null);
+                        delay = (float) (delay+(0.1/blastAOE.findArea().keySet().size()));
+                        Runnable postRunnable = new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                for(Integer lightID : lightList)
+                                {
+                                    lightHandler.removeLight(lightID);
+                                }
+                            }
+                        };*/
+                        if(actionEvt.targetsDmg.isEmpty())
+                        {
+                            TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actor)).leftGlyph;
+                            display.tint(0f, glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
+                        }
+                        for(Integer targetID : actionEvt.targetsDmg.keySet())
+                        {
+
+                            Entity targetActor = getGame().getEntity(targetID);
+                            GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
+                            display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
+                        }
+                    }
+                    light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
+                    display.removeGlyph(animation.glyph);
+                    windowCmp.lightingHandler.removeLight(light.hashCode());
+                    break;
+                case CONE_OF_COLD:
+
+                    actionEvt = (ActionEvt) animation.sourceEvent;
+                    actor = getGame().getEntity(actionEvt.performerID);
+                    ability = CmpMapper.getAbilityComp(actionEvt.skill,actor );
+                    ConeAOE coneAOE = (ConeAOE) ability.aoe;
+                    center = coneAOE.getOrigin();
+                    lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
+
+                    delay =  0.0f;
+                    blastZone = new ArrayList(coneAOE.findArea().keySet());
+                    Collections.shuffle(blastZone);
+                    for(Coord coord : blastZone)
+                    {
+                        ArrayList<Integer> lightList = display.summonWithLight(delay,center.x, center.y, coord.x, coord.y, '*', SColor.WHITE.toFloatBits(), SColor.BABY_BLUE.toFloatBits(), 0.2f,  lightHandler, null);
+                        delay = (float) (delay+(0.2/coneAOE.findArea().keySet().size()));
+                        Runnable postRunnable = new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                for(Integer lightID : lightList)
+                                {
+                                    lightHandler.removeLight(lightID);
+                                }
+                            }
+                        };
+                        if(actionEvt.targetsDmg.isEmpty())
+                        {
+                            TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actor)).leftGlyph;
+                            display.tint(0f, glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
+                        }
+                        for(Integer targetID : actionEvt.targetsDmg.keySet())
+                        {
+
+                            Entity targetActor = getGame().getEntity(targetID);
+                            GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
+                            display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
+                        }
+                    }
+                    light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
                     display.removeGlyph(animation.glyph);
                     windowCmp.lightingHandler.removeLight(light.hashCode());
                     break;
@@ -152,8 +244,6 @@ public class AnimationsSys extends MyEntitySystem
                         {
                             display.tint(0,finalTargetGlyph, color.toFloatBits(), 0.10f, null );
                         }
-
-
                     };
 
                     display.slide(0f, animation.glyph, xe, ye, 0.18f, burst);
@@ -263,9 +353,11 @@ public class AnimationsSys extends MyEntitySystem
     public enum AnimationType
     {
         SLIDE,
+        CONE_OF_COLD,
         BUMP,
         BURST,
         BLAST,
+        SHATTER,
         SELF_BUFF,
         TINT,
         PROJ_MAGIC,

@@ -162,7 +162,7 @@ public class EuroRogue extends ApplicationAdapter {
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows, shrineWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Tleilax";
+    public String playerName = "Lando";
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
@@ -190,18 +190,18 @@ public class EuroRogue extends ApplicationAdapter {
     public void newGame()
     {
         rng = new GWTRNG(playerName);
-        mobFactory = new MobFactory(this, rng.nextInt());
         weaponFactory = new WeaponFactory(rng.nextInt());
+        mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory);
+
         armorFactory = new ArmorFactory(rng.nextInt());
         foodFactory = new FoodFactory();
         objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
 
         dungeonGen = new SectionDungeonGenerator(42, 42, new GWTRNG(rng.nextInt()));
-        dungeonGen.addDoors(100, false);
-        dungeonGen.addGrass(3, 15);
+
         //dungeonGen.addMaze(35);
         //dungeonGen.addWater(3, 15);
-        dungeonGen.addLake(35);
+        //dungeonGen.addLake(35);
         //dungeonGen.utility.closeDoors(preDungeon);
 
         Entity levelEvtEntity = new Entity();
@@ -359,16 +359,15 @@ public class EuroRogue extends ApplicationAdapter {
         Family qstaffEfct = Family.one(QStaffEfct.class).get();
         engine.addEntityListener(qstaffEfct, new QStaffEffectListener(this));
 
+        Family staggered = Family.one(Staggered.class).get();
+        engine.addEntityListener(staggered, new StaggeredListener(this));
+
         Family staffEfct = Family.one(StaffEfct.class).get();
         engine.addEntityListener(staffEfct, new StaffEffectListener(this));
 
         Family exhausted = Family.one(Exhausted.class).get();
         engine.addEntityListener(exhausted, new ExhaustedListener(this));
 
-
-
-        Family staggered = Family.one(Staggered.class).get();
-        engine.addEntityListener(staggered, new StaggeredListener(this));
 
         Family waterWalking = Family.one(WaterWalking.class).get();
         engine.addEntityListener(waterWalking, new WaterWalkingListener(this));
@@ -616,8 +615,10 @@ public class EuroRogue extends ApplicationAdapter {
         aimInput = new SquidInput((key, alt, ctrl, shift) -> {
 
             AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getFocus());
-            Ability ability = CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
+            Ability aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
+            if(aimingCmp.scroll)
+                aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getScrollForSkill(aimingCmp.skill, getFocus()));
 
             if(aimingCmp==null) return;
 
@@ -666,8 +667,8 @@ public class EuroRogue extends ApplicationAdapter {
                     break;
 
                 case SquidInput.CENTER_ARROW:
-                    if(ability.isAvailable())
-                        engine.getSystem(AISys.class).scheduleActionEvt(getFocus(), ability);
+                    if(aimAbility.isAvailable())
+                        engine.getSystem(AISys.class).scheduleActionEvt(getFocus(), aimAbility);
                         Entity eventEntity = new Entity();
                         GameStateEvt gameStateEvt = new GameStateEvt(GameState.PLAYING);
                         eventEntity.add(gameStateEvt);
@@ -677,16 +678,14 @@ public class EuroRogue extends ApplicationAdapter {
 
 
             }
-            Ability aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getFocus());
+
+
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getFocus());
             Coord newAimCoord = aimAbility.getTargetedLocation().translate(direction);
-            if(ability.possibleTargets(positionCmp.coord).contains(newAimCoord)
+            if(aimAbility.possibleTargets(positionCmp.coord, levelCmp.resistance).contains(newAimCoord)
                     && levelCmp.floors.contains(newAimCoord))
             {
-
-                ability.apply(positionCmp.coord, newAimCoord);
-
-                //engine.getSystem(AimSys.class).setProcessing(true);
+                aimAbility.apply(positionCmp.coord, newAimCoord);
             }
         },
 
@@ -912,7 +911,7 @@ public class EuroRogue extends ApplicationAdapter {
                     StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getFocus());
                     getFocus().add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
                     getFocus().add( new CodexCmp());
-                    mobFactory.setRandomSkillSet(getFocus());
+                    mobFactory.setRandomSkillSet(getFocus(), true);
 
 
                     return;
@@ -951,7 +950,7 @@ public class EuroRogue extends ApplicationAdapter {
             Direction direction = Direction.toGoTo(focusPosition, newPosition);
             if(levelCmp.decoDungeon[newX][newY]=='§')
             {
-                System.out.println("Shrine Event");
+
                 Integer shrineID = levelCmp.objects.get( Coord.get(newX, newY));
                 Entity shrineEntity = getEntity(shrineID);
                 ShrineCmp shrineCmp  = (ShrineCmp)CmpMapper.getComp(CmpType.SHRINE, shrineEntity);
@@ -1071,9 +1070,9 @@ public class EuroRogue extends ApplicationAdapter {
         Gdx.input.setInputProcessor(inputProcessor);
 
         rng = new GWTRNG(playerName);
-
-        mobFactory = new MobFactory(this, rng.nextInt());
         weaponFactory = new WeaponFactory(rng.nextInt());
+        mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory);
+
         armorFactory = new ArmorFactory(rng.nextInt());
         foodFactory = new FoodFactory();
         objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
@@ -1140,7 +1139,7 @@ public class EuroRogue extends ApplicationAdapter {
         }
         return entity;
     }
-    public Entity generateScroll(Coord loc, Skill skill)
+    public Entity generateScroll(Coord loc, Skill skill, LevelCmp levelCmp)
     {
         Entity scroll = new Entity();
         scroll.add(new NameCmp(skill.name+" Scroll"));
@@ -1148,9 +1147,10 @@ public class EuroRogue extends ApplicationAdapter {
         scroll.add(new ItemCmp(ItemType.SCROLL));
         scroll.add(new CharCmp('%', skill.school.color));
         scroll.add(new ScrollCmp(skill));
-        Ability ability = Ability.newAbilityCmp(skill);
+        Ability ability = Ability.newAbilityCmp(skill, false);
         ability.setScrollID(scroll.hashCode());
         ability.setScroll(true);
+        ability.setMap(levelCmp.decoDungeon);
         scroll.add(ability);
         (CmpMapper.getAbilityComp(skill, scroll)).setScroll(true);
         StatsCmp statsCmp = new StatsCmp();
@@ -1322,7 +1322,7 @@ public class EuroRogue extends ApplicationAdapter {
         boolean canAfford = manaPoolCmp.canAfford(skill);
         if(abilityCmp.scroll()) canAfford = true;
         AICmp aiCmp = ((AICmp) CmpMapper.getComp(CmpType.AI, entity));
-        if(abilityCmp.getSkill().skillType!=Skill.SkillType.REACTION && abilityCmp.getSkill().skillType!=Skill.SkillType.BUFF && abilityCmp.getTargetType() != TargetType.AOE)
+        if(abilityCmp.getSkill().skillType!=Skill.SkillType.REACTION && abilityCmp.getSkill().skillType!=Skill.SkillType.BUFF &! abilityCmp.aimed)
         {
             abilityCmp.setAvailable( aiCmp.target!=null && canAfford && abilityCmp.getActive() &&
                     abilityCmp.getIdealLocations(entity, levelCmp).keySet().contains(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, getEntity(aiCmp.target))).coord));
@@ -1332,7 +1332,7 @@ public class EuroRogue extends ApplicationAdapter {
         {
             abilityCmp.setAvailable(canAfford && !abilityCmp.getIdealLocations(entity, levelCmp).isEmpty() && abilityCmp.getActive());
         }
-        else if(abilityCmp.getTargetType() == TargetType.AOE) abilityCmp.setAvailable(canAfford);
+        else if(abilityCmp.aimed) abilityCmp.setAvailable(canAfford);
 
         if(skill==Skill.DAGGER_THROW && abilityCmp.isAvailable()) abilityCmp.setAvailable( weaponType == skill.weaponReq);
 

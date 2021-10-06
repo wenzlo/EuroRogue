@@ -85,7 +85,7 @@ public class CodexSys extends MyEntitySystem
 
     private void addAbilityCmp (Skill skill, Entity entity)
     {
-        entity.add(Ability.newAbilityCmp(skill));
+        entity.add(Ability.newAbilityCmp(skill, getGame().getFocus()==entity));
     }
     private void removeAbilityCmp (Skill skill, Entity entity)
     {
