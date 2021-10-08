@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
 import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatusEffectCmps.Bleeding;
@@ -18,7 +19,6 @@ import EuroRogue.StatusEffectCmps.Staggered;
 import EuroRogue.StatusEffectCmps.Starving;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
-import EuroRogue.CmpType;
 
 
 public class StatusEffectRemovalSys extends MyEntitySystem

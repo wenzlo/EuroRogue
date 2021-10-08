@@ -6,7 +6,6 @@ import java.util.ArrayList;
 
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.School;
-import squidpony.squidgrid.gui.gdx.SColor;
 
 public class ShrineCmp implements Component
 {

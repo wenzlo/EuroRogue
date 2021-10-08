@@ -14,7 +14,6 @@ import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.TickerCmp;
-import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.CodexEvt;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.IColoredString;

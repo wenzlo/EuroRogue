@@ -9,22 +9,24 @@ import java.util.List;
 
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.DamageType;
 import EuroRogue.EuroRogue;
+import EuroRogue.EventComponents.ActionEvt;
+import EuroRogue.EventComponents.AnimateGlyphEvt;
+import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.LightHandler;
-import EuroRogue.StatusEffectCmps.SEParameters;
-import EuroRogue.TargetType;
-import EuroRogue.DamageType;
-import EuroRogue.EventComponents.IEventComponent;
-import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.MySparseLayers;
+import EuroRogue.StatusEffectCmps.SEParameters;
+import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.TargetType;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
 public interface IAbilityCmpSubSys extends Component
 {
+    void        perform(Entity targetEntity, ActionEvt action, EuroRogue game);
     Skill       getSkill();
     List<Skill> getReactions();
     boolean     scroll();

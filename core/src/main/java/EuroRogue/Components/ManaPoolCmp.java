@@ -186,29 +186,26 @@ public class ManaPoolCmp implements Component
     {
         recoverMana(6-active.size());
     }
-    public void removeMana (School[] manaArray)
+
+    public void removeMana (School[] manaArray, StatsCmp statsCmp)
     {
-        for(School mana:manaArray)
-        {
-            if(spent.contains(mana)) spent.remove(mana);
-            else active.remove(mana);
-        }
+        removeMana(Arrays.asList(manaArray), statsCmp);
     }
-    public void removeMana (List<School> manaArray)
+    public void removeMana (Collection<School> manaArray, StatsCmp statsCmp)
     {
         for(School mana:manaArray)
         {
             if(spent.contains(mana)) spent.remove(mana);
             else if(active.contains(mana)) active.remove(mana);
+            statsCmp.setSpirit(unattunedMana().size());
+
         }
     }
-    public void addMana (School[] manaArray)
+    public void addMana (School[] manaArray, StatsCmp statsCmp) { addMana(Arrays.asList(manaArray), statsCmp); }
+    public void addMana (Collection<School> manaArray, StatsCmp statsCmp)
     {
         for(School mana:manaArray) spent.add(mana);
-    }
-    public void addMana (List<School> manaArray)
-    {
-        for(School mana:manaArray) spent.add(mana);
+        statsCmp.setSpirit(unattunedMana().size());
     }
     public boolean inert(CodexCmp codexCmp)
     {
@@ -233,5 +230,10 @@ public class ManaPoolCmp implements Component
         }
         return true;
     }
+    public void setUnattunedManaSlots(StatsCmp statsCmp)
+    {
+
+    }
+
 
 }

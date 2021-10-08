@@ -14,8 +14,8 @@ import EuroRogue.Components.TickerCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.ScheduledEvt;
 import EuroRogue.StatType;
-import EuroRogue.StatusEffectCmps.StatusEffectCmp;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.StatusEffectCmps.StatusEffectCmp;
 
 public class StatusEffectListener implements EntityListener
 {

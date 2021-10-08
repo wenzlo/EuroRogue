@@ -7,17 +7,15 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
 import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.FocusTargetCmp;
 import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.CmpType;
-
 import EuroRogue.EuroRogue;
+import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
-import EuroRogue.IColoredString;
-
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
 

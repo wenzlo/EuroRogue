@@ -8,7 +8,6 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
@@ -22,6 +21,7 @@ import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.ShrineCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.CodexEvt;
@@ -137,6 +137,8 @@ public class WinSysShrine extends MyEntitySystem
         WindowCmp window = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity);
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focusEntity);
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, focusEntity);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, focusEntity);
+
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, focusEntity);
 
@@ -160,7 +162,7 @@ public class WinSysShrine extends MyEntitySystem
                         eventEntity.add(itemEvt);
                         getEngine().addEntity(eventEntity);
 
-                        manaPoolCmp.addMana(new School[]{scrollSchool});
+                        manaPoolCmp.addMana(new School[]{scrollSchool}, statsCmp);
                         shrineCmp.charges--;
 
                     }
@@ -211,8 +213,8 @@ public class WinSysShrine extends MyEntitySystem
                     @Override
                     public void run() {
 
-                        manaPoolCmp.addMana(new School[]{school});
-                        manaPoolCmp.removeMana(new School[]{scl});
+                        manaPoolCmp.addMana(new School[]{school}, statsCmp);
+                        manaPoolCmp.removeMana(new School[]{scl}, statsCmp);
                         shrineCmp.charges = shrineCmp.charges-1;
 
                     }

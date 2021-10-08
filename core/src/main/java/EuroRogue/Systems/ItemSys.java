@@ -4,14 +4,20 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
+
 import java.util.Arrays;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
+import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
+import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
@@ -21,19 +27,15 @@ import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WeaponCmp;
-import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
-import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.CmpMapper;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.CodexEvt;
+import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
+import EuroRogue.MyEntitySystem;
+import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.CmpType;
-import EuroRogue.Components.InventoryCmp;
-import EuroRogue.EventComponents.ItemEvt;
-import EuroRogue.MyEntitySystem;
 import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -251,6 +253,7 @@ public class ItemSys extends MyEntitySystem
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, actorEntity);
         ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, actorEntity);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         switch (itemCmp.type)
         {
@@ -260,7 +263,7 @@ public class ItemSys extends MyEntitySystem
                 inventoryCmp.putFood(itemEntity.hashCode());
                 return;
             case MANA:
-                manaPoolCmp.spent.add(((ManaCmp)CmpMapper.getComp(CmpType.MANA, itemEntity)).school);
+                manaPoolCmp.addMana(new School[]{((ManaCmp)CmpMapper.getComp(CmpType.MANA, itemEntity)).school}, statsCmp);
                 getEngine().removeEntity(itemEntity);
                 return;
 

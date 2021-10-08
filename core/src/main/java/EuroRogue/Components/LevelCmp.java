@@ -11,10 +11,7 @@ import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyMapUtility;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.SpatialMap;
-import squidpony.squidgrid.mapping.DungeonGenerator;
-import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.LineKit;
-import squidpony.squidgrid.mapping.Placement;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GreasedRegion;
 

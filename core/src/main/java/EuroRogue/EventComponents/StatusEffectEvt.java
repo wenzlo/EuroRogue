@@ -3,7 +3,6 @@ package EuroRogue.EventComponents;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.StatusEffectCmps.StatusEffectCmp;
 
 public class StatusEffectEvt implements IEventComponent
 {

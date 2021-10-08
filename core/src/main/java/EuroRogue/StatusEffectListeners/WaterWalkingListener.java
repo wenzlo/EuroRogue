@@ -5,7 +5,6 @@ import com.badlogic.ashley.core.Entity;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
-
 import EuroRogue.EuroRogue;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TerrainType;

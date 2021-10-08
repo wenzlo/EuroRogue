@@ -3,7 +3,6 @@ package EuroRogue.Components;
 import com.badlogic.ashley.core.Component;
 
 import EuroRogue.MyDungeonUtility;
-import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidmath.GreasedRegion;
 
 public class LightingCmp implements Component

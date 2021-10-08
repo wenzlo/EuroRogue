@@ -1,33 +1,30 @@
 package EuroRogue.AbilityCmpSubSystems;
 
 import com.badlogic.ashley.core.Entity;
-import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.CmpMapper;
-import EuroRogue.Components.AICmp;
+import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
-import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.DamageType;
+import EuroRogue.EventComponents.AnimateGlyphEvt;
+import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.LightHandler;
+import EuroRogue.MySparseLayers;
+import EuroRogue.StatType;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.StatType;
 import EuroRogue.TargetType;
-import EuroRogue.DamageType;
-import EuroRogue.EventComponents.IEventComponent;
-import EuroRogue.CmpType;
-import EuroRogue.EventComponents.AnimateGlyphEvt;
-import EuroRogue.MySparseLayers;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.OrderedMap;
 
 public class MeleeAttack extends Ability
 {

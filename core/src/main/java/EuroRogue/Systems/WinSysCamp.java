@@ -8,8 +8,8 @@ import com.badlogic.gdx.utils.Array;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.WindowCmp;
 import EuroRogue.Components.MenuCmp;
+import EuroRogue.Components.WindowCmp;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
 import squidpony.squidgrid.gui.gdx.SColor;

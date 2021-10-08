@@ -8,7 +8,6 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.ArrayList;
 import java.util.Collections;
 
-
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
@@ -23,7 +22,6 @@ import EuroRogue.MySparseLayers;
 import EuroRogue.SortByDistance;
 import squidpony.squidai.BlastAOE;
 import squidpony.squidai.ConeAOE;
-import squidpony.squidai.Technique;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.SColor;

@@ -6,25 +6,24 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
+import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
-import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.CmpMapper;
+import EuroRogue.EventComponents.ActionEvt;
+import EuroRogue.EventComponents.DamageEvent;
 import EuroRogue.EventComponents.DeathEvt;
 import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.IColoredString;
+import EuroRogue.MyEntitySystem;
+import EuroRogue.StatusEffectCmps.Frozen;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.TargetType;
-import EuroRogue.EventComponents.DamageEvent;
-import EuroRogue.EventComponents.StatusEffectEvt;
-import EuroRogue.StatusEffectCmps.Frozen;
-import EuroRogue.EventComponents.ActionEvt;
-import EuroRogue.MyEntitySystem;
-import EuroRogue.CmpType;
 import squidpony.squidgrid.gui.gdx.SColor;
 
 public class DamageApplicationSys extends MyEntitySystem

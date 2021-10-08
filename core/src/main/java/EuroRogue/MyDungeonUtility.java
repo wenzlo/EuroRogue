@@ -4,7 +4,6 @@ import java.util.Map;
 
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.mapping.DungeonUtility;
-import squidpony.squidmath.Coord;
 
 public class MyDungeonUtility extends DungeonUtility
 {

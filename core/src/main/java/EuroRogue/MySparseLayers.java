@@ -9,7 +9,6 @@ import com.badlogic.gdx.utils.Align;
 
 import java.util.ArrayList;
 
-import squidpony.StringKit;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;

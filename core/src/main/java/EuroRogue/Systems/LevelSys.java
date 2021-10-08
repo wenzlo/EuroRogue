@@ -5,34 +5,27 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import EuroRogue.AbilityCmpSubSystems.Ability;
-import EuroRogue.Components.AICmp;
-import EuroRogue.Components.CodexCmp;
-import EuroRogue.Components.FOVCmp;
-import EuroRogue.Components.FocusCmp;
-import EuroRogue.Components.GlyphsCmp;
-import EuroRogue.Components.LevelCmp;
-import EuroRogue.Components.LightingCmp;
-import EuroRogue.Components.ObjectType;
-import EuroRogue.Components.PositionCmp;
-import EuroRogue.Components.TickerCmp;
-import EuroRogue.Components.WindowCmp;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.ArmorFactory;
 import EuroRogue.CmpMapper;
-
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
+import EuroRogue.Components.CodexCmp;
+import EuroRogue.Components.FOVCmp;
+import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.InventoryCmp;
+import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LightingCmp;
+import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.TickerCmp;
+import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.CodexEvt;
-
 import EuroRogue.EventComponents.GameStateEvt;
-
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LevelEvt;
 import EuroRogue.EventComponents.MoveEvt;
@@ -53,9 +46,6 @@ import EuroRogue.WeaponFactory;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
-import squidpony.squidgrid.mapping.DungeonUtility;
-import squidpony.squidgrid.mapping.MixedGenerator;
-import squidpony.squidgrid.mapping.Placement;
 import squidpony.squidgrid.mapping.SerpentMapGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;

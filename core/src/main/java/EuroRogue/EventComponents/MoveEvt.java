@@ -1,22 +1,29 @@
 package EuroRogue.EventComponents;
 
-import squidpony.squidgrid.Direction;
+import squidpony.squidmath.Coord;
 
 public class MoveEvt implements IEventComponent
 {
     public Integer entityID;
-    public Direction direction;
-    public int magnitude;
+    public Coord destination;
     public boolean processed = false;
+    public float animSpeed = 1f;
 
 
     public MoveEvt(){}
 
-    public MoveEvt(Integer entityID, Direction direction, int magnitude)
+    public MoveEvt(Integer entityID, Coord destination )
     {
         this.entityID = entityID;
-        this.direction = direction;
-        this.magnitude = magnitude;
+        this.destination = destination;
+
+    }
+    public MoveEvt(Integer entityID, Coord destination, float animSpeed )
+    {
+        this.entityID = entityID;
+        this.destination = destination;
+        this.animSpeed = animSpeed;
+
     }
 
     @Override

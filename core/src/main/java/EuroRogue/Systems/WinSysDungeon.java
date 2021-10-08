@@ -1,12 +1,12 @@
 package EuroRogue.Systems;
+
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
-
-import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
@@ -21,8 +21,6 @@ import EuroRogue.Components.WindowCmp;
 import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
-import EuroRogue.AbilityCmpSubSystems.Ability;
-import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidgrid.mapping.LineKit;

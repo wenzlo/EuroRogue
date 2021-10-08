@@ -4,7 +4,6 @@ import com.badlogic.ashley.core.Entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import java.util.HashMap;
 import java.util.List;
 
@@ -50,10 +49,11 @@ public class MobFactory
 
         Entity mob = new Entity();
         mob.add(new NameCmp(game.playerName));
-        mob.add(new CodexCmp());
+        CodexCmp codexCmp = new CodexCmp();
+        mob.add(codexCmp);
 
         mob.add(new CharCmp('@', SColor.WHITE));
-        StatsCmp statsCmp =getRandomStats(9);
+        StatsCmp statsCmp = getRandomStats(9+ game.depth*2, true);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
 
@@ -63,8 +63,9 @@ public class MobFactory
         mob.add(new FocusCmp());
 
         setRandomSkillSet(mob, true);
-        if(((StatsCmp) CmpMapper.getComp(CmpType.STATS, mob)).getPerc()<3) addTorch(mob);
-        addRndWeapon(mob, weaponFactory);
+        addTorch(mob);
+        if(!codexCmp.prepared.contains(Skill.DAGGER_THROW))
+            addRndWeapon(mob, weaponFactory);
         return mob;
     }
     public Entity generateSkillessPlayer()
@@ -75,7 +76,7 @@ public class MobFactory
 
 
         mob.add(new CharCmp('@', SColor.WHITE));
-        StatsCmp statsCmp =getRandomStats(12);
+        StatsCmp statsCmp =getRandomStats(12, true);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
 
@@ -90,14 +91,15 @@ public class MobFactory
         LevelCmp level = game.currentLevel.getComponent(LevelCmp.class);
         Entity mob = new Entity();
         mob.add(new NameCmp(name));
-        mob.add(new CodexCmp());
+        CodexCmp codexCmp = new CodexCmp();
+        mob.add(codexCmp);
         mob.add(new PositionCmp(loc));
         mob.add(new CharCmp('E', SColor.RED_BIRCH));
         GlyphsCmp glyphsCmp = new GlyphsCmp(display, 'ß', SColor.RED_BIRCH, loc.x, loc.y);
         glyphsCmp.leftGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         glyphsCmp.rightGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         mob.add(glyphsCmp);
-        StatsCmp statsCmp =getRandomStats(5+(depth*2));
+        StatsCmp statsCmp = getRandomStats(5+(depth*2), false);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
 
@@ -109,8 +111,9 @@ public class MobFactory
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
         game.engine.addEntity(mob);
         setRandomSkillSet(mob, false);
-        if(((StatsCmp) CmpMapper.getComp(CmpType.STATS, mob)).getPerc()<3) addTorch(mob);
-        addRndWeapon(mob, weaponFactory);
+        if(((StatsCmp) CmpMapper.getComp(CmpType.STATS, mob)).getPerc()<5) addTorch(mob);
+        if(!codexCmp.prepared.contains(Skill.DAGGER_THROW))
+            addRndWeapon(mob, weaponFactory);
         return mob;
     }
 
@@ -119,7 +122,7 @@ public class MobFactory
         StatsCmp stats = (StatsCmp)CmpMapper.getComp(CmpType.STATS, mob);
         ManaPoolCmp manaPool = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, mob);
         CodexCmp codex = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, mob);
-        int spentLimit = stats.getIntel() + 3;
+        int spentLimit =  Math.min(4+ game.depth, manaPool.numAttunedSlots);
         List<Skill> skillPool = new ArrayList<>(Arrays.asList(Skill.values()));
         skillPool.remove(Skill.MELEE_ATTACK);
 
@@ -144,7 +147,6 @@ public class MobFactory
 
             skillPool.remove(skill);
             if(spentLimit - skill.prepCost.length-1 < 0) continue;
-
             if (skill.castingCost.length < spentLimit && Skill.qualify(skill, stats) &! codex.getExcludedSchools().contains(skill.school))
             {
                 manaPool.spent.addAll(Arrays.asList(skill.prepCost));
@@ -171,6 +173,8 @@ public class MobFactory
             game.engine.addEntity(daggerEntity);
 
         }
+        stats.setSpirit(manaPool.unattunedMana().size());
+        stats.hp= stats.getMaxHP();
     }
 
     public void addTorch(Entity mob)
@@ -193,7 +197,7 @@ public class MobFactory
         game.engine.addEntity(weapon);
     }
 
-    public StatsCmp getRandomStats(int total)
+    public StatsCmp getRandomStats(int total, boolean player)
     {
         HashMap<StatType, Integer> stats = new HashMap<>();
         stats.put(StatType.STR, 1);
@@ -207,8 +211,9 @@ public class MobFactory
             StatType stat = rng.getRandomElement(stats.keySet());
             stats.put(stat, stats.get(stat)+1);
         }
-
-        StatsCmp statsCmp = new StatsCmp();
+        StatsCmp statsCmp;
+        if(!player) statsCmp = new StatsCmp();
+        else statsCmp = new StatsCmp(rng);
         statsCmp.setStr(stats.get(StatType.STR));
         statsCmp.setDex(stats.get(StatType.DEX));
         statsCmp.setCon(stats.get(StatType.CON));

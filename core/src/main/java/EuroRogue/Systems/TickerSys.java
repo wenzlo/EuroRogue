@@ -10,8 +10,10 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.TickerCmp;
+import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.CodexEvt;
 import EuroRogue.EventComponents.GameStateEvt;
@@ -21,11 +23,9 @@ import EuroRogue.EventComponents.MoveEvt;
 import EuroRogue.EventComponents.RestEvt;
 import EuroRogue.EventComponents.StatEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
-import EuroRogue.CmpType;
 import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.ScheduledEvt;
-import EuroRogue.EventComponents.ActionEvt;
 
 public class TickerSys extends MyEntitySystem
 {

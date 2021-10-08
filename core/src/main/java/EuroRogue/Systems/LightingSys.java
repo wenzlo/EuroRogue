@@ -29,7 +29,6 @@ import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import squidpony.StringKit;
-import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;

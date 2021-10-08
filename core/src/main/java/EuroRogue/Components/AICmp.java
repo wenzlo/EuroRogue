@@ -2,16 +2,13 @@ package EuroRogue.Components;
 
 import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import EuroRogue.CmpMapper;
-import EuroRogue.CmpType;
+
 import EuroRogue.EuroRogue;
-import EuroRogue.SortByDistance;
-import EuroRogue.TargetType;
 import EuroRogue.TerrainType;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Measurement;

@@ -5,47 +5,24 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.Components.LightCmp;
-import EuroRogue.Components.ShrineCmp;
-import EuroRogue.Components.StatsCmp;
-import EuroRogue.EventComponents.CodexEvt;
-import EuroRogue.EventComponents.GameStateEvt;
-import EuroRogue.IColoredString;
-import EuroRogue.School;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.MenuItem;
 import EuroRogue.Components.CodexCmp;
-
-import EuroRogue.Components.InventoryCmp;
-
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.ManaPoolCmp;
-import EuroRogue.Components.MenuCmp;
-
-import EuroRogue.Components.ScrollCmp;
-import EuroRogue.Components.TickerCmp;
-import EuroRogue.Components.WindowCmp;
-import EuroRogue.ItemEvtType;
-
-import EuroRogue.EventComponents.ItemEvt;
-
+import EuroRogue.Components.ShrineCmp;
+import EuroRogue.Components.StatsCmp;
+import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
-import EuroRogue.MySparseLayers;
-
-import squidpony.squidgrid.gui.gdx.SColor;
-
-import squidpony.squidmath.Coord;
 
 public class ShrineSys extends MyEntitySystem
 {

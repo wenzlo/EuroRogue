@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.CampEvt;
@@ -17,7 +18,6 @@ import EuroRogue.EventComponents.DeathEvt;
 import EuroRogue.EventComponents.FrozenEvt;
 import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.IEventComponent;
-
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LevelEvt;
 import EuroRogue.EventComponents.MoveEvt;
@@ -26,7 +26,6 @@ import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.EventComponents.StatEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.MyEntitySystem;
-import EuroRogue.CmpType;
 
 public class EventCleanUpSys extends MyEntitySystem
 {

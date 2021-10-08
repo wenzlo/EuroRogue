@@ -2,35 +2,31 @@ package EuroRogue.AbilityCmpSubSystems;
 
 import com.badlogic.ashley.core.Entity;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.CmpMapper;
-import EuroRogue.Components.AICmp;
-import EuroRogue.Components.LevelCmp;
+import EuroRogue.CmpType;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.DamageType;
+import EuroRogue.EventComponents.AnimateGlyphEvt;
+import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.Light;
 import EuroRogue.LightHandler;
+import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
-import EuroRogue.DamageType;
-import EuroRogue.EventComponents.AnimateGlyphEvt;
-import EuroRogue.EventComponents.IEventComponent;
-import EuroRogue.MySparseLayers;
-import EuroRogue.CmpType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.OrderedMap;
 
 public class Chill extends Ability
 {

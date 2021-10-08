@@ -3,11 +3,12 @@ package EuroRogue.AbilityCmpSubSystems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
-import EuroRogue.School;
 import EuroRogue.WeaponType;
 
 public enum Skill
@@ -25,6 +26,8 @@ public enum Skill
 
     ARCANE_TOUCH(         "Arcane Touch", ArcaneTouch.class,      AnimationsSys.AnimationType.MELEE_MAGIC,  SkillType.ACTION,  School.ARC, new School[]{School.ARC},      new School[]{School.ARC}, null,     null,  0, 0, 0, 0, 2),
     DODGE(                       "Dodge", Dodge.class,         AnimationsSys.AnimationType.WIGGLE,     SkillType.REACTION,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY}, null,      null,  0, 3, 0, 0, 0),
+    CHARGE(                     "Charge", Charge.class,         AnimationsSys.AnimationType.SLIDE,     SkillType.ACTION,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY}, null,      StatusEffect.STAGGERED,  4, 0, 0, 0, 0),
+
     ENRAGE(                     "Enrage", Enrage.class,        AnimationsSys.AnimationType.SELF_BUFF,      SkillType.BUFF,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY}, null,              StatusEffect.ENRAGED,  5, 0, 0, 0, 0),
     //OPPORTUNITY(    "Opportunity Attack", Opportunity.class,   AnimationsSys.AnimationType.BUMP,       SkillType.REACTION,  PHY, new School[]{PHY},      new School[]{PHY},      null,  0, 0, 0, 3, 0)
     ;

@@ -8,9 +8,10 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-import java.util.ArrayList;
-
 import EuroRogue.AbilityCmpSubSystems.Ability;
+import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
@@ -19,23 +20,16 @@ import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.CmpMapper;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.ActionEvt;
-import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.DamageEvent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.IColoredString;
-
 import EuroRogue.ItemEvtType;
-import EuroRogue.LightHandler;
 import EuroRogue.MyEntitySystem;
-import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.CmpType;
 import EuroRogue.TargetType;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
@@ -123,14 +117,9 @@ public class ActionSys extends MyEntitySystem
                     getEngine().addEntity(eventEntity);
                 }
                 //((LogCmp) CmpMapper.getComp(LOG, getGame().logWindow)).logEntries.add(generateActionLogEvt(action, performerEntity).entry);
-                MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
-                LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
-                if(action.skill.skillType== Skill.SkillType.REACTION) abilityCmp.spawnGlyph(display, lightHandler);
-                AnimateGlyphEvt animateGlyphEvt = abilityCmp.genAnimateGlyphEvt(performerEntity, abilityCmp.getTargetedLocation(), action, display);
 
-                ItemEvt itemEvt = abilityCmp.genItemEvent(performerEntity, targetEntity);
-                if (animateGlyphEvt != null) performerEntity.add(animateGlyphEvt);
-                if(itemEvt != null) performerEntity.add(itemEvt);
+                abilityCmp.perform(targetEntity, action, getGame());
+
                 Bleeding bleeding = (Bleeding) CmpMapper.getStatusEffectComp(StatusEffect.BLEEDING, performerEntity);
                 if(bleeding!=null)
                 {

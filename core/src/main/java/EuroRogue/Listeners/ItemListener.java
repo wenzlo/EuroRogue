@@ -5,7 +5,6 @@ import com.badlogic.ashley.core.EntityListener;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.PositionCmp;

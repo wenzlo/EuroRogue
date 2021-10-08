@@ -2,7 +2,6 @@ package EuroRogue.Components;
 
 import com.badlogic.ashley.core.Component;
 
-
 import squidpony.squidgrid.Direction;
 import squidpony.squidmath.Coord;
 

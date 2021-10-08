@@ -1,5 +1,9 @@
 package EuroRogue.Systems;
 
+import static EuroRogue.TargetType.AOE;
+import static EuroRogue.TargetType.ENEMY;
+import static EuroRogue.TargetType.SELF;
+
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
@@ -12,6 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
+import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
@@ -19,45 +26,37 @@ import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FactionCmp;
 import EuroRogue.Components.FocusTargetCmp;
+import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.InventoryCmp;
+import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.ItemType;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
-import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.NoiseMap;
+import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.CmpMapper;
-import EuroRogue.Components.GlyphsCmp;
-
-import EuroRogue.Components.ItemCmp;
+import EuroRogue.EuroRogue;
+import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.FrozenEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.EventComponents.MoveEvt;
+import EuroRogue.EventComponents.RestEvt;
 import EuroRogue.GameState;
 import EuroRogue.IColoredString;
 import EuroRogue.ItemEvtType;
-import EuroRogue.MySparseLayers;
-
-import EuroRogue.SortByDistance;
-import EuroRogue.TargetType;
-import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.CmpType;
-
-import EuroRogue.Components.InventoryCmp;
-
-import EuroRogue.Components.ScrollCmp;
-import EuroRogue.EuroRogue;
-import EuroRogue.EventComponents.ActionEvt;
-
 import EuroRogue.MyEntitySystem;
+import EuroRogue.MySparseLayers;
 import EuroRogue.ScheduledEvt;
-import EuroRogue.EventComponents.MoveEvt;
-import EuroRogue.EventComponents.RestEvt;
+import EuroRogue.SortByDistance;
+import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.TargetType;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -65,11 +64,6 @@ import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
 import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.OrderedMap;
-
-import static EuroRogue.TargetType.AOE;
-import static EuroRogue.TargetType.ENEMY;
-import static EuroRogue.TargetType.ITEM;
-import static EuroRogue.TargetType.SELF;
 
 
 public class AISys extends MyEntitySystem
@@ -387,9 +381,11 @@ public class AISys extends MyEntitySystem
     public int scheduleMoveEvt(Entity entity, Direction direction, double terrainCost)
     {
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
+        PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity);
         int gameTick = ticker.tick;
         int scheduledTick = gameTick + ((StatsCmp) CmpMapper.getComp(CmpType.STATS, entity)).getTTMove(direction, terrainCost);
-        MoveEvt moveEvt = new MoveEvt(entity.hashCode(), direction, 1);
+
+        MoveEvt moveEvt = new MoveEvt(entity.hashCode(), positionCmp.coord.translate(direction));
         ScheduledEvt scheduledEvt = new ScheduledEvt(scheduledTick,entity.hashCode(),moveEvt);
         ticker.actionQueue.add(scheduledEvt);
 
@@ -418,7 +414,7 @@ public class AISys extends MyEntitySystem
 
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         ability.spawnGlyph(windowCmp.display, windowCmp.lightingHandler);
-        if(ability.getTargetType()==ENEMY) rotate(entity, getGame().getEntity(targetID));
+        if(ability.getTargetType()==ENEMY && ability.getSkill()!=Skill.CHARGE) rotate(entity, getGame().getEntity(targetID));
         if(ability.getTargetType()==AOE && getGame().gameState!=GameState.AIMING)
         {
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
@@ -584,9 +580,9 @@ public class AISys extends MyEntitySystem
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
         if(glyphsCmp.leftGlyph!=null)
-            windowCmp.display.slide(0f,glyphsCmp.leftGlyph, glyphsCmp.getLeftGlyphPositionX(windowCmp.display, positionCmp), glyphsCmp.getLeftGlyphPositionY(windowCmp.display, positionCmp), 0.18f, null);
+            windowCmp.display.slide(0f,glyphsCmp.leftGlyph, glyphsCmp.getLeftGlyphPositionX(windowCmp.display, positionCmp), glyphsCmp.getLeftGlyphPositionY(windowCmp.display, positionCmp), 0.1f, null);
         if(glyphsCmp.rightGlyph!=null)
-            windowCmp.display.slide(0f,glyphsCmp.rightGlyph, glyphsCmp.getRightGlyphPositionX(windowCmp.display, positionCmp), glyphsCmp.getRightGlyphPositionY(windowCmp.display, positionCmp), 0.18f, null);
+            windowCmp.display.slide(0f,glyphsCmp.rightGlyph, glyphsCmp.getRightGlyphPositionX(windowCmp.display, positionCmp), glyphsCmp.getRightGlyphPositionY(windowCmp.display, positionCmp), 0.1f, null);
     }
 
 }

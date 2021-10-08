@@ -1,6 +1,5 @@
 package EuroRogue.EventComponents;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import EuroRogue.AbilityCmpSubSystems.Skill;

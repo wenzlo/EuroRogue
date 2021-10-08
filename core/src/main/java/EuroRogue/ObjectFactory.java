@@ -1,8 +1,8 @@
 package EuroRogue;
 
 import com.badlogic.ashley.core.Entity;
+
 import EuroRogue.Components.CharCmp;
-import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.ObjectCmp;
 import EuroRogue.Components.ObjectType;

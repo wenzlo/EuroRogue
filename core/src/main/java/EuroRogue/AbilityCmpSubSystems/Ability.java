@@ -9,19 +9,21 @@ import java.util.List;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
-import EuroRogue.Components.PositionCmp;
-import EuroRogue.EuroRogue;
-import EuroRogue.LightHandler;
-import EuroRogue.TargetType;
-import EuroRogue.DamageType;
-import EuroRogue.MySparseLayers;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.Components.WindowCmp;
+import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
+import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
+import EuroRogue.LightHandler;
+import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
@@ -38,6 +40,19 @@ public class Ability extends Technique implements IAbilityCmpSubSys
     public Ability(String name, AOE aoe) { super(name, aoe); }
 
 
+    @Override
+    public void perform(Entity targetEntity, ActionEvt action, EuroRogue game)
+    {
+        MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).display;
+        LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
+        Entity performerEntity = game.getEntity(action.performerID);
+        if(action.skill.skillType== Skill.SkillType.REACTION) spawnGlyph(display, lightHandler);
+        AnimateGlyphEvt animateGlyphEvt = genAnimateGlyphEvt(performerEntity, getTargetedLocation(), action, display);
+
+        ItemEvt itemEvt = genItemEvent(performerEntity, targetEntity);
+        if (animateGlyphEvt != null) performerEntity.add(animateGlyphEvt);
+        if(itemEvt != null) performerEntity.add(itemEvt);
+    }
 
     @Override
     public Skill getSkill() {
@@ -271,6 +286,9 @@ public class Ability extends Technique implements IAbilityCmpSubSys
                 break;
             case DODGE:
                 ability = new Dodge();
+                break;
+            case CHARGE:
+                ability = new Charge();
                 break;
             case ENRAGE:
                 ability = new Enrage();

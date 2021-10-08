@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
+import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
@@ -17,26 +20,20 @@ import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.TickerCmp;
-import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.CmpMapper;
-
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.FrozenEvt;
 import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.EventComponents.RestEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.GameState;
 import EuroRogue.IColoredString;
-
 import EuroRogue.ItemEvtType;
+import EuroRogue.MyEntitySystem;
 import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.CmpType;
-import EuroRogue.EventComponents.RestEvt;
-import EuroRogue.MyEntitySystem;
-
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
 import squidpony.squidgrid.gui.gdx.SColor;
 
@@ -92,7 +89,7 @@ public class RestIdleCampSys extends MyEntitySystem
             for(StatusEffect statusEffect : getGame().getStatusEffects(actor))
             {
                 StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, actor);
-                System.out.println(statusEffectCmp.seRemovalType);
+
                 if(statusEffectCmp.seRemovalType == SERemovalType.SHORT_REST)
                 {
                     actor.remove(statusEffect.cls);

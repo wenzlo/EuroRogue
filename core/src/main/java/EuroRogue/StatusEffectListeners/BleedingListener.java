@@ -3,13 +3,12 @@ package EuroRogue.StatusEffectListeners;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.StatusEffectEvt;
-import EuroRogue.CmpType;
-
 import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.CmpMapper;
 
 public class BleedingListener implements EntityListener {
     EuroRogue game;

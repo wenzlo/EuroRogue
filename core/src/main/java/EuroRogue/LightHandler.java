@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 
 import java.util.HashMap;
-import java.util.Objects;
 
 import squidpony.StringKit;
 import squidpony.squidgrid.FOV;

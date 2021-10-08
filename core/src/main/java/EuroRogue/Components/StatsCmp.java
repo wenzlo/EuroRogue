@@ -2,39 +2,54 @@ package EuroRogue.Components;
 
 import com.badlogic.ashley.core.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
-import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
 import EuroRogue.DamageType;
+import EuroRogue.School;
+import EuroRogue.SortManaBySchool;
 import EuroRogue.StatType;
 import squidpony.squidgrid.Direction;
+import squidpony.squidmath.GWTRNG;
 
 
 public class StatsCmp implements Component
 {
-
     private int str = 0;
     private int dex = 0;
     private int con = 0;
     private int perc = 0;
     private int intel = 0;
+    private int spirit = 0;
     public int hp;
-    public float maxHPMult = 1;
-    public float ttMoveMult = 1;
-    public float ttMeleeMult = 1;
-    public float ttCastMult = 1;
-    public float ttRestMult = 1;
-    public float attackPwrMult = 1;
-    public float spellPwrMult = 1;
-    public float arcaneDefMult = 1;
-    public float fireDefMult = 1;
-    public float iceDefMult = 1;
-    public float peirceDefMult = 1;
-    public float bludgDefMult = 1;
-    public float slashDefMult = 1;
-    public float moveSndLvlMult = 1;
-    public float meleeSndLvlMult = 1;
-    public float spellSndLvlMult = 1;
+    private float maxHPMult = 1;
+    private float ttMoveMult = 1;
+    private float ttMeleeMult = 1;
+    private float ttCastMult = 1;
+    private float ttRestMult = 1;
+    private float attackPwrMult = 1;
+    private float spellPwrMult = 1;
+    private float arcaneDefMult = 1;
+    private float fireDefMult = 1;
+    private float iceDefMult = 1;
+    private float peirceDefMult = 1;
+    private float bludgDefMult = 1;
+    private float slashDefMult = 1;
+    private float moveSndLvlMult = 1;
+    private float meleeSndLvlMult = 1;
+    private float spellSndLvlMult = 1;
+    private HashMap<StatType, List<School>> statCosts = new HashMap<>();
+
+    private static final List<StatType>
+            spiritIncreases = Arrays.asList(StatType.ATTACK_PWR, StatType.SPELL_PWR, StatType.MAX_HP,
+                                            StatType.ARC_DEF, StatType.ICE_DEF, StatType.PIERCE_DEF,
+                                            StatType.FIRE_DEF, StatType.SLASH_DEF, StatType.BLUDG_DEF);
+    private static final List<StatType>
+            spiritDecreases = Arrays.asList(StatType.TT_CAST, StatType.TT_MELEE, StatType.TT_MOVE,
+                                            StatType.TT_REST);
 
     public int getStr() { return str; }
     public int getDex() { return dex; }
@@ -47,21 +62,64 @@ public class StatsCmp implements Component
         return Math.round(10* moveSndLvlMult);
     }
 
+    public StatsCmp(){}
+    public StatsCmp(GWTRNG rng)
+    {
+        ArrayList<School> pool = new ArrayList<>();
+        pool.addAll(Arrays.asList(School.values()));
+        pool.addAll(Arrays.asList(School.values()));
+        pool.addAll(Arrays.asList(School.values()));
+        pool.addAll(Arrays.asList(School.values()));
+        pool.addAll(Arrays.asList(School.values()));
+        pool.addAll(Arrays.asList(School.values()));
+        pool.remove(School.ARC);
+        pool.remove(School.FIR);
+        pool.remove(School.ICE);
+        pool.remove(School.ARC);
 
+        List<School> startingCost = new ArrayList<>();
+        for(int i=0; i<3; i++)
+        {
+            School school = rng.getRandomElement(pool);
+            startingCost.add(school);
+            pool.remove(school);
+
+        }
+        startingCost.sort(new SortManaBySchool());
+        statCosts.put(StatType.STR, startingCost);
+        List<School> cost = new ArrayList<>(startingCost);
+        for(StatType statType : StatType.CORE_STATS)
+        {
+            while(statCosts.values().contains(cost) || cost.size()<3 || Collections.frequency(cost, cost.get(0))>1)
+            {
+                pool.addAll(cost);
+                cost.clear();
+                for(int i=0; i<3; i++)
+                {
+                    School school = rng.getRandomElement(pool);
+                    cost.add(school);
+                    pool.remove(school);
+                }
+                cost.sort(new SortManaBySchool());
+            }
+            statCosts.put(statType, new ArrayList<>(cost));
+            cost.clear();
+        }
+    }
 
     public int getMaxHP()
     {
-        return Math.round((Arrays.stream(new int[]{str, con, dex, intel, perc}).sum()*4+8* con)*maxHPMult);
+        return Math.round((Arrays.stream(new int[]{str, con, dex, intel, perc}).sum()*4+8* con)*getStatMultiplier(StatType.MAX_HP));
     }
 
     public int getSpellPower()
     {
         if(getIntel() == 0) return 0;
-        return Math.round((1+(intel/2f))*spellPwrMult*4);
+        return Math.round((1+(intel/2f))*getStatMultiplier(StatType.SPELL_PWR)*4);
     }
     public int getWeaponDamage()
     {
-        return  Math.round(getAttackPower()*attackPwrMult);
+        return  Math.round(getAttackPower()*getStatMultiplier(StatType.ATTACK_PWR));
     }
 
     public int getAttackPower()
@@ -72,7 +130,7 @@ public class StatsCmp implements Component
     public int getTTMoveBase()
     {
         if(getDex() ==0) return 10;
-        return Math.round((10-(getDex() /2f+1))*ttMoveMult);
+        return Math.round((10-(getDex()/2f+1))*getStatMultiplier(StatType.TT_MOVE));
     }
     public int getTTMove(Direction direction, double terrainCost)
     {
@@ -83,23 +141,24 @@ public class StatsCmp implements Component
     public int getTTMelee()
     {
         if(getDex() ==0) return 10;
-        return Math.round((10-(getDex() /2f+1))*ttMeleeMult);
+        return Math.round((10-(getDex() /2f+1))*getStatMultiplier(StatType.TT_MELEE));
     }
     public int getTTCast()
     {
         if(getPerc() ==0) return 10;
-        return Math.round((10-(getPerc() /2f+1))*ttCastMult);
+        return Math.round((10-(getPerc() /2f+1))*getStatMultiplier(StatType.TT_CAST));
     }
     public int getTTRest()
     {
         if(getCon() ==0) return 10;
-        return Math.round((10-(getCon() /2f+1))*ttRestMult);
+        return Math.round((10-(getCon() /2f+1))*getStatMultiplier(StatType.TT_REST));
     }
     public void setStr(int str) { this.str = str; }
     public void setDex(int dex) { this.dex = dex; }
     public void setCon(int con) { this.con = con; }
     public void setPerc(int perc) { this.perc = perc; }
     public void setIntel(int intel) { this.intel = intel; }
+    public void setSpirit(int spirit) { this.spirit = spirit; }
 
     public void setStatMultiplier(StatType stat, float multiplier)
     {
@@ -184,39 +243,61 @@ public class StatsCmp implements Component
     }
     public float getStatMultiplier(StatType stat)
     {
+        float statMult = 1f;
         switch (stat)
         {
-
-            case TT_MOVE: return ttMoveMult;
-
-            case TT_MELEE: return ttMeleeMult;
-
-            case TT_CAST: return ttCastMult;
-
-            case TT_REST: return ttRestMult;
-
-            case ATTACK_PWR: return attackPwrMult;
-
-            case SPELL_PWR: return spellPwrMult;
-
-            case ARC_DEF: return arcaneDefMult;
-
-            case FIRE_DEF: return fireDefMult;
-
-            case ICE_DEF: return iceDefMult;
-
-            case BLUDG_DEF: return bludgDefMult;
-
-            case SLASH_DEF: return slashDefMult;
-
-            case PIERCE_DEF: return peirceDefMult;
-
-            case MELEE_SND_LVL: return meleeSndLvlMult;
-
-            case SPELL_SND_LVL: return spellSndLvlMult;
-
+            case TT_MOVE:
+                statMult = ttMoveMult;
+                break;
+            case TT_MELEE:
+                statMult = ttMeleeMult;
+                break;
+            case TT_CAST:
+                statMult = ttCastMult;
+                break;
+            case TT_REST:
+                statMult = ttRestMult;
+                break;
+            case MOVE_SND_LVL:
+                statMult = moveSndLvlMult;
+                break;
+            case MELEE_SND_LVL:
+                statMult = meleeSndLvlMult;
+                break;
+            case SPELL_SND_LVL:
+                statMult = spellSndLvlMult;
+                break;
+            case ATTACK_PWR:
+                statMult = attackPwrMult;
+                break;
+            case SPELL_PWR:
+                statMult = spellPwrMult;
+                break;
+            case ARC_DEF:
+                statMult = arcaneDefMult;
+                break;
+            case FIRE_DEF:
+                statMult = fireDefMult;
+                break;
+            case ICE_DEF:
+                statMult = iceDefMult;
+                break;
+            case BLUDG_DEF:
+                statMult = bludgDefMult;
+                break;
+            case SLASH_DEF:
+                statMult = slashDefMult;
+                break;
+            case PIERCE_DEF:
+                statMult = peirceDefMult;
+                break;
+            case MAX_HP:
+                statMult = maxHPMult;
+                break;
         }
-        return 1f;
+        if(spiritIncreases.contains(stat)) return statMult+(spirit/100f);
+        else return statMult-(spirit/100f);
+
     }
     public int getStat(StatType statType)
     {
@@ -232,23 +313,30 @@ public class StatsCmp implements Component
     }
     public float getResistMultiplier(DamageType damageType)
     {
+        float resistanceMult = 1;
         switch (damageType)
         {
 
             case PIERCING:
-                return peirceDefMult;
+                resistanceMult = peirceDefMult;
+                break;
             case BLUDGEONING:
-                return  bludgDefMult;
+                resistanceMult =  bludgDefMult;
+                break;
             case SLASHING:
-                return slashDefMult;
+                resistanceMult = slashDefMult;
+                break;
             case ARCANE:
-                return arcaneDefMult;
+                resistanceMult = arcaneDefMult;
+                break;
             case FIRE:
-                return fireDefMult;
+                resistanceMult = fireDefMult;
+                break;
             case ICE:
-                return iceDefMult;
+                resistanceMult = iceDefMult;
+                break;
         }
-        return 1f;
+        return resistanceMult+(spirit/100f);
     }
     public int getNumAttunedSlots()
     {
@@ -263,16 +351,29 @@ public class StatsCmp implements Component
         intel =Math.max(intel, statsCmp.getIntel());
         perc =Math.max(perc, statsCmp.getPerc());
     }
+    public boolean afford(StatType statType, ManaPoolCmp manaPoolCmp)
+    {
+        for(School mana : statCosts.get(statType))
+        {
+            if(Collections.frequency(statCosts.get(statType), mana)> Collections.frequency(manaPoolCmp.spent, mana))
+            {
+                return false;
+            }
+        }
+        return  true;
+    }
+
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("CORE STATS" +"\n"+"\n");
+        sb.append("CORE STATS" +"\n");
         sb.append("HP = "+hp+"/"+getMaxHP() +"\n");
         sb.append("strength     = "+ str +"\n");
         sb.append("dexterity    = "+ dex +"\n");
         sb.append("constitution = "+ con +"\n");
         sb.append("perception   = "+ perc +"\n");
-        sb.append("intelligence = "+ intel +"\n"+"\n");
+        sb.append("intelligence = "+ intel +"\n");
+        sb.append("Spirit = "+ spirit +"\n"+"\n");
         sb.append("SPEED STATS" +"\n");
         sb.append("ttMove  = "+getTTMoveBase()+"\n");
         sb.append("ttMelee = "+getTTMelee()+"\n");
@@ -281,12 +382,12 @@ public class StatsCmp implements Component
         sb.append("NoiseLvl= "+ getMoveSndLvl()+"\n");
 
         sb.append("RESISTS"+"\n"+"\n");
-        sb.append("Bludgeon = "+(Math.round((-(1-bludgDefMult))*100))+"%"+"\n");
-        sb.append("Piercing = "+(Math.round((-(1-peirceDefMult))*100))+"%"+"\n");
-        sb.append("Slashing = "+(Math.round((-(1-slashDefMult))*100))+"%"+"\n");
-        sb.append("Fire     = "+(Math.round((-(1-fireDefMult))*100))+"%"+"\n");
-        sb.append("Ice      = "+(Math.round((-(1-iceDefMult))*100))+"%"+"\n");
-        sb.append("Arcane   = "+(Math.round((-(1-arcaneDefMult))*100))+"%"+"\n"+"\n");
+        sb.append("Bludgeon = "+(Math.round((-(1-getResistMultiplier(DamageType.BLUDGEONING)))*100))+"%"+"\n");
+        sb.append("Piercing = "+(Math.round((-(1-getResistMultiplier(DamageType.PIERCING)))*100))+"%"+"\n");
+        sb.append("Slashing = "+(Math.round((-(1-getResistMultiplier(DamageType.SLASHING)))*100))+"%"+"\n");
+        sb.append("Fire     = "+(Math.round((-(1-getResistMultiplier(DamageType.FIRE)))*100))+"%"+"\n");
+        sb.append("Ice      = "+(Math.round((-(1-getResistMultiplier(DamageType.ICE)))*100))+"%"+"\n");
+        sb.append("Arcane   = "+(Math.round((-(1-getResistMultiplier(DamageType.ARCANE)))*100))+"%"+"\n"+"\n");
         sb.append("DAMAGE STATS"+"\n");
         sb.append("Weapon Damage = "+ getWeaponDamage()+"\n");
         sb.append("Attack Power  = "+ getAttackPower()+"\n");
@@ -297,5 +398,9 @@ public class StatsCmp implements Component
         sb.append("Spell DPT = "+dpt+"\n");
 
         return sb.toString();
+    }
+    public List<School> getStatCost(StatType statType)
+    {
+        return statCosts.get(statType);
     }
 }

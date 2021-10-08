@@ -4,13 +4,14 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
+
 import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.EventComponents.StatEvt;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatType;
-import EuroRogue.CmpType;
 
 public class StatSys extends MyEntitySystem
 {
@@ -49,17 +50,19 @@ public class StatSys extends MyEntitySystem
                 int value = statsCmp.getStat(statType) + statEvt.statChanges.get(statType);
                 if(statEvt.statChanges.get(statType)>0)
                 {
-                    if(StatType.afford(statType, manaPoolCmp))
+                    if(statsCmp.afford(statType, manaPoolCmp))
                     {
-                       manaPoolCmp.removeMana(statType.cost);
+                       manaPoolCmp.removeMana(statsCmp.getStatCost(statType),statsCmp);
                        statsCmp.setStat(statType, value);
                     }
+
                 }
                 else if(statEvt.statChanges.get(statType)<0)
                 {
-                    manaPoolCmp.addMana(statType.cost);
+                    manaPoolCmp.addMana(statsCmp.getStatCost(statType), statsCmp);
                     statsCmp.setStat(statType, value);
                 }
+                manaPoolCmp.numAttunedSlots=statsCmp.getNumAttunedSlots();
             }
         }
     }

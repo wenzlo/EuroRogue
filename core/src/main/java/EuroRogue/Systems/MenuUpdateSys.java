@@ -8,49 +8,46 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AbilityCmpSubSystems.Ability;
+import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.EquipmentSlot;
+import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ManaPoolCmp;
+import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.CmpMapper;
-import EuroRogue.CmpType;
-import EuroRogue.Components.InventoryCmp;
-import EuroRogue.Components.MenuCmp;
-import EuroRogue.Components.ScrollCmp;
 import EuroRogue.EventComponents.CodexEvt;
 import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.StatEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.GameState;
+import EuroRogue.IColoredString;
 import EuroRogue.ItemEvtType;
 import EuroRogue.MenuItem;
 import EuroRogue.MyEntitySystem;
-import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.ScheduledEvt;
 import EuroRogue.School;
-import EuroRogue.IColoredString;
 import EuroRogue.SortAbilityBySkillType;
 import EuroRogue.StatType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
-import EuroRogue.TargetType;
 import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.OrderedMap;
 
 public class MenuUpdateSys extends MyEntitySystem {
     private ImmutableArray<Entity> entities;
@@ -481,6 +478,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, entity);
         WindowCmp window = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, entity);
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focusEntity);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, focusEntity);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, focusEntity);
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, focusEntity);
 
@@ -541,10 +539,10 @@ public class MenuUpdateSys extends MyEntitySystem {
             Coord coord = Coord.get(x, y);
             Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
             float statColor = SColor.WHITE.toFloatBits();
-            if (!StatType.afford(statType, manaPoolCmp))
+            if (!statsCmp.afford(statType, manaPoolCmp))
                 statColor = SColor.lerpFloatColors(statColor, SColor.FLOAT_BLACK, 0.5f);
             IColoredString.Impl statLabel = new IColoredString.Impl(chr + ") " + statType.name()+" ",  SColor.colorFromFloat(statColor));
-            for(School mana : statType.cost) statLabel.append('■', mana.color);
+            for(School mana : statsCmp.getStatCost(statType)) statLabel.append('■', mana.color);
 
             Character charKey = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
             MenuItem menuItem = new MenuItem(statLabel);

@@ -2,24 +2,23 @@ package EuroRogue.Systems;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+
 import java.util.Comparator;
 
 import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.CmpType;
 import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
-
 import squidpony.squidgrid.gui.gdx.SColor;
 
 public class WinSysLog extends MyEntitySystem

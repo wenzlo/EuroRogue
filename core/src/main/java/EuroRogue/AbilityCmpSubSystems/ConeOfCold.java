@@ -15,7 +15,6 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
-import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -27,7 +26,6 @@ import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.AimLimit;
-import squidpony.squidai.BlastAOE;
 import squidpony.squidai.ConeAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
@@ -111,7 +109,7 @@ public class ConeOfCold extends Ability
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         ConeAOE coneAOE = (ConeAOE) aoe;
 
-        coneAOE.setRadius(statsCmp.getIntel());
+        coneAOE.setRadius(1+statsCmp.getIntel()/2);
         coneAOE.setOrigin(positionCmp.coord);
     }
 

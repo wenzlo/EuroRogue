@@ -1,6 +1,5 @@
 package EuroRogue.StatusEffectCmps;
 
-import EuroRogue.DamageType;
 import EuroRogue.TargetType;
 
 public class SEParameters
