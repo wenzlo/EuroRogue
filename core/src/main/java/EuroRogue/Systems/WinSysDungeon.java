@@ -62,6 +62,8 @@ public class WinSysDungeon extends MyEntitySystem
     private void putMap(Entity levelEntity)
     {
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL,levelEntity);
+        /*System.out.println("Put Map");
+        for(char[] line : levelCmp.decoDungeon) System.out.println(line);*/
         LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, levelEntity);
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         FOVCmp focusFov = ((FOVCmp) CmpMapper.getComp(CmpType.FOV,getGame().getFocus()));
@@ -79,13 +81,7 @@ public class WinSysDungeon extends MyEntitySystem
             for (int y = Math.max(0, focusPos.y - (display.gridHeight >> 1) - 1), j = 0; y < levelCmp.decoDungeon.length  && j < windowCmp.display.gridHeight + 2; y++, j++)
             {
                 if (focusFov.los[x][y] > 0.0 && lightingCmp.fgLightLevel[x][y]>0) {
-                    // Here we use a convenience method in SparseLayers that puts a char at a specified position (the
-                    // closer to FLOAT_LIGHTING (sixth parameter) based on how visible the cell is (seventh parameter,
-                    // comes from the FOV calculations) in a way that fairly-quickly changes over time.
-                    // This effect appears to shrink and grow in a circular area around the player, with the lightest
-                    // cells around the player and dimmer ones near the edge of vision. This lighting is "consistent"
-                    // because all cells at the same distance will have the same amount of lighting applied.
-                    // We use prunedDungeon here so segments of walls that the player isn't aware of won't be shown.
+
                     if (levelCmp.floors.contains(Coord.get(x, y)))
                         display.put(x, y, levelCmp.decoDungeon[x][y], lightingCmp.fgLighting[x][y]);
 
@@ -117,13 +113,13 @@ public class WinSysDungeon extends MyEntitySystem
                             }
                         }
 
-                        else if(!levelCmp.floors.contains(x,y)) display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.12f));
+                        else if(!levelCmp.floors.contains(x,y)) display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
                         if(getGame().dungeonGen.stairsDown == Coord.get(x,y)  ) display.put(x, y, '>', SColor.SLATE_GRAY);
                         if(getGame().dungeonGen.stairsUp == Coord.get(x,y)  ) display.put(x, y, '<', SColor.SLATE_GRAY);
 
                 }
                 AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, getGame().getFocus());
-                if(aiCmp.alerts.contains(Coord.get(x,y)) &! focusFov.visible.contains(x,y))
+                if(aiCmp.alerts.containsValue(Coord.get(x,y)) &! focusFov.visible.contains(x,y))
                 {
 
                     display.put(x, y, '!', SColor.WHITE);

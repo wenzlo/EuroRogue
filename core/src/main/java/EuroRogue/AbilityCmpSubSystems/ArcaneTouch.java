@@ -30,7 +30,7 @@ public class ArcaneTouch extends Ability
 {
     private Skill skill = Skill.ARCANE_TOUCH;
     private Coord targetedLocation;
-    private boolean available = false;
+
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private TextCellFactory.Glyph glyph;
 
@@ -47,18 +47,6 @@ public class ArcaneTouch extends Ability
     public List<Skill> getReactions() {
         return Arrays.asList();
     }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
-
 
     @Override
     public void updateAOE(Entity performer)

@@ -36,7 +36,6 @@ public class Charge extends Ability
 
     private Skill skill = Skill.CHARGE;
     private  Coord targetedLocation;
-    private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private GWTRNG rng = new GWTRNG();
 
@@ -73,16 +72,6 @@ public class Charge extends Ability
     @Override
     public List<Skill> getReactions()  {
         return Arrays.asList(Skill.DODGE, Skill.ICE_SHIELD);
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
     }
 
     @Override

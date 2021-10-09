@@ -34,7 +34,7 @@ public interface IAbilityCmpSubSys extends Component
     Integer     getScrollID();
     void        setScrollID(Integer id);
     boolean     isAvailable();
-    void        setAvailable(boolean available);
+    void        setAvailable(Entity performer, EuroRogue game);
     boolean     getActive();
     void        activate();
     void        inactivate();

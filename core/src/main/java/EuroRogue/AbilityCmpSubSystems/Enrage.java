@@ -34,7 +34,6 @@ public class Enrage extends Ability
 {
     private Skill skill = Skill.ENRAGE;
     private Coord targetedLocation;
-    private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
 
@@ -52,16 +51,6 @@ public class Enrage extends Ability
     @Override
     public List<Skill> getReactions()  {
         return Arrays.asList();
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
     }
 
     @Override

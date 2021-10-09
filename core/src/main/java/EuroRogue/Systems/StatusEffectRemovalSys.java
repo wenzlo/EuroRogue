@@ -8,6 +8,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.TickerCmp;
+import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.Burning;
@@ -47,6 +48,7 @@ public class StatusEffectRemovalSys extends MyEntitySystem
     public void update(float deltaTime)
     {
         {
+            if(getGame().gameState!= GameState.PLAYING) return;
             TickerCmp tickerCmp = ((TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker));
             for(Entity entity:entities)
             {

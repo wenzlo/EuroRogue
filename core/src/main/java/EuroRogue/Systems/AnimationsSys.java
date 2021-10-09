@@ -342,6 +342,7 @@ public class AnimationsSys extends MyEntitySystem
                     display.bump(0, animation.glyph, direction, 0.12f, burst);
                     break;
                 case WIGGLE:
+
                     display.wiggle(animation.glyph, 0.12f);
                     break;
             }

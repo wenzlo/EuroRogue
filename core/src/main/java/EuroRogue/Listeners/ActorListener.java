@@ -34,24 +34,23 @@ public class ActorListener implements EntityListener {
     @Override
     public void entityAdded(Entity entity)
     {
-        LevelCmp level = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
+        if(levelCmp == null) return;
         Coord position = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
         GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, entity);
-        level.actors.add(position, entity.hashCode(), entity.hashCode());
         LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, entity);
 
         LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
 
         Light light = new Light(Coord.get(position.x*3+1, position.y*3+1), new Radiance(lightCmp.level, lightCmp.color) );
+
         lightHandler.addLight(light.hashCode(), light);
         glyphsCmp.glyph.setName(light.hashCode() + " " + entity.hashCode()+ " actor");
 
-        game.engine.getSystem(FOVSys.class).updatFOV(entity);
+        game.engine.getSystem(FOVSys.class).updateFOV(entity);
 
         entity.remove(NoiseMap.class);
-        entity.add(new NoiseMap(level.bareDungeon));
-
-
+        entity.add(new NoiseMap(levelCmp.bareDungeon));
 
     }
 

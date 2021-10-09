@@ -35,7 +35,6 @@ public class Enlighten extends Ability
     private Skill skill = Skill.ENLIGHTEN;
     private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
-    private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
 
     public Enlighten()
@@ -51,16 +50,6 @@ public class Enlighten extends Ability
     @Override
     public List<Skill> getReactions()  {
         return Arrays.asList();
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
     }
 
     @Override

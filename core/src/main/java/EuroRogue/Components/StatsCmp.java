@@ -56,12 +56,11 @@ public class StatsCmp implements Component
     public int getCon() { return con; }
     public int getPerc() { return perc; }
     public int getIntel() { return intel; }
-    public int getSoundDetectionLvl(){return 11-perc;}
+    public int getSoundDetectionLvl(){return 9-perc/2;}
     public double getMoveSndLvl()
     {
-        return Math.round(10* moveSndLvlMult);
+        return Math.round(10 * moveSndLvlMult);
     }
-
     public StatsCmp(){}
     public StatsCmp(GWTRNG rng)
     {

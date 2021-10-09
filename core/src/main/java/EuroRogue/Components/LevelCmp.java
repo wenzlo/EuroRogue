@@ -20,7 +20,7 @@ public class LevelCmp implements Component
     public char[][] decoDungeon, bareDungeon, lineDungeon, prunedDungeon;
     public int[][] environment;
     public float[][] colors, bgColors;
-    public double[][] resistance;
+    public double[][] resistance, movementCost;
     public GreasedRegion floors;
     public SpatialMap<Integer, Integer> actors = new SpatialMap();
     public SpatialMap<Integer, Integer> items = new SpatialMap();

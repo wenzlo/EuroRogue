@@ -16,7 +16,7 @@ public enum Skill
     MELEE_ATTACK(         "Melee Attack", MeleeAttack.class,   AnimationsSys.AnimationType.BUMP,         SkillType.ACTION,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY}, null,       null,  0, 0, 0, 0, 0),
     ENLIGHTEN(               "Enlighten", Enlighten.class,     AnimationsSys.AnimationType.SELF_BUFF,      SkillType.BUFF,  School.ARC, new School[]{School.ARC},      new School[]{School.ARC}, null,          StatusEffect.ENLIGHTENED,  0, 0, 0, 0, 5),
     ICE_SHIELD(               "Ice Shield", IceShield.class,     AnimationsSys.AnimationType.MELEE_MAGIC,      SkillType.REACTION,  School.ICE, new School[]{School.ICE, School.PHY},      new School[]{School.ICE}, null,           StatusEffect.CHILLED,  0, 0, 1, 2, 1),
-    MAGIC_MISSILE(       "Magic Missile", MagicMissile.class,  AnimationsSys.AnimationType.PROJ_MAGIC,   SkillType.ACTION,  School.ARC, new School[]{School.ARC, School.ARC}, new School[]{School.ARC, School.ARC}, null,  null,  0, 0, 0, 0, 3),
+    MAGIC_MISSILE(       "Magic Missile", MagicMissile.class,  AnimationsSys.AnimationType.PROJ_MAGIC,   SkillType.ACTION,  School.ARC, new School[]{School.ARC, School.ARC}, new School[]{School.ARC, School.ARC}, null,  null,  0, 0, 0, 0, 4),
     DAGGER_THROW(       "Dagger Throw", DaggerThrow.class,  AnimationsSys.AnimationType.PROJECTILE,   SkillType.ACTION,  School.PHY, new School[]{School.PHY}, new School[]{School.PHY}, WeaponType.DAGGER, null,   0, 3, 0, 0, 0),
     CHILL(     "Chill", Chill.class, AnimationsSys.AnimationType.MELEE_MAGIC,  SkillType.ACTION,  School.ICE, new School[]{School.ICE},      new School[]{School.ICE}, null,              StatusEffect.CHILLED,  0, 0, 0, 0, 2),
     IMMOLATE(                 "Immolate", Immolate.class,      AnimationsSys.AnimationType.MELEE_MAGIC,  SkillType.ACTION,  School.FIR, new School[]{School.FIR},      new School[]{School.FIR}, null,         StatusEffect.CALESCENT,  0, 0, 0, 0, 2),
@@ -26,7 +26,7 @@ public enum Skill
 
     ARCANE_TOUCH(         "Arcane Touch", ArcaneTouch.class,      AnimationsSys.AnimationType.MELEE_MAGIC,  SkillType.ACTION,  School.ARC, new School[]{School.ARC},      new School[]{School.ARC}, null,     null,  0, 0, 0, 0, 2),
     DODGE(                       "Dodge", Dodge.class,         AnimationsSys.AnimationType.WIGGLE,     SkillType.REACTION,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY}, null,      null,  0, 3, 0, 0, 0),
-    CHARGE(                     "Charge", Charge.class,         AnimationsSys.AnimationType.SLIDE,     SkillType.ACTION,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY}, null,      StatusEffect.STAGGERED,  4, 0, 0, 0, 0),
+    CHARGE(                     "Charge", Charge.class,         AnimationsSys.AnimationType.SLIDE,     SkillType.ACTION,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY, School.PHY}, null,      StatusEffect.STAGGERED,  4, 0, 0, 0, 0),
 
     ENRAGE(                     "Enrage", Enrage.class,        AnimationsSys.AnimationType.SELF_BUFF,      SkillType.BUFF,  School.PHY, new School[]{School.PHY},      new School[]{School.PHY}, null,              StatusEffect.ENRAGED,  5, 0, 0, 0, 0),
     //OPPORTUNITY(    "Opportunity Attack", Opportunity.class,   AnimationsSys.AnimationType.BUMP,       SkillType.REACTION,  PHY, new School[]{PHY},      new School[]{PHY},      null,  0, 0, 0, 3, 0)

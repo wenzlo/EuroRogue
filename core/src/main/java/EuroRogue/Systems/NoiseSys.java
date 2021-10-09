@@ -12,6 +12,7 @@ import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
+import EuroRogue.Components.FactionCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.NoiseMap;
 import EuroRogue.Components.PositionCmp;
@@ -58,6 +59,8 @@ public class NoiseSys extends MyEntitySystem
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Entity actor = getGame().getEntity(moveEvt.entityID);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
+        FactionCmp factionCmp = (FactionCmp) CmpMapper.getComp(CmpType.FACTION, actor);
+
 
 
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
@@ -73,11 +76,12 @@ public class NoiseSys extends MyEntitySystem
         {
             Entity alertedEntity = getGame().getEntity(levelCmp.actors.get(position));
             StatsCmp alertedStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, alertedEntity);
-            if(alerted.get(position)>=alertedStats.getSoundDetectionLvl())
+            FactionCmp entityFactionCmp = (FactionCmp) CmpMapper.getComp(CmpType.FACTION, alertedEntity);
+            if(alerted.get(position)>=alertedStats.getSoundDetectionLvl() && entityFactionCmp.faction!=factionCmp.faction)
             {
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
                 AICmp alertedAI = (AICmp) CmpMapper.getComp(CmpType.AI, alertedActor);
-                alertedAI.alerts.add(positionCmp.coord);
+                alertedAI.alerts.put(actor.hashCode(), positionCmp.coord);
             }
         }
     }
@@ -87,6 +91,7 @@ public class NoiseSys extends MyEntitySystem
         if(!Arrays.asList(new ItemEvtType[]{ItemEvtType.DROP, ItemEvtType.EQUIP, ItemEvtType.UNEQUIP}).contains(itemEvent.type)) return;
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Entity actor = getGame().getEntity(itemEvent.actorID);
+        FactionCmp factionCmp = (FactionCmp) CmpMapper.getComp(CmpType.FACTION, actor);
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
 
@@ -101,11 +106,12 @@ public class NoiseSys extends MyEntitySystem
         {
             Entity alertedEntity = getGame().getEntity(levelCmp.actors.get(position));
             StatsCmp alertedStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, alertedEntity);
-            if(alerted.get(position)>=alertedStats.getSoundDetectionLvl())
+            FactionCmp entityFactionCmp = (FactionCmp) CmpMapper.getComp(CmpType.FACTION, alertedEntity);
+            if(alerted.get(position)>=alertedStats.getSoundDetectionLvl() && entityFactionCmp.faction!=factionCmp.faction)
             {
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
                 AICmp alertedAI = (AICmp) CmpMapper.getComp(CmpType.AI, alertedActor);
-                alertedAI.alerts.add(positionCmp.coord);
+                alertedAI.alerts.put(actor.hashCode(), positionCmp.coord);
             }
         }
 
@@ -114,14 +120,15 @@ public class NoiseSys extends MyEntitySystem
     private void processActionEvt(ActionEvt actionEvt)
     {
         Entity performerEntity = getGame().getEntity(actionEvt.performerID);
+        FactionCmp factionCmp = (FactionCmp) CmpMapper.getComp(CmpType.FACTION, performerEntity);
 
         if(!actionEvt.isProcessed()) return;
 
-        Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, performerEntity);
+        Ability abilityCmp = CmpMapper.getAbilityComp(actionEvt.skill, performerEntity);
         if(actionEvt.scrollID!=null)
         {
             Entity scrollEntity = getGame().getEntity(actionEvt.scrollID);
-            abilityCmp = (Ability) CmpMapper.getAbilityComp(actionEvt.skill, scrollEntity);
+            abilityCmp = CmpMapper.getAbilityComp(actionEvt.skill, scrollEntity);
             getEngine().removeEntity(scrollEntity);
         }
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performerEntity);
@@ -146,11 +153,12 @@ public class NoiseSys extends MyEntitySystem
         {
             Entity alertedEntity = getGame().getEntity(levelCmp.actors.get(position));
             StatsCmp alertedStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, alertedEntity);
-            if(alerted.get(position)>=alertedStats.getSoundDetectionLvl())
+            FactionCmp entityFactionCmp = (FactionCmp) CmpMapper.getComp(CmpType.FACTION, alertedEntity);
+            if(alerted.get(position)>=alertedStats.getSoundDetectionLvl() && entityFactionCmp.faction!=factionCmp.faction)
             {
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
                 AICmp alertedAI = (AICmp) CmpMapper.getComp(CmpType.AI, alertedActor);
-                alertedAI.alerts.add(positionCmp.coord);
+                alertedAI.alerts.put(performerEntity.hashCode(), positionCmp.coord);
 
 
             }

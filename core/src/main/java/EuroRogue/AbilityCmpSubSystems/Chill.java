@@ -32,7 +32,6 @@ public class Chill extends Ability
 {
     private Skill skill = Skill.CHILL;
     private Coord targetedLocation;
-    private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     TextCellFactory.Glyph glyph;
 
@@ -51,17 +50,6 @@ public class Chill extends Ability
         return Arrays.asList();
     }
 
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
 
     @Override
     public void updateAOE(Entity performer)

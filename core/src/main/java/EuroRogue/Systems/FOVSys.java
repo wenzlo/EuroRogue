@@ -16,6 +16,7 @@ import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.MyEntitySystem;
 import squidpony.squidgrid.FOV;
+import squidpony.squidgrid.Radius;
 import squidpony.squidmath.GreasedRegion;
 
 
@@ -46,24 +47,20 @@ public class FOVSys extends MyEntitySystem {
     @Override
     public void update(float deltaTime) {
         for (int i = 0; i < entities.size(); ++i) {
-            updatFOV(entities.get(i));
+            updateFOV(entities.get(i));
         }
     }
 
-    public void debugFov(double[][] map) {
-        GreasedRegion gr = new GreasedRegion(map, 0.0).not();
-        System.out.println(gr);
-    }
-
-    public void updatFOV(Entity entity) {
+    public void updateFOV(Entity entity) {
         FOVCmp fovCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, entity);
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
-        FOV.reuseFOV(levelCmp.resistance, fovCmp.los, positionCmp.coord.x, positionCmp.coord.y, 14);
-        FOV.reuseFOV(levelCmp.resistance, fovCmp.nightVision, positionCmp.coord.x, positionCmp.coord.y, Math.round(1 + statsCmp.getPerc() / 2));
+        FOV.reuseFOV(levelCmp.resistance, fovCmp.los, positionCmp.coord.x, positionCmp.coord.y, 14, Radius.CIRCLE/*, 90, 270*/);
+        //TODO make nightVision an ability. Prepping it gives status effect, no cast necessary
+        FOV.reuseFOV(levelCmp.resistance, fovCmp.nightVision, positionCmp.coord.x, positionCmp.coord.y, Math.round(1 + statsCmp.getPerc() / 2f));
 
         GreasedRegion nightVision = new GreasedRegion(fovCmp.nightVision, 0.0).not();
         LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);

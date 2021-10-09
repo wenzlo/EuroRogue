@@ -2,6 +2,8 @@ package EuroRogue;
 
 import com.badlogic.ashley.core.Entity;
 
+import java.util.ArrayList;
+
 import EuroRogue.Components.ArmorCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.EquipmentCmp;
@@ -47,6 +49,15 @@ public class ArmorFactory
         return armor;
     }
     public Entity newRndArmor() {return newRndArmor(null);}
+    public Entity newRndArmor(Coord loc, ArrayList<ArmorType> armorTypes)
+    {
+        ArmorType armorType = rng.getRandomElement(armorTypes);
+        Entity armor = newBasicArmor(armorType, loc);
+        //if(rng.nextInt()%5==0) addOnHitSERnd(armor, TargetType.ENEMY);
+        if(rng.nextInt()%20==0) addOnEquipSERnd(armor);
+
+        return armor;
+    }
 
     public Entity newRndArmor(Coord loc)
     {

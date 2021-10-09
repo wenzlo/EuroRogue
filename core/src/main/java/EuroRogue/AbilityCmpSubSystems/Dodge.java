@@ -15,12 +15,10 @@ import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
-import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
-import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
@@ -31,7 +29,6 @@ public class Dodge extends Ability
 
     private Skill skill = Skill.DODGE;
     private  Coord targetedLocation;
-    private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private GWTRNG rng = new GWTRNG();
 
@@ -51,16 +48,6 @@ public class Dodge extends Ability
     }
 
     @Override
-    public boolean isAvailable() {
-        return available;
-    }
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
-
-    @Override
     public void updateAOE(Entity performer)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
@@ -73,9 +60,6 @@ public class Dodge extends Ability
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
 
-    private AOE getAOE() {
-        return aoe;
-    }
 
     @Override
     public ItemEvt genItemEvent(Entity performer, Entity target) {
@@ -85,20 +69,11 @@ public class Dodge extends Ability
     @Override
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
-        inactivate();
+
         TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer)).glyph;
         return new AnimateGlyphEvt(glyph, skill.animationType, eventCmp);
     }
 
-    @Override
-    public TextCellFactory.Glyph getGlyph() {
-        return null;
-    }
-
-    @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler) {
-
-    }
 
     @Override
     public HashMap<StatusEffect, SEParameters> getStatusEffects() {

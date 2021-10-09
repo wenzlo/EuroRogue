@@ -33,7 +33,6 @@ public class MagicMissile extends Ability
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
     private Coord targetedLocation;
-    private boolean available = false;
 
     public MagicMissile()
     {
@@ -46,17 +45,6 @@ public class MagicMissile extends Ability
 
     public List<Skill> getReactions() {
         return Arrays.asList();
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
     }
 
     @Override

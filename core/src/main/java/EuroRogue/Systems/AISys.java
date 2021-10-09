@@ -10,7 +10,6 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +95,8 @@ public class AISys extends MyEntitySystem
     @Override
     public void update(float deltaTime)
     {
+
+        if(getGame().gameState!=GameState.PLAYING) return;
         EuroRogue game = getGame();
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, game.ticker);
         LevelCmp level = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
@@ -161,6 +162,7 @@ public class AISys extends MyEntitySystem
             IColoredString.Impl<SColor> coloredString = new IColoredString.Impl<>(ticker.tick+" "+name+" takes turn", SColor.WHITE);
             entity.add(new LogEvt(ticker.tick, coloredString));*/
             boolean itemEventScheduled = false;
+
             for(EquipmentSlot slot : EquipmentSlot.values())
             {
                 if(inventoryCmp.getSlotEquippedID(slot)==null)
@@ -168,7 +170,9 @@ public class AISys extends MyEntitySystem
 
                     for(Integer itemID : inventoryCmp.getItemIDs())
                     {
+
                         Entity itemEntity = getGame().getEntity(itemID);
+
                         EquipmentCmp equipmentCmp = (EquipmentCmp) CmpMapper.getComp(CmpType.EQUIPMENT, itemEntity);
                         if(equipmentCmp!=null)
                         {
@@ -205,19 +209,24 @@ public class AISys extends MyEntitySystem
 
             }
 
-            else if(manaPool.active.size()<manaPool.spent.size() || manaPool.active.size()==0){
+            else if(manaPool.active.size()<manaPool.spent.size() || manaPool.active.size()==0)
+            {
 
                scheduleRestEvt(entity);
 
-            } else if(!ai.visibleEnemies.isEmpty())
+            }
+            else if(!ai.visibleEnemies.isEmpty())
             {
                 setTarget(entity, getGame().getEntity(ai.visibleEnemies.get(0)));
                 Coord targetLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, ai.getTargetEntity(getGame()))).coord;
-                ai.pathToFollow = ai.dijkstraMap.findPath(10, level.getPositions(ai.visibleFriendlies), null, position.coord, targetLoc);
+                ai.pathToFollow = ai.dijkstraMap.findPath(15, level.getPositions(ai.visibleFriendlies), null, position.coord, targetLoc);
                 if(ai.pathToFollow.size()>0)
                 {
                     Coord step = ai.pathToFollow.remove(0);
                     double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
+                    GreasedRegion debugDikj = new GreasedRegion(ai.dijkstraMap.costMap, 2.0);
+                    //debugDikj[position.coord.x][position.coord.y] ='@';
+                    //put.println(debugDikj);
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
 
                 }else{
@@ -229,10 +238,10 @@ public class AISys extends MyEntitySystem
 
             else if(!ai.alerts.isEmpty())
             {
-                List<Coord> alerts = Arrays.asList(ai.alerts.toArray(new Coord[]{}));
+                ArrayList<Coord> alerts = new ArrayList<>(ai.alerts.values());
                 Collections.sort(alerts, new SortByDistance(ai.location));
                 Coord targetLoc = alerts.get(0);
-                ai.pathToFollow = ai.dijkstraMap.findPath(10,null, null, position.coord, targetLoc);
+                ai.pathToFollow = ai.dijkstraMap.findPath(15,null, null, position.coord, targetLoc);
                 if(ai.pathToFollow.size()>0)
                 {
                     Coord step = ai.pathToFollow.remove(0);
@@ -247,10 +256,10 @@ public class AISys extends MyEntitySystem
                 scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                 continue;
             }
-            /*else if(ai.visibleFriendlies.size()>2)
+            else if(ai.visibleFriendlies.size()>1)
             {
                 ArrayList<Coord> buffer = new ArrayList<>();
-                ai.pathToFollow = ai.dijkstraMap.findFleePath(buffer,25, 50, (double) 1.2,buffer, buffer, position.coord, ai.getFriendLocations(level).get(0), ai.getFriendLocations(level).get(1)d);
+                ai.pathToFollow = ai.dijkstraMap.findFleePath(buffer,20, 20, (double) 1.2,buffer, buffer, position.coord, ai.getFriendLocations(level).get(0), ai.getFriendLocations(level).get(1));
 
                 if(ai.pathToFollow.size()>0)
                 {
@@ -259,8 +268,8 @@ public class AISys extends MyEntitySystem
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                     continue;
                 }
-            }*/
-            else if(!ai.visibleItems.isEmpty() &! inventoryCmp.isFull() && inventoryCmp.getEquippedIDs().size()<3)
+            }
+            /*else if(!ai.visibleItems.isEmpty() &! inventoryCmp.isFull() && inventoryCmp.getEquippedIDs().size()<3)
             {
 
                 Coord targetLoc = ai.getItemLocations(level).get(0);
@@ -276,7 +285,7 @@ public class AISys extends MyEntitySystem
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                     continue;
                 }
-            }
+            }*/
 
             else if(!manaPool.spent.isEmpty())scheduleRestEvt(entity);
         }
@@ -292,6 +301,8 @@ public class AISys extends MyEntitySystem
         GreasedRegion goals = new GreasedRegion();
         FactionCmp.Faction myFaction = ((FactionCmp) CmpMapper.getComp(CmpType.FACTION, entity)).faction;
         LevelCmp levelCmp = (LevelCmp)CmpMapper.getComp(CmpType.LEVEL,getGame().currentLevel);
+
+
         for(Coord entPos:levelCmp.actors.positions())
         {
             if(entPos==ai.location) continue;
@@ -329,23 +340,24 @@ public class AISys extends MyEntitySystem
             if(possibleTarget!=null) setTarget(entity, possibleTarget);
         }
 
-        List<Coord> alertsToRemove = new ArrayList<>();
-        for(Coord coord : ai.alerts)
+        List<Integer> alertsToRemove = new ArrayList<>();
+        for(Integer id : ai.alerts.keySet())
         {
-            if(selfFOV.visible.contains(coord))
+            if(selfFOV.visible.contains(ai.alerts.get(id)))
             {
 
-                alertsToRemove.add(coord);
+                alertsToRemove.add(id);
             }
 
         }
-        for(Coord coord : alertsToRemove) ai.alerts.remove(coord);
-        goals.addAll(ai.alerts);
+        for(Integer id : alertsToRemove) ai.alerts.remove(id);
+        goals.addAll(ai.alerts.values());
 
 
         ai.dijkstraMap.clearGoals();
         ai.dijkstraMap.setGoals(goals);
         ai.dijkstraMap.scan();
+        //System.out.println(ai.visibleEnemies);
 
 
 
@@ -356,7 +368,7 @@ public class AISys extends MyEntitySystem
         ArrayList<Ability> availableAbilities = new ArrayList<>();
         for(Skill skill : codexCmp.prepared)
         {
-            Ability abilityCmp = (Ability) CmpMapper.getAbilityComp(skill, entity);
+            Ability abilityCmp = CmpMapper.getAbilityComp(skill, entity);
             getGame().updateAbility(abilityCmp, entity);
             //if(entity== getGame().getFocusTarget()) System.out.println(skill+" "+abilityComp.isAvailable());
             if(skill.skillType== Skill.SkillType.REACTION) continue;
@@ -380,6 +392,7 @@ public class AISys extends MyEntitySystem
     }
     public int scheduleMoveEvt(Entity entity, Direction direction, double terrainCost)
     {
+
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity);
         int gameTick = ticker.tick;
@@ -482,7 +495,7 @@ public class AISys extends MyEntitySystem
             {
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
                 AICmp alertedAI = (AICmp) CmpMapper.getComp(CmpType.AI, alertedActor);
-                alertedAI.alerts.add(positionCmp.coord);
+                alertedAI.alerts.put(entity.hashCode(),positionCmp.coord);
 
 
             }

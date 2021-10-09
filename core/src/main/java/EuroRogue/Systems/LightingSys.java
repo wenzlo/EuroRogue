@@ -86,7 +86,6 @@ public class LightingSys extends MyEntitySystem
         StatsCmp focusStatsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
 
         Iterator<TextCellFactory.Glyph> glyphs = display.glyphs.iterator();
-
         while (glyphs.hasNext())
         {
             TextCellFactory.Glyph glyph = glyphs.next();
@@ -139,6 +138,10 @@ public class LightingSys extends MyEntitySystem
 
         for(Integer id : levelCmp.objects.identities())
         {
+           /* Entity entity = getGame().getEntity(id);
+            NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
+            System.out.println(nameCmp.name+" "+entity.hashCode());
+            System.out.println(lightingHandler.lightList.keySet());*/
             Entity owner= getGame().getEntity(id);
             LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, owner);
             lightingHandler.lightList.get(id).radiance.range=lightCmp.level;
@@ -180,7 +183,7 @@ public class LightingSys extends MyEntitySystem
                     else
                     {
                         lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.bgColors[Math.round(x/3)][Math.round(y/3)], (0xAAp-9f + (0xC8p-9f * lightingHandler.colorLighting[0][x][y] *
-                                (1f + 0.13f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00125)))));
+                                (1f + 0.13f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00125)))-0.15f));
                     }
 
                 }

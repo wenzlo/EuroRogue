@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
-import EuroRogue.AbilityCmpSubSystems.DaggerThrow;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.Components.AICmp;
@@ -40,13 +39,11 @@ import EuroRogue.Components.ManaCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.NameCmp;
-import EuroRogue.Components.ObjectCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.ShrineCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
-import EuroRogue.Components.WeaponCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.GameStateEvt;
@@ -56,7 +53,6 @@ import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.Listeners.ActorListener;
 import EuroRogue.Listeners.ItemListener;
-import EuroRogue.Listeners.ObjectListener;
 import EuroRogue.StatusEffectCmps.Burning;
 import EuroRogue.StatusEffectCmps.Calescent;
 import EuroRogue.StatusEffectCmps.Chilled;
@@ -99,6 +95,7 @@ import EuroRogue.StatusEffectListeners.WaterWalkingListener;
 import EuroRogue.StatusEffectListeners.WellFedListener;
 import EuroRogue.Systems.AISys;
 import EuroRogue.Systems.ActionSys;
+import EuroRogue.Systems.AimSys;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.Systems.CodexSys;
 import EuroRogue.Systems.DamageApplicationSys;
@@ -145,6 +142,7 @@ import squidpony.squidgrid.mapping.Placement;
 import squidpony.squidgrid.mapping.SectionDungeonGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
+import squidpony.squidmath.GreasedRegion;
 
 public class EuroRogue extends ApplicationAdapter {
 
@@ -162,7 +160,7 @@ public class EuroRogue extends ApplicationAdapter {
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows, shrineWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Lando";
+    public String playerName = "Leto";
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
@@ -185,29 +183,25 @@ public class EuroRogue extends ApplicationAdapter {
     public SquidInput input, aimInput, campInput, startInput, shrineInput;
     public InputMultiplexer inputProcessor;
     private final Color bgColor=Color.BLACK;
-    public int depth = 0;
+    public int depth = 10;
 
     public void newGame()
     {
         rng = new GWTRNG(playerName);
         weaponFactory = new WeaponFactory(rng.nextInt());
-        mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory);
-
         armorFactory = new ArmorFactory(rng.nextInt());
         foodFactory = new FoodFactory();
         objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
+        mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory, armorFactory);
 
         dungeonGen = new SectionDungeonGenerator(42, 42, new GWTRNG(rng.nextInt()));
 
-        //dungeonGen.addMaze(35);
-        //dungeonGen.addWater(3, 15);
-        //dungeonGen.addLake(35);
-        //dungeonGen.utility.closeDoors(preDungeon);
-
-        Entity levelEvtEntity = new Entity();
+        Entity eventEntity = new Entity();
         LevelEvt levelEvt = new LevelEvt();
-        levelEvtEntity.add(levelEvt);
-        engine.addEntity(levelEvtEntity);
+        eventEntity.add(levelEvt);
+        engine.addEntity(eventEntity);
+
+
     }
     private void initializeWindows()
     {
@@ -329,9 +323,6 @@ public class EuroRogue extends ApplicationAdapter {
         Family items = Family.all(ItemCmp.class, PositionCmp.class).get();
         engine.addEntityListener(items, new ItemListener(this));
 
-        Family objects = Family.all(ObjectCmp.class).get();
-        engine.addEntityListener(objects, new ObjectListener(this));
-
         Family burning = Family.one(Burning.class).get();
         engine.addEntityListener(burning, new BurningListener(this));
 
@@ -392,8 +383,7 @@ public class EuroRogue extends ApplicationAdapter {
     }
     private void initializeSystems()
     {
-
-        ticker.add(new TickerCmp());
+        engine.addSystem(new AimSys());
         engine.addSystem(new WinSysShrine());
         engine.addSystem(new WinSysGameOver());
         engine.addSystem(new ShrineSys());
@@ -435,9 +425,20 @@ public class EuroRogue extends ApplicationAdapter {
     public void create ()
     {
         ticker = new Entity();
+        ticker.add(new TickerCmp());
         currentLevel = new Entity();
         engine.addEntity(currentLevel);
         engine.addEntity(ticker);
+        rng = new GWTRNG(playerName);
+        weaponFactory = new WeaponFactory(rng.nextInt());
+        armorFactory = new ArmorFactory(rng.nextInt());
+        foodFactory = new FoodFactory();
+        objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
+        mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory, armorFactory);
+
+        initializeSystems();
+        initializeListeners();
+
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
         // cause the usage of an RNG to change). You can randomize the dungeon and several other initial settings by
@@ -918,7 +919,7 @@ public class EuroRogue extends ApplicationAdapter {
 
                 case '[':
                 case '{':
-                    //depth++;
+                    depth++;
                     Entity levelEvtEntity = new Entity();
                     LevelEvt levelEvt = new LevelEvt();
                     levelEvtEntity.add(levelEvt);
@@ -940,8 +941,8 @@ public class EuroRogue extends ApplicationAdapter {
                     break;
 
                 case 'm':
-                    //ScreenShotFactory.saveScreenshot();
-
+                    aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI, focus);
+                    GreasedRegion gr = new GreasedRegion(aiCmp.dijkstraMap.costMap,1.1);
             }
 
             Coord newPosition = Coord.get(newX,newY);
@@ -1069,18 +1070,10 @@ public class EuroRogue extends ApplicationAdapter {
         campInput.setIgnoreInput(true);
         Gdx.input.setInputProcessor(inputProcessor);
 
-        rng = new GWTRNG(playerName);
-        weaponFactory = new WeaponFactory(rng.nextInt());
-        mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory);
 
-        armorFactory = new ArmorFactory(rng.nextInt());
-        foodFactory = new FoodFactory();
-        objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
-        initializeSystems();
-        initializeListeners();
 
-        currentLevel = new Entity();
-        engine.addEntity(currentLevel);
+        /*currentLevel = new Entity();
+        engine.addEntity(currentLevel);*/
         player = mobFactory.generateRndPlayer();
         player.add(new FocusCmp());
         engine.addEntity(player);
@@ -1289,7 +1282,6 @@ public class EuroRogue extends ApplicationAdapter {
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
 
             Ability abilityCmp = CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
-            AICmp aiCmp = ((AICmp) CmpMapper.getComp(CmpType.AI, entity));
 
             updateAbility(abilityCmp, entity);
 
@@ -1306,42 +1298,8 @@ public class EuroRogue extends ApplicationAdapter {
 
         TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, ticker);
         if(!tickerCmp.getScheduledActions(entity).isEmpty()) return;
-        Skill skill = abilityCmp.getSkill();
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
-        InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
-        ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, entity);
-        Entity weaponEntity = getEntity(inventoryCmp.getSlotEquippedID(EquipmentSlot.RIGHT_HAND_WEAP));
+        abilityCmp.setAvailable(entity, this);
 
-        WeaponType weaponType = null;
-        if(weaponEntity!=null && skill.weaponReq!=null)
-        {
-            WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
-            weaponType = weaponCmp.weaponType;
-        }
-
-        boolean canAfford = manaPoolCmp.canAfford(skill);
-        if(abilityCmp.scroll()) canAfford = true;
-        AICmp aiCmp = ((AICmp) CmpMapper.getComp(CmpType.AI, entity));
-        if(abilityCmp.getSkill().skillType!=Skill.SkillType.REACTION && abilityCmp.getSkill().skillType!=Skill.SkillType.BUFF &! abilityCmp.aimed)
-        {
-            abilityCmp.setAvailable( aiCmp.target!=null && canAfford && abilityCmp.getActive() &&
-                    abilityCmp.getIdealLocations(entity, levelCmp).containsKey(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, getEntity(aiCmp.target))).coord));
-        }
-
-        else  if(abilityCmp.getSkill().skillType==Skill.SkillType.REACTION || abilityCmp.getSkill().skillType==Skill.SkillType.BUFF )
-        {
-            abilityCmp.setAvailable(canAfford && !abilityCmp.getIdealLocations(entity, levelCmp).isEmpty() && abilityCmp.getActive());
-        }
-        else if(abilityCmp.aimed) abilityCmp.setAvailable(canAfford);
-
-        if(skill==Skill.DAGGER_THROW && abilityCmp.isAvailable()) abilityCmp.setAvailable( weaponType == skill.weaponReq);
-
-        if(skill == Skill.DAGGER_THROW && abilityCmp.isAvailable())
-        {
-            ((DaggerThrow)abilityCmp).itemID = weaponEntity.hashCode();
-            ((DaggerThrow)abilityCmp).chr = weaponType.chr;
-            ((DaggerThrow)abilityCmp).statusEffects = CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, entity).getStatusEffects();
-        }
     }
     public ArrayList<StatusEffect> getStatusEffects(Entity entity)
     {
@@ -1417,6 +1375,7 @@ public class EuroRogue extends ApplicationAdapter {
     }
     public void getInput()
     {
+
         switch (gameState)
         {
             case GAME_OVER:

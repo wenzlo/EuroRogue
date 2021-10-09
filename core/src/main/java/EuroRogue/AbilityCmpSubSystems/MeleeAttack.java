@@ -30,7 +30,6 @@ public class MeleeAttack extends Ability
 {
     private Skill skill = Skill.MELEE_ATTACK;
     private Coord targetedLocation;
-    private boolean available = false;
     public DamageType damageType =  DamageType.BLUDGEONING;
     private HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public char chr = '•';
@@ -48,17 +47,6 @@ public class MeleeAttack extends Ability
 
     public List<Skill> getReactions() {
         return Arrays.asList(Skill.DODGE, Skill.ICE_SHIELD);
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
     }
 
     @Override
@@ -169,7 +157,7 @@ public class MeleeAttack extends Ability
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getAttackPower()*3;
+        return statsCmp.getAttackPower()*2;
     }
 
 

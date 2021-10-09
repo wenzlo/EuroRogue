@@ -38,7 +38,6 @@ public class ConeOfCold extends Ability
 {
     private Skill skill = Skill.CONE_OF_COLD;
     private Coord targetedLocation;
-    private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
 
@@ -89,19 +88,6 @@ public class ConeOfCold extends Ability
     }
 
     @Override
-    public boolean isAvailable()
-    {
-
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
-
-    @Override
     public void updateAOE(Entity performer)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
@@ -131,9 +117,6 @@ public class ConeOfCold extends Ability
             priorityTargets.add(priorityTargetPos);
             otherTargets.remove(priorityTargetPos);
         }
-
-
-        OrderedMap<Coord, ArrayList<Coord>> idealLocations = idealLocations(positionCmp.coord, priorityTargets, otherTargets, friendlyTargets);
 
         return idealLocations(positionCmp.coord, aiCmp.getEnemyLocations(levelCmp), aiCmp.getFriendLocations(levelCmp));
     }

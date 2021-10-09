@@ -4,9 +4,8 @@ import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import EuroRogue.EuroRogue;
 import EuroRogue.TerrainType;
@@ -20,85 +19,82 @@ public class AICmp implements Component
     public List<Integer> visibleFriendlies = new ArrayList();
     public List<Integer> visibleItems = new ArrayList();
     public Coord location = Coord.get(-1,-1);
-    public Set<Coord> alerts = new HashSet<>();
+    public HashMap<Integer,Coord> alerts = new HashMap<>();
     public List<Coord> pathToFollow = new ArrayList();
     public Integer target;
-
     public DijkstraMap dijkstraMap;
-    public char[][] decoDungeon;
     public ArrayList<TerrainType> traversable =  new ArrayList<>();
 
 
 
 
-    public AICmp(){}
-    public AICmp (char[][] map)
-    {
-        this.dijkstraMap = new DijkstraMap(map, Measurement.EUCLIDEAN);
-        this.dijkstraMap.setBlockingRequirement(0);
-        this.dijkstraMap.initializeCost(getTerrainCosts(map));
-        this.decoDungeon = map;
-    }
+    //public AICmp(){}
 
-    public AICmp (char[][] map, ArrayList<TerrainType> traversable)
+    public AICmp (char[][] bareDungeon, char[][] decoDungeon, ArrayList<TerrainType> traversable)
     {
-        this.dijkstraMap = new DijkstraMap(map, Measurement.EUCLIDEAN);
-        this.dijkstraMap.setBlockingRequirement(0);
+
+        this.dijkstraMap = new DijkstraMap(bareDungeon, Measurement.EUCLIDEAN);
         this.traversable= traversable;
-        this.dijkstraMap.initializeCost(getTerrainCosts(map));
-        this.decoDungeon = map;
+        this.dijkstraMap.initializeCost(getTerrainCosts(decoDungeon));
     }
 
-    public double[][] getTerrainCosts(char[][] decoDungeon)
+    public double[][] getTerrainCosts(char[][] map)
     {
-        double[][] terrainCosts = new double[decoDungeon.length][decoDungeon[0].length];
-        for(int x=0; x<decoDungeon.length; x++){
-            for(int y=0; y<decoDungeon[0].length; y++)
-            {
 
-                if(!traversable.contains(TerrainType.getTerrainTypeFromChar(decoDungeon[x][y])))
+        int width = map.length;
+        int height = map[0].length;
+        double[][] costMap = new double[width][height];
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+
+                if(!traversable.contains(TerrainType.getTerrainTypeFromChar(map[i][j])))
                 {
-                    terrainCosts[x][y] = DijkstraMap.WALL;
+                    costMap[i][j] = DijkstraMap.WALL;
                     continue;
                 }
-                switch(decoDungeon[x][y])
-                {
-                    case '.':
-                    case '"':
-                    case ':':
-                    case '<':
-                    case '>':
-                        terrainCosts[x][y]=1.0;
-                        break;
-                    case '#':
+
+                switch (map[i][j]) {
+
                     case '§':
-                        terrainCosts[x][y]= DijkstraMap.WALL;
+                    case '#':
+                        costMap[i][j] = DijkstraMap.WALL;
+                        break;
+
+                    case '.':
+                    case ':':
+                        costMap[i][j] = 1.0;
                         break;
                     case ',':
-                        terrainCosts[x][y]=1.3;
+                        costMap[i][j] = 1.3;
                         break;
                     case '~':
-                        terrainCosts[x][y]=2.0;
+                        costMap[i][j] = 2.0;
                         break;
-
+                    default:
+                        costMap[i][j] = 1.0;
                 }
             }
+
+
         }
-        return terrainCosts;
+
+        return costMap;
+
     }
 
-    public void addTraversable(TerrainType terrainType)
+
+    public void addTraversable(TerrainType terrainType, char[][] decoDungeon)
     {
         traversable.add(terrainType);
         dijkstraMap.costMap=getTerrainCosts(decoDungeon);
     }
-    public void removeTraversable(TerrainType terrainType)
+    public void removeTraversable(TerrainType terrainType, char[][] decoDungeon)
     {
         traversable.remove(terrainType);
         dijkstraMap.costMap=getTerrainCosts(decoDungeon);
     }
 
-    public void addTraversables(List<TerrainType> terrainTypes)
+    public void addTraversables(List<TerrainType> terrainTypes, char[][] decoDungeon)
     {
         traversable.addAll(terrainTypes);
         dijkstraMap.costMap=getTerrainCosts(decoDungeon);

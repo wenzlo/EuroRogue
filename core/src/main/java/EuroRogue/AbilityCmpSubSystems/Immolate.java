@@ -32,7 +32,6 @@ public class Immolate extends Ability
 {
     private Skill skill = Skill.IMMOLATE;
     private Coord targetedLocation;
-    private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
 
@@ -48,17 +47,6 @@ public class Immolate extends Ability
 
     public List<Skill> getReactions() {
         return Arrays.asList();
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
     }
 
     @Override

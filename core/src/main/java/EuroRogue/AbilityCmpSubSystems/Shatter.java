@@ -8,7 +8,9 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
@@ -34,7 +36,6 @@ public class Shatter extends Ability
 {
     private Skill skill = Skill.SHATTER;
     private Coord targetedLocation;
-    private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
 
@@ -78,22 +79,21 @@ public class Shatter extends Ability
     }
 
     @Override
-    public boolean isAvailable()
+    public void setAvailable(Entity performer, EuroRogue game)
     {
+        //super.setAvailable(performer, game);
+        AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI,performer);
+        ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL,performer);
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
 
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
+        boolean canAfford = manaPoolCmp.canAfford(getSkill());
+        if(scroll()) canAfford = true;
+        this.available = ( aiCmp.target!=null && canAfford && getActive() &! getAOEtargetsDmg(levelCmp, game).isEmpty());
     }
 
     @Override
     public void updateAOE(Entity performer)
     {
-
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);

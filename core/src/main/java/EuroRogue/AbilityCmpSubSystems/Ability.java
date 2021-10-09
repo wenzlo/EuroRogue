@@ -10,6 +10,7 @@ import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
@@ -34,7 +35,9 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 {
     public boolean aimable = false;
     public boolean aimed = false;
+    public boolean available = false;
     private boolean active = true;
+
     private boolean scroll = false;
     private Integer scrollID = null;
     public Ability(String name, AOE aoe) { super(name, aoe); }
@@ -43,6 +46,7 @@ public class Ability extends Technique implements IAbilityCmpSubSys
     @Override
     public void perform(Entity targetEntity, ActionEvt action, EuroRogue game)
     {
+        if(getSkill().skillType== Skill.SkillType.REACTION) inactivate();
         MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).display;
         LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
         Entity performerEntity = game.getEntity(action.performerID);
@@ -87,11 +91,30 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 
     @Override
     public boolean isAvailable() {
-        return false;
+        return available;
     }
 
     @Override
-    public void setAvailable(boolean available) {
+    public void setAvailable(Entity performer, EuroRogue game)
+    {
+        AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI,performer);
+        ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL,performer);
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
+
+        boolean canAfford = manaPoolCmp.canAfford(getSkill());
+        if(scroll()) canAfford = true;
+
+        if(getSkill().skillType!=Skill.SkillType.REACTION && getSkill().skillType!=Skill.SkillType.BUFF &! aimed)
+        {
+            this.available = ( aiCmp.target!=null && canAfford && getActive() &&
+                    getIdealLocations(performer, levelCmp).containsKey(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, game.getEntity(aiCmp.target))).coord));
+        }
+        else  if(getSkill().skillType==Skill.SkillType.REACTION || getSkill().skillType==Skill.SkillType.BUFF )
+        {
+            this.available =canAfford && !getIdealLocations(performer, levelCmp).isEmpty() && getActive();
+        }
+        else if(aimed) this.available =canAfford;
+
 
     }
 
@@ -108,7 +131,7 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 
     @Override
     public void inactivate() {
-        active =false;
+        active = false;
     }
 
     @Override

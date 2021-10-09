@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Entity;
 
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.LightCmp;
+import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.ObjectCmp;
 import EuroRogue.Components.ObjectType;
 import EuroRogue.Components.PositionCmp;
@@ -26,6 +27,7 @@ public class ObjectFactory
         {
             case SHRINE:
                 School school = rng.getRandomElement(School.values());
+                obj.add(new NameCmp(school.name +" Shrine"));
                 obj.add(new ObjectCmp(ObjectType.SHRINE));
                 obj.add(new ShrineCmp(school));
                 obj.add(new CharCmp(type.chr, school.color));
@@ -38,6 +40,7 @@ public class ObjectFactory
     public Entity getShrine(Coord coord, School school)
     {
         Entity obj = new Entity();
+        obj.add(new NameCmp(school.name +" Shrine"));
         obj.add(new ObjectCmp(ObjectType.SHRINE));
         obj.add(new ShrineCmp(school));
         obj.add(new CharCmp(ObjectType.SHRINE.chr, school.color));

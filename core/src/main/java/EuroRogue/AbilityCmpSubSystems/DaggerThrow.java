@@ -8,9 +8,13 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.EquipmentSlot;
+import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.Components.WeaponCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -20,6 +24,7 @@ import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
+import EuroRogue.WeaponType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
@@ -33,7 +38,6 @@ public class DaggerThrow extends Ability
     public int itemID;
     public char chr;
     private Coord targetedLocation;
-    private boolean available = false;
 
     public DaggerThrow()
     {
@@ -49,14 +53,23 @@ public class DaggerThrow extends Ability
     }
 
     @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
+    public void setAvailable(Entity performer, EuroRogue game) {
+        super.setAvailable(performer, game);
+        InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY,performer);
+        Entity weaponEntity = game.getEntity(inventoryCmp.getSlotEquippedID(EquipmentSlot.RIGHT_HAND_WEAP));
+        WeaponType weaponType = null;
+        if(weaponEntity!=null)
+        {
+            WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
+            weaponType = weaponCmp.weaponType;
+        }
+        this.available = (weaponType == WeaponType.DAGGER && isAvailable());
+        if(isAvailable())
+        {
+            itemID = weaponEntity.hashCode();
+            chr = weaponType.chr;
+            statusEffects = CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, performer).getStatusEffects();
+        }
     }
 
     @Override

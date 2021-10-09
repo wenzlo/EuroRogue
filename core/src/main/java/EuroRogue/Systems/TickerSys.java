@@ -68,6 +68,7 @@ public class TickerSys extends MyEntitySystem
     @Override
     public void update(float deltaTime)
     {
+        //if(((WindowCmp) CmpMapper.getComp(CmpType.WINDOW,game.dungeonWindow)).display.hasActiveAnimations()) return;
         if(getGame().gameState!= GameState.PLAYING) return;
         ImmutableArray<Entity> eventsFamily = getEngine().getEntitiesFor(Family.one(LevelEvt.class, StatEvt.class, GameStateEvt.class, ActionEvt.class, CodexEvt.class, MoveEvt.class, ItemEvt.class,
                 RestEvt.class, StatusEffectEvt.class, AnimateGlyphEvt.class, LevelEvt.class).get());
@@ -95,7 +96,7 @@ public class TickerSys extends MyEntitySystem
         Collections.sort(ticker.actionQueue, new SortActionsByTick());
         Integer nextActionTick = ticker.tick;
         if(!ticker.actionQueue.isEmpty()) nextActionTick = ticker.actionQueue.get(0).tick;
-        //if(((WindowCmp) CmpMapper.getComp(CmpType.WINDOW,game.dungeonWindow)).display.hasActiveAnimations()) return;
+
 
 
         while(ticker.tick<nextActionTick ) ticker.tick++;

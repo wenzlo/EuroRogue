@@ -21,7 +21,6 @@ public class ItemListener implements EntityListener {
     @Override
     public void entityAdded(Entity entity)
     {
-
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL,game.currentLevel);
         Coord position = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
         levelCmp.items.add(position, entity.hashCode(), entity.hashCode());

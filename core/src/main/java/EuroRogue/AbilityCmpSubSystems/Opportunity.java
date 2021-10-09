@@ -35,7 +35,6 @@ public class Opportunity extends Ability
     private Skill skill = null;
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
-    private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
 
     public Opportunity()
@@ -49,17 +48,6 @@ public class Opportunity extends Ability
 
     public List<Skill> getReactions() {
         return Arrays.asList(Skill.DODGE);
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
     }
 
     @Override

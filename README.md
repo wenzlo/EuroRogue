@@ -26,7 +26,7 @@ Legend-
 	, = Shallow water tiles
 	~ = Deep Water tiles
 	: = Bridge tiles
-	§ = Shrines - Convert mana, Buy skills
+	§ = Shrines - Convert mana, Get New Skills
 	Box Drawing Chars = walls
 	! = Noise Alert icon. You heard a noise from this position.
 	
@@ -48,12 +48,12 @@ Controls-
 	
 		Abilities/Scrolls  - ?) Perform Ability/Use Scroll if Available
 
-		Inventory	   - ?) Equip/Unequip Item
+		Inventory  - ?) Equip/Unequip Item
 				   - Shift + ?) Drop Item
 					
         g)   -> Grab or Pickup Item
         c)   -> Make Camp(Long Rest) / Resume Playing toggle
-        >)   -> Decend Stairs i.e. Shift + .)
+        >)   -> Descend Stairs i.e. Shift + .)
 	    TAB) -> Cycle Enemy Target Selection.
 
 
@@ -65,7 +65,7 @@ Controls-
 	-Dev Cheats!!!-
 	p)   -> Reroll random charater stats and abilites.
 	[)   -> Generate a new random Dungeon
-	v)   -> Switch game Focus to nearest Enemy. You now controll that enemy instead. 
+	v)   -> Switch game Focus to nearest Enemy. You now control that enemy instead.
 __________________________________________________________________________________________________________
 Start Menu-
 
@@ -116,6 +116,11 @@ Stats-
 		
 		HP- 
 			Your remaining health / Max Health
+
+		**New** Spirit -
+		    Equal to your total mana.'
+		    Improves all stat modifiers by 1% per point.
+		    Do everything better/faster!
 		
 		Strength-
 			Increases base HP by 4/point
@@ -256,6 +261,7 @@ Status Effects-
 	-Stagerred - Increases ttMove, ttMelee, ttRest, ttCast
 	
 	-Bleeding  - Any action taken except resting will cause damage for the duration of the effect.
+	           - Stacks, increasing damage done when the target moves or performs an action.
 	
 	-Water Walking
 	           - Character can traverse deep water tiles.

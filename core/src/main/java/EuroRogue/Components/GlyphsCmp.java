@@ -51,7 +51,7 @@ public class GlyphsCmp implements Component
                 return worldX+10;
 
         }
-        return 0;
+        return worldX;
     }
     public float getLeftGlyphPositionY(MySparseLayers display, PositionCmp positionCmp)
     {
@@ -79,7 +79,7 @@ public class GlyphsCmp implements Component
                 return worldY+1;
 
         }
-        return 0;
+        return worldY;
     }
     public float getRightGlyphPositionX(MySparseLayers display, PositionCmp positionCmp)
     {
@@ -107,7 +107,7 @@ public class GlyphsCmp implements Component
                 return worldX-1;
 
         }
-        return 0;
+        return worldX;
     }
     public float getRightGlyphPositionY(MySparseLayers display, PositionCmp positionCmp)
     {
@@ -135,6 +135,6 @@ public class GlyphsCmp implements Component
                 return worldY-10;
 
         }
-        return 0;
+        return worldY;
     }
 }

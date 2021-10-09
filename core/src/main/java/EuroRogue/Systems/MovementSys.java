@@ -59,8 +59,8 @@ public class MovementSys extends MyEntitySystem
             if(actorMap.get(moveEvt.destination) == null) return;
             if((Integer) actorMap.get(moveEvt.destination)!=actor.hashCode()) return;
 
-            System.out.println(positionCmp.coord+" "+moveEvt.destination);
-            System.out.println(positionCmp.coord.toGoTo(moveEvt.destination).deltaX+" "+positionCmp.coord.toGoTo(moveEvt.destination).deltaY+" "+"orientation "+positionCmp.orientation);
+            //System.out.println(positionCmp.coord+" "+moveEvt.destination);
+            //System.out.println(positionCmp.coord.toGoTo(moveEvt.destination).deltaX+" "+positionCmp.coord.toGoTo(moveEvt.destination).deltaY+" "+"orientation "+positionCmp.orientation);
 
             positionCmp.orientation = Direction.getRoughDirection(positionCmp.coord.toGoTo(moveEvt.destination).deltaX, positionCmp.coord.toGoTo(moveEvt.destination).deltaY);
             positionCmp.coord = moveEvt.destination;

@@ -16,6 +16,7 @@ import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
+import EuroRogue.GameState;
 import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatusEffectCmps.StatusEffect;
@@ -48,6 +49,7 @@ public class StatusEffectEvtSys extends MyEntitySystem
     @Override
     public void update(float deltaTime) {
         {
+            if(getGame().gameState!= GameState.PLAYING) return;
             TickerCmp tickerCmp = ((TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker));
             for(Entity entity:entities)
             {

@@ -36,12 +36,14 @@ public class MobFactory
 {
     EuroRogue game;
     WeaponFactory weaponFactory;
+    ArmorFactory armorFactory;
     GWTRNG rng;
-    public MobFactory(EuroRogue game, int seed, WeaponFactory weaponFactory)
+    public MobFactory(EuroRogue game, int seed, WeaponFactory weaponFactory, ArmorFactory armorFactory)
     {
         this.game=game;
         this.rng = new GWTRNG(seed);
         this.weaponFactory = weaponFactory;
+        this.armorFactory = armorFactory;
 }
 
     public Entity generateRndPlayer()
@@ -65,7 +67,8 @@ public class MobFactory
         setRandomSkillSet(mob, true);
         addTorch(mob);
         if(!codexCmp.prepared.contains(Skill.DAGGER_THROW))
-            addRndWeapon(mob, weaponFactory);
+            addRndWeapon(mob);
+        addRndArmor(mob);
         return mob;
     }
     public Entity generateSkillessPlayer()
@@ -85,16 +88,16 @@ public class MobFactory
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
         return mob;
     }
-    public Entity generateRndMob(Coord loc, String name, int depth)
+    public Entity generateRndMob(Coord loc, LevelCmp levelCmp, String name, int depth)
     {
+
         MySparseLayers display = game.dungeonWindow.getComponent(WindowCmp.class).display;
-        LevelCmp level = game.currentLevel.getComponent(LevelCmp.class);
         Entity mob = new Entity();
         mob.add(new NameCmp(name));
         CodexCmp codexCmp = new CodexCmp();
         mob.add(codexCmp);
         mob.add(new PositionCmp(loc));
-        mob.add(new CharCmp('E', SColor.RED_BIRCH));
+        mob.add(new CharCmp('ß', SColor.RED_BIRCH));
         GlyphsCmp glyphsCmp = new GlyphsCmp(display, 'ß', SColor.RED_BIRCH, loc.x, loc.y);
         glyphsCmp.leftGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
         glyphsCmp.rightGlyph = display.glyph('•', SColor.RED_BIRCH, loc.x, loc.y);
@@ -102,18 +105,22 @@ public class MobFactory
         StatsCmp statsCmp = getRandomStats(5+(depth*2), false);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
-
-        AICmp aiCmp = new AICmp(level.decoDungeon, new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
+        AICmp aiCmp = new AICmp(levelCmp.bareDungeon, levelCmp.decoDungeon, new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
         mob.add(aiCmp);
-        mob.add(new FOVCmp(level.decoDungeon[0].length,level.decoDungeon.length));
+        mob.add(new FOVCmp(levelCmp.decoDungeon[0].length,levelCmp.decoDungeon.length));
         mob.add(new FactionCmp(FactionCmp.Faction.MONSTER));
         mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
-        game.engine.addEntity(mob);
+        levelCmp.actors.add(loc, mob.hashCode(), mob.hashCode());
+
         setRandomSkillSet(mob, false);
         if(((StatsCmp) CmpMapper.getComp(CmpType.STATS, mob)).getPerc()<5) addTorch(mob);
         if(!codexCmp.prepared.contains(Skill.DAGGER_THROW))
-            addRndWeapon(mob, weaponFactory);
+            addRndWeapon(mob);
+        addRndArmor(mob);
+        System.out.println("Adding mob "+name+" "+mob.hashCode());
+        for(Integer id : ((InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob)).getAllItemIDs())
+            System.out.println(id);
         return mob;
     }
 
@@ -165,12 +172,7 @@ public class MobFactory
         }
         if(codex.prepared.contains(Skill.DAGGER_THROW))
         {
-            Entity daggerEntity = game.weaponFactory.newBasicWeapon(WeaponType.DAGGER);
-            ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, daggerEntity);
-            InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, mob);
-            itemCmp.ownerID= mob.hashCode();
-            inventoryCmp.put(daggerEntity.hashCode());
-            game.engine.addEntity(daggerEntity);
+            addWeapon(mob, WeaponType.DAGGER);
 
         }
         stats.setSpirit(manaPool.unattunedMana().size());
@@ -187,14 +189,48 @@ public class MobFactory
         torch.add(new LightCmp(rng.between(3, 6), SColor.COSMIC_LATTE.toFloatBits()));
         InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob);
         inventoryCmp.put(torch.hashCode());
+
         game.engine.addEntity(torch);
     }
-    public void addRndWeapon(Entity mob, WeaponFactory weaponFactory)
+    public void addRndWeapon(Entity mob)
     {
         Entity weapon  = weaponFactory.newRndWeapon();
         InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob);
         inventoryCmp.put(weapon.hashCode());
+
         game.engine.addEntity(weapon);
+
+    }
+    public void addWeapon(Entity mob, WeaponType weaponType)
+    {
+        Entity weapon  = weaponFactory.newBasicWeapon(weaponType);
+        InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob);
+        inventoryCmp.put(weapon.hashCode());
+
+        game.engine.addEntity(weapon);
+
+    }
+
+    public void addRndArmor(Entity mob)
+    {
+        ArrayList<ArmorType> armorTypes = new ArrayList(Arrays.asList(ArmorType.values()));
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, mob);
+        if(statsCmp.getStr()<5) armorTypes.remove(ArmorType.PLATE);
+        if(statsCmp.getDex()+statsCmp.getStr()<6) armorTypes.remove(ArmorType.MAIL);
+        Entity armor  = armorFactory.newRndArmor(null, armorTypes);
+        InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob);
+        inventoryCmp.put(armor.hashCode());
+
+        game.engine.addEntity(armor);
+
+    }
+    public void addArmor(Entity mob, ArmorType armorType)
+    {
+        Entity armor  = armorFactory.newBasicArmor(armorType, null);
+        InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob);
+        inventoryCmp.put(armor.hashCode());
+        game.engine.addEntity(armor);
+
     }
 
     public StatsCmp getRandomStats(int total, boolean player)

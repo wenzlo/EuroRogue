@@ -34,7 +34,6 @@ public class IceShield extends Ability
     private Skill skill = Skill.ICE_SHIELD;
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
-    private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
     private GWTRNG rng = new GWTRNG();
@@ -53,16 +52,6 @@ public class IceShield extends Ability
     @Override
     public List<Skill> getReactions()  {
         return Arrays.asList();
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
     }
 
     @Override

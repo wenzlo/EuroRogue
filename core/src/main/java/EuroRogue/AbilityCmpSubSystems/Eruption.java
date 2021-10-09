@@ -35,7 +35,6 @@ public class Eruption extends Ability
 {
     private Skill skill = Skill.ERUPTION;
     private Coord targetedLocation;
-    private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
 
@@ -84,19 +83,6 @@ public class Eruption extends Ability
     }
 
     @Override
-    public boolean isAvailable()
-    {
-
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
-
-    @Override
     public void updateAOE(Entity performer)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
@@ -115,8 +101,6 @@ public class Eruption extends Ability
         return super.getIdealLocations(actor, levelCmp);
 
     }
-
-
 
     @Override
     public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation = targetedLocation; }

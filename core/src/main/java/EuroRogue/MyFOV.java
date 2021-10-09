@@ -40,6 +40,7 @@ public class MyFOV extends FOV
                     case '┼':
                     case '#':
                     case '+':
+                    case '§':
                         portion[i][j] = 1.0;
                         break;
                     default:
@@ -74,6 +75,7 @@ public class MyFOV extends FOV
                     case '\1':
                     case '#':
                     case '+':
+                    case '§':
                         portion[x][y] = portion[x+1][y] = portion[x+2][y] =
                                 portion[x][y+1] = portion[x+1][y+1] = portion[x+2][y+1] =
                                         portion[x][y+2] = portion[x+1][y+2] = portion[x+2][y+2] = 1.0;
