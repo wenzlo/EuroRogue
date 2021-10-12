@@ -33,4 +33,13 @@ public class TickerCmp implements Component
         }
         actionQueue.removeAll(actorsEvents);
     }
+
+    public ArrayList<StatusEffectEvt> getSeEventsForTick(int tick) {
+        ArrayList<StatusEffectEvt> seEvents = new ArrayList<>();
+        for(StatusEffectEvt seEvent : seEvents)
+        {
+            if(seEvent.tick<=tick) seEvents.add(seEvent);
+        }
+        return seEvents;
+    }
 }

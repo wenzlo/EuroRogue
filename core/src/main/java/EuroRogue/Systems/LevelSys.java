@@ -77,7 +77,6 @@ public class LevelSys extends MyEntitySystem
 
     }
 
-
     /**
      * Called when this EntitySystem is added to an {@link Engine}.
      *
@@ -139,9 +138,6 @@ public class LevelSys extends MyEntitySystem
 
         }
 
-
-
-
         LevelEvt levelEvt = (LevelEvt) CmpMapper.getComp(CmpType.LEVEL_EVT, entities.get(0));
         levelEvt.processed=true;
 
@@ -152,7 +148,6 @@ public class LevelSys extends MyEntitySystem
 
         }
 
-
         LevelCmp newLevelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, newLevel);
 
         Entity player = getGame().player;
@@ -161,8 +156,6 @@ public class LevelSys extends MyEntitySystem
         TickerCmp newTickerCmp = new TickerCmp();
         getGame().ticker.remove(TickerCmp.class);
         getGame().ticker.add(newTickerCmp);
-
-
 
         WindowCmp dungeonWindowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
@@ -228,12 +221,17 @@ public class LevelSys extends MyEntitySystem
         serpentMapGenerator.putWalledBoxRoomCarvers(5);
         serpentMapGenerator.putWalledRoundRoomCarvers(5);
         serpentMapGenerator.putCaveCarvers(5);
-        getGame().dungeonGen.addLake(15);
         serpentMapGenerator.generate();
-
         getGame().dungeonGen.generate(serpentMapGenerator.getDungeon(), serpentMapGenerator.getEnvironment());
-        char[][] finalDungeon = getGame().dungeonGen.getDungeon();
-        LevelCmp levelCmp  = new LevelCmp(finalDungeon, getGame().dungeonGen.getBareDungeon(), serpentMapGenerator.getEnvironment());
+
+        getGame().dungeonGen.addLake(15);
+        getGame().dungeonGen.addDoors(100, true);
+
+        char[][] finalDungeon = MyDungeonUtility.closeDoors(getGame().dungeonGen.getDungeon());
+        char[][] bareDungeon = MyDungeonUtility.closeDoors(getGame().dungeonGen.getBareDungeon());
+
+        LevelCmp levelCmp  = new LevelCmp(finalDungeon, bareDungeon, serpentMapGenerator.getEnvironment());
+        levelCmp.doors = new GreasedRegion(levelCmp.decoDungeon, '+');
 
         GreasedRegion stairsUpFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(levelCmp.resistance, new double[levelCmp.resistance.length][levelCmp.resistance[0].length] , getGame().dungeonGen.stairsUp.x, getGame().dungeonGen.stairsUp.y),0.0).not();
         GreasedRegion stairsDownFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(levelCmp.resistance, new double[levelCmp.resistance.length][levelCmp.resistance[0].length] , getGame().dungeonGen.stairsDown.x, getGame().dungeonGen.stairsDown.y),0.0).not();
@@ -272,7 +270,7 @@ public class LevelSys extends MyEntitySystem
             return null;
         }
 
-        levelCmp.resistance = MyDungeonUtility.generateSimpleResistances(levelCmp.decoDungeon);
+
         levelCmp.decoDungeon[getGame().dungeonGen.stairsUp.x][getGame().dungeonGen.stairsUp.y]='<';
         levelCmp.decoDungeon[getGame().dungeonGen.stairsDown.x][getGame().dungeonGen.stairsDown.y]='>';
         LightingCmp lightingCmp = new LightingCmp(levelCmp.decoDungeon);
@@ -281,22 +279,15 @@ public class LevelSys extends MyEntitySystem
         newLevel.add(lightingCmp);
         WindowCmp dungeonWindowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
-        dungeonWindowCmp.lightingHandler = new LightHandler(MyDungeonUtility.generateResistances3x3(levelCmp.decoDungeon), SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
-        //TODO use deco instead of line
+        dungeonWindowCmp.lightingHandler = new LightHandler(MyDungeonUtility.generateSimpleResistances3x3(levelCmp.decoDungeon), SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
         dungeonWindowCmp.lightingHandler.lightList.clear();
         addShrine(shrine1, newLevel);
         addShrine(shrine2, newLevel);
 
-
-
         GreasedRegion spwnCrds = new GreasedRegion();
         spwnCrds.addAll(new GreasedRegion(levelCmp.decoDungeon, '.'));
 
-
         //player.add(new FocusCmp());
-
-
-
 
         spwnCrds.andNot(stairsUpFOV);
 
@@ -354,6 +345,137 @@ public class LevelSys extends MyEntitySystem
         return newLevel;
 
     }
+    public Entity newTutorialLevel()
+    {
+        Entity newLevel = new Entity();
+        char[][] tutLevel = new char[22][22];
+        //tutLevel = MyDungeonUtility.wallWrap(tutLevel);
+
+        getGame().dungeonGen.setDungeon(tutLevel);
+        getGame().dungeonGen.addDoors(100, true);
+        getGame().dungeonGen.generate();
+
+        char[][] finalDungeon = MyDungeonUtility.closeDoors(getGame().dungeonGen.getDungeon());
+        char[][] bareDungeon = MyDungeonUtility.closeDoors(getGame().dungeonGen.getBareDungeon());
+
+
+        LevelCmp levelCmp  = new LevelCmp(finalDungeon, bareDungeon, null);
+        levelCmp.doors = new GreasedRegion(levelCmp.decoDungeon, '+');
+
+        GreasedRegion stairsUpFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(levelCmp.resistance, new double[levelCmp.resistance.length][levelCmp.resistance[0].length] , getGame().dungeonGen.stairsUp.x, getGame().dungeonGen.stairsUp.y),0.0).not();
+        GreasedRegion stairsDownFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(levelCmp.resistance, new double[levelCmp.resistance.length][levelCmp.resistance[0].length] , getGame().dungeonGen.stairsDown.x, getGame().dungeonGen.stairsDown.y),0.0).not();
+
+        Coord shrine1Coord = null;
+        Coord shrine2Coord = null;
+        Coord shrine3Coord = null;
+        Entity shrine1 = null;
+        Entity shrine2 = null;
+        Entity shrine3 = null;
+
+        ArrayList<School> schools = new ArrayList(Arrays.asList(School.values()));
+        for(OrderedSet<Coord> centers : getGame().dungeonGen.placement.getCenters())
+        {
+            if(shrine1Coord==null)
+            {
+                shrine1Coord = centers.first();
+                School school = rng.getRandomElement(schools);
+                schools.remove(school);
+                shrine1 = objectFactory.getShrine(shrine1Coord, school);
+            }
+            else if(shrine2Coord==null)
+            {
+                shrine2Coord = centers.first();
+                School school = rng.getRandomElement(schools);
+                schools.remove(school);
+                shrine2 = objectFactory.getShrine(shrine2Coord, school);
+            }
+            else if(shrine3Coord==null)
+            {
+                shrine3Coord = centers.first();
+                School school = rng.getRandomElement(schools);
+                schools.remove(school);
+                shrine3 = objectFactory.getShrine(shrine3Coord, school);
+            }
+        }
+
+
+        levelCmp.decoDungeon[getGame().dungeonGen.stairsUp.x][getGame().dungeonGen.stairsUp.y]='<';
+        levelCmp.decoDungeon[getGame().dungeonGen.stairsDown.x][getGame().dungeonGen.stairsDown.y]='>';
+        LightingCmp lightingCmp = new LightingCmp(levelCmp.decoDungeon);
+
+        newLevel.add(levelCmp);
+        newLevel.add(lightingCmp);
+        WindowCmp dungeonWindowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
+
+        dungeonWindowCmp.lightingHandler = new LightHandler(MyDungeonUtility.generateSimpleResistances3x3(levelCmp.decoDungeon), SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
+        dungeonWindowCmp.lightingHandler.lightList.clear();
+        addShrine(shrine1, newLevel);
+        addShrine(shrine2, newLevel);
+        addShrine(shrine3, newLevel);
+
+        GreasedRegion spwnCrds = new GreasedRegion();
+        spwnCrds.addAll(new GreasedRegion(levelCmp.decoDungeon, '.'));
+
+        //player.add(new FocusCmp());
+
+        //spwnCrds.andNot(stairsUpFOV);
+
+        for(int i=0;i<10;i++)
+        {
+
+           /* Coord itemLoc = rng.getRandomElement(spwnCrds);
+            spwnCrds.remove(itemLoc);
+
+            Skill skill = rng.getRandomElement(Arrays.asList(Skill.values()));
+            getEngine().addEntity(getGame().generateScroll(itemLoc, skill, levelCmp));*/
+
+            /*Coord itemLoc = rng.getRandomElement(spwnCrds);
+            spwnCrds.remove(itemLoc);
+
+            getEngine().addEntity(weaponFactory.newRndWeapon(itemLoc));*/
+
+            /*Coord itemLoc = rng.getRandomElement(spwnCrds);
+            spwnCrds.remove(itemLoc);
+
+            getEngine().addEntity(armorFactory.newRndArmor(itemLoc));
+
+            itemLoc = rng.getRandomElement(spwnCrds);
+            spwnCrds.remove(itemLoc);*/
+
+            //engine.addEntity(weaponFactory.newTorch(itemLoc));
+
+        }
+        FOV fov = new FOV();
+        /*for(int i=0;i<10;i++)
+        {
+            Coord loc = rng.getRandomElement(spwnCrds);
+
+            GreasedRegion deadZone = new GreasedRegion(fov.calculateFOV(levelCmp.resistance, loc.x, loc.y, 12, Radius.CIRCLE), 0.0).not();
+
+            spwnCrds.andNot(deadZone);
+
+            Entity mob = mobFactory.generateRndMob(loc, levelCmp,"Enemy "+i, getGame().depth);
+            CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, mob);
+            for(Skill skill : codexCmp.prepared)
+            {
+                CmpMapper.getAbilityComp(skill, mob).setMap(levelCmp.bareDungeon);
+            }
+            entitiesToAdd.add(mob);
+
+        }*/
+        /*for(int i=0;i<3;i++)
+        {
+            Coord itemLoc = rng.getRandomElement(spwnCrds);
+            spwnCrds.remove(itemLoc);
+            entitiesToAdd.add(getGame().foodFactory.generateFoodITem(itemLoc));
+        }*/
+
+
+        return newLevel;
+
+    }
+
+
 
     private void addShrine(Entity shrineEntity, Entity levelEntity)
     {
@@ -365,7 +487,9 @@ public class LevelSys extends MyEntitySystem
         levelCmp.bareDungeon[position.x][position.y] = '#';
         levelCmp.decoDungeon[position.x][position.y] = charCmp.chr;
         levelCmp.colors[position.x][position.y] = charCmp.color.toFloatBits();
-        levelCmp.resistance = MyDungeonUtility.generateResistances(levelCmp.decoDungeon);
+        levelCmp.resistance = MyDungeonUtility.generateSimpleResistances(levelCmp.decoDungeon);
+        System.out.println("Resistance after shrine addition");
+        System.out.println(new GreasedRegion(levelCmp.resistance, 0.0));
         levelEntity.add(new LightingCmp(levelCmp.decoDungeon));
 
         LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;

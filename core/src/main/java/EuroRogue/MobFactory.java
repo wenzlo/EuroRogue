@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -44,11 +45,10 @@ public class MobFactory
         this.rng = new GWTRNG(seed);
         this.weaponFactory = weaponFactory;
         this.armorFactory = armorFactory;
-}
+    }
 
     public Entity generateRndPlayer()
     {
-
         Entity mob = new Entity();
         mob.add(new NameCmp(game.playerName));
         CodexCmp codexCmp = new CodexCmp();
@@ -76,7 +76,6 @@ public class MobFactory
         Entity mob = new Entity();
         mob.add(new NameCmp(game.playerName));
         mob.add(new CodexCmp());
-
 
         mob.add(new CharCmp('@', SColor.WHITE));
         StatsCmp statsCmp =getRandomStats(12, true);
@@ -148,7 +147,7 @@ public class MobFactory
         spentLimit = spentLimit - Skill.MELEE_ATTACK.prepCost.length;
 
 
-        while (spentLimit > 0 && skillPool.size()>0)
+        while (spentLimit > 0 && skillPool.size()>0 && codex.prepared.size() < 1 + game.depth+1)
         {
             Skill skill = rng.getRandomElement(skillPool);
 
@@ -208,14 +207,13 @@ public class MobFactory
         inventoryCmp.put(weapon.hashCode());
 
         game.engine.addEntity(weapon);
-
     }
 
     public void addRndArmor(Entity mob)
     {
         ArrayList<ArmorType> armorTypes = new ArrayList(Arrays.asList(ArmorType.values()));
         StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, mob);
-        if(statsCmp.getStr()<5) armorTypes.remove(ArmorType.PLATE);
+        if(statsCmp.getStr()<6) armorTypes.remove(ArmorType.PLATE);
         if(statsCmp.getDex()+statsCmp.getStr()<6) armorTypes.remove(ArmorType.MAIL);
         Entity armor  = armorFactory.newRndArmor(null, armorTypes);
         InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob);
@@ -241,10 +239,15 @@ public class MobFactory
         stats.put(StatType.CON, 1);
         stats.put(StatType.INTEL, 1);
         stats.put(StatType.PERC, 1);
+        ArrayList<StatType> statPool = new ArrayList<>();
+        statPool.addAll(stats.keySet());
+        System.out.println(statPool);
 
         for (int i = 0; i < total-5; i++)
         {
-            StatType stat = rng.getRandomElement(stats.keySet());
+            StatType stat = rng.getRandomElement(statPool);
+            System.out.println(stat);
+            statPool.add(stat);
             stats.put(stat, stats.get(stat)+1);
         }
         StatsCmp statsCmp;

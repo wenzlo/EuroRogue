@@ -48,7 +48,6 @@ public class StatusEffectRemovalSys extends MyEntitySystem
     public void update(float deltaTime)
     {
         {
-            if(getGame().gameState!= GameState.PLAYING) return;
             TickerCmp tickerCmp = ((TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker));
             for(Entity entity:entities)
             {
@@ -56,8 +55,9 @@ public class StatusEffectRemovalSys extends MyEntitySystem
                {
                    StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, entity);
                    if(statusEffectCmp==null || statusEffectCmp.lastTick==null) continue;
-                   if(statusEffectCmp.lastTick<tickerCmp.tick)
+                   if(statusEffectCmp.lastTick<=tickerCmp.tick)
                    {
+                       System.out.println(tickerCmp.tick+" "+statusEffect.name+" removed");
                        entity.remove(statusEffect.cls);
 
                    }

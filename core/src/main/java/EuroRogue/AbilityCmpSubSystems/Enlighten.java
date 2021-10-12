@@ -17,6 +17,7 @@ import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
+import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
@@ -26,6 +27,8 @@ import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
+import squidpony.squidgrid.gui.gdx.Radiance;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
@@ -89,8 +92,12 @@ public class Enlighten extends Ability
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
         inactivate();
-        TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer)).glyph;
-        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.SELF_BUFF, eventCmp);
+        GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer);
+        PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, performer);
+        TextCellFactory.Glyph glyph = display.glyph(glyphsCmp.glyph.shown, glyphsCmp.glyph.getPackedColor(), positionCmp.coord.x, positionCmp.coord.y);
+        Light light = new Light(Coord.get(positionCmp.coord.x*3, positionCmp.coord.y*3), new Radiance(0 , SColor.lerpFloatColors(getSkill().school.color.toFloatBits(),SColor.WHITE_FLOAT_BITS, 0.3f)));
+        glyph.setName(light.hashCode() + " " + "0" + " temp");
+        return new AnimateGlyphEvt(glyph, skill.animationType, eventCmp);
     }
 
     @Override

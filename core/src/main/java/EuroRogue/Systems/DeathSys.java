@@ -77,7 +77,8 @@ public class DeathSys extends MyEntitySystem
                 Entity eventEntity = new Entity();
                 entity.add(new GameStateEvt(GameState.GAME_OVER));
                 getEngine().addEntity(eventEntity);
-            }else kill(entity);
+            }
+            else kill(entity);
         }
     }
 
@@ -117,8 +118,7 @@ public class DeathSys extends MyEntitySystem
         dropLocations.addAll(aoe.findArea().keySet());
         Collections.sort(dropLocations, new SortByDistance(actorPosition));
 
-
-
+        boolean scrollDropped = false;
         for(Skill skill : entityCodexCmp.known)
         {
             if(!playerCodexCmp.known.contains(skill) && Skill.qualify(skill, playerStats))
@@ -132,6 +132,7 @@ public class DeathSys extends MyEntitySystem
                     {
                         Entity scrollItem = getGame().generateScroll(pos, skill, levelCmp);
                         getEngine().addEntity(scrollItem);
+                        scrollDropped=true;
 
                         dropLocations.remove(pos);
                         break;
@@ -140,6 +141,23 @@ public class DeathSys extends MyEntitySystem
                 }
                 break;
 
+            }
+        }
+        for(Skill skill : entityCodexCmp.known)
+        {
+            if(!scrollDropped && skill!=Skill.MELEE_ATTACK)
+            {
+                for(Coord pos : dropLocations)
+                {
+                    if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
+                    {
+                        Entity scrollItem = getGame().generateScroll(pos, skill, levelCmp);
+                        getEngine().addEntity(scrollItem);
+                        dropLocations.remove(pos);
+                        break;
+                    }
+                }
+                break;
             }
         }
 
@@ -233,7 +251,6 @@ public class DeathSys extends MyEntitySystem
                 TextCellFactory.Glyph  glyph = abilityComp.getGlyph();
                 if(glyph!=null) windowCmp.lightingHandler.removeLightByGlyph(abilityComp.getGlyph());
             }
-
         }
     }
     private void removeGlyphs(Entity entity, MySparseLayers display)
@@ -251,9 +268,6 @@ public class DeathSys extends MyEntitySystem
                 TextCellFactory.Glyph  glyph = Ability.getGlyph();
                 if(glyph!=null) display.removeGlyph(Ability.getGlyph());
             }
-
         }
     }
-
-
 }

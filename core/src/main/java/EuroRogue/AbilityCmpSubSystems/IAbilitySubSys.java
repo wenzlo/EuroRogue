@@ -24,7 +24,7 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public interface IAbilityCmpSubSys extends Component
+public interface IAbilitySubSys extends Component
 {
     void        perform(Entity targetEntity, ActionEvt action, EuroRogue game);
     Skill       getSkill();

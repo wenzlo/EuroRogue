@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.math.MathUtils;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
@@ -26,6 +27,7 @@ import EuroRogue.GameState;
 import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MyEntitySystem;
+import EuroRogue.MyFOV;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import squidpony.StringKit;
@@ -138,10 +140,6 @@ public class LightingSys extends MyEntitySystem
 
         for(Integer id : levelCmp.objects.identities())
         {
-           /* Entity entity = getGame().getEntity(id);
-            NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
-            System.out.println(nameCmp.name+" "+entity.hashCode());
-            System.out.println(lightingHandler.lightList.keySet());*/
             Entity owner= getGame().getEntity(id);
             LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, owner);
             lightingHandler.lightList.get(id).radiance.range=lightCmp.level;
@@ -159,8 +157,9 @@ public class LightingSys extends MyEntitySystem
         {
             Radiance radiance = light.radiance;
             Coord location = light.position;
-            FOV.addFOVsInto(lightingCmp.fgLightLevel, FOV.reuseFOV(levelCmp.resistance, tempFov, location.x/3, location.y/3, radiance.range));
+            MyFOV.addFOVsInto(lightingCmp.fgLightLevel, MyFOV.reuseFOV(levelCmp.resistance, tempFov, location.x/3, location.y/3, radiance.range));
         }
+
         lightingHandler.update();
         lightingCmp.focusSeen3x3.or(new GreasedRegion(lightingHandler.fovResult,0.0).not());
         lightingCmp.focusSeen3x3.or(new GreasedRegion(lightingCmp.focusNightVision3x3, 0.0).not());
@@ -226,10 +225,11 @@ public class LightingSys extends MyEntitySystem
         }
 
         FOVCmp fovCmp = (FOVCmp)CmpMapper.getComp(CmpType.FOV, getGame().getFocus());
+        //System.out.println(new GreasedRegion(fovCmp.fov, 0.0).not());
         for(int x = 0; x< levelCmp.colors[0].length; x++){
             for(int y = 0; y< levelCmp.colors.length; y++)
             {
-                if(fovCmp.los[x][y] > 0.0 && lightingCmp.fgLightLevel[x][y]>0 )
+                if(fovCmp.fov[x][y] > 0.0 && lightingCmp.fgLightLevel[x][y]>0 )
                 {
                     char chr = levelCmp.decoDungeon[x][y];
                     if(chr=='~' || chr==',')
@@ -242,7 +242,7 @@ public class LightingSys extends MyEntitySystem
                     }
                     else lightingCmp.fgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], MathUtils.clamp((float)(lightingCmp.fgLightLevel[x][y]),0.3f, 0.7f));
 
-                } //else fgLighting[x][y] = SColor.BLACK.toFloatBits();
+                } //else lightingCmp.fgLighting[x][y] = SColor.BLACK.toFloatBits();
 
 
 

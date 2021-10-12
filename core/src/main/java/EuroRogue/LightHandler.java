@@ -14,8 +14,6 @@ import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 
-//import squidpony.squidgrid.FOVCache;
-
 public class LightHandler extends LightingHandler
 {
     public HashMap<Integer, Light> lightList;
@@ -91,7 +89,7 @@ public class LightHandler extends LightingHandler
             pos = Coord.get(light.position.x, light.position.y);
 
             radiance = light.radiance;
-            FOV.reuseFOV(resistances, tempFOV, pos.x+1, pos.y+1, radiance.currentRange()*3);
+            MyFOV.reuseFOV(resistances, tempFOV, pos.x+1, pos.y+1, radiance.currentRange()*3);
             mixColoredLighting(radiance.flare, radiance.color);
         }
     }

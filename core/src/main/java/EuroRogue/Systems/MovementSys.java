@@ -4,11 +4,19 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 
+import EuroRogue.MyFOV;
+import EuroRogue.LightHandler;
+import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
+import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.TickerCmp;
@@ -23,9 +31,12 @@ import EuroRogue.MyEntitySystem;
 import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.Burning;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
+import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.SpatialMap;
 import squidpony.squidgrid.gui.gdx.SColor;
+import squidpony.squidgrid.gui.gdx.SquidInput;
 import squidpony.squidmath.Coord;
 
 public class MovementSys extends MyEntitySystem
@@ -54,6 +65,22 @@ public class MovementSys extends MyEntitySystem
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
             SpatialMap actorMap = levelCmp.actors;
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+            System.out.println(Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT));
+            if(levelCmp.doors.contains(moveEvt.destination) && levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y] =='+')
+            {
+                System.out.println("Opening Door "+ moveEvt.destination);
+                LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING,getGame().currentLevel);
+                openDoor(moveEvt.destination, levelCmp, lightingCmp);
+                continue;
+            }
+            else if (levelCmp.doors.contains(moveEvt.destination) && levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y] =='/'
+                    && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
+            {
+                System.out.println("Closing Door "+ moveEvt.destination);
+                LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING,getGame().currentLevel);
+                closeDoor(moveEvt.destination, levelCmp, lightingCmp);
+                continue;
+            }
 
             actorMap.move(positionCmp.coord,  moveEvt.destination);
             if(actorMap.get(moveEvt.destination) == null) return;
@@ -100,6 +127,60 @@ public class MovementSys extends MyEntitySystem
         Entity eventEntity = new Entity();
         getEngine().addEntity(eventEntity);
         eventEntity.add(logEvt);
+    }
+
+    public void openDoor(Coord door, LevelCmp levelCmp, LightingCmp lightingCmp)
+    {
+        if(levelCmp.doors.contains(door))
+        {
+            levelCmp.decoDungeon[door.x][door.y] = '/';
+            levelCmp.resistance = MyFOV.generateSimpleResistances(levelCmp.decoDungeon);
+            lightingCmp.resistance3x3 = MyFOV.generateSimpleResistances3x3(levelCmp.decoDungeon);
+
+            LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
+            lightHandler.resistances = lightingCmp.resistance3x3;
+
+            for(Integer id : levelCmp.actors.identities())
+            {
+                Entity actor = getGame().getEntity(id);
+                AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+                aiCmp.dijkstraMap.initialize(levelCmp.bareDungeon);
+                aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(levelCmp.decoDungeon));
+
+                CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, actor);
+                for(Skill skill : codexCmp.prepared)
+                {
+                    CmpMapper.getAbilityComp(skill, actor).setMap(levelCmp.decoDungeon);
+                }
+            }
+        }
+    }
+
+    public void closeDoor(Coord door, LevelCmp levelCmp, LightingCmp lightingCmp)
+    {
+        if(levelCmp.doors.contains(door))
+        {
+            levelCmp.decoDungeon[door.x][door.y] = '+';
+            levelCmp.resistance = MyFOV.generateSimpleResistances(levelCmp.decoDungeon);
+            lightingCmp.resistance3x3 = MyFOV.generateSimpleResistances3x3(levelCmp.decoDungeon);
+
+            LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
+            lightHandler.resistances = lightingCmp.resistance3x3;
+
+            for(Integer id : levelCmp.actors.identities())
+            {
+                Entity actor = getGame().getEntity(id);
+                AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+                aiCmp.dijkstraMap.initialize(levelCmp.bareDungeon);
+                aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(levelCmp.decoDungeon));
+
+                CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, actor);
+                for(Skill skill : codexCmp.prepared)
+                {
+                    CmpMapper.getAbilityComp(skill, actor).setMap(levelCmp.decoDungeon);
+                }
+            }
+        }
     }
 
 }

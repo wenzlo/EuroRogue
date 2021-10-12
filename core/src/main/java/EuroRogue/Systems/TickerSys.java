@@ -26,12 +26,21 @@ import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.ScheduledEvt;
+import EuroRogue.StatusEffectCmps.Bleeding;
+import EuroRogue.StatusEffectCmps.Burning;
+import EuroRogue.StatusEffectCmps.Calescent;
+import EuroRogue.StatusEffectCmps.Chilled;
+import EuroRogue.StatusEffectCmps.Frozen;
+import EuroRogue.StatusEffectCmps.Hungry;
+import EuroRogue.StatusEffectCmps.Staggered;
+import EuroRogue.StatusEffectCmps.Starving;
+import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.StatusEffectCmps.StatusEffectCmp;
 
 public class TickerSys extends MyEntitySystem
 {
     private ImmutableArray<Entity> tickers;
-    //private ImmutableArray<Entity> entitiesWithEvents;
-    private ImmutableArray<Entity> entitiesWithAI;
+    private ImmutableArray<Entity> entitiesWithSEs;
 
     public TickerSys()
     {
@@ -53,9 +62,7 @@ public class TickerSys extends MyEntitySystem
     @Override
     public void addedToEngine(Engine engine) {
 
-        //entitiesWithEvents = engine.getEntitiesFor(Family.one(ActionEvt.class, MoveEvt.class, RestEvt.class, TakeTurnEvt.class).get());
-
-        entitiesWithAI = engine.getEntitiesFor(Family.all(AICmp.class).get());
+        entitiesWithSEs = engine.getEntitiesFor(Family.one(Hungry.class, Starving.class, Bleeding.class, Burning.class, Calescent.class, Chilled.class, Frozen.class, Staggered.class).get());
 
 
     }
@@ -74,6 +81,51 @@ public class TickerSys extends MyEntitySystem
                 RestEvt.class, StatusEffectEvt.class, AnimateGlyphEvt.class, LevelEvt.class).get());
         if(eventsFamily.size()>0) return;
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
+
+        if(ticker.getScheduledActions(getGame().getFocus()).isEmpty()) return;
+        Collections.sort(ticker.actionQueue, new SortActionsByTick());
+        Integer nextActionTick = ticker.tick;
+        if(!ticker.actionQueue.isEmpty()) nextActionTick = ticker.actionQueue.get(0).tick;
+
+        while(ticker.tick<nextActionTick && !removeStatusEffects(ticker.tick) && !addStatusEffectEvents(ticker)) ticker.tick++;
+
+        ArrayList<ScheduledEvt> eventsToProc = new ArrayList();
+        for(ScheduledEvt scheduledEvt :ticker.actionQueue)
+        {
+            if(scheduledEvt.tick<=ticker.tick) eventsToProc.add(scheduledEvt);
+            else break;
+        }
+        ticker.actionQueue.removeAll(eventsToProc);
+        for(ScheduledEvt scheduledEvt :eventsToProc)
+        {
+            Entity eventEntity = new Entity();
+            eventEntity.add(scheduledEvt.eventComponent);
+            getEngine().addEntity(eventEntity);
+        }
+    }
+    public boolean removeStatusEffects(int tick)
+    {
+        boolean effectsProcessed = false;
+        for(Entity entity:entitiesWithSEs)
+        {
+            for(StatusEffect statusEffect : getGame().getStatusEffects(entity))
+            {
+                StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, entity);
+                if(statusEffectCmp==null || statusEffectCmp.lastTick==null) continue;
+                if(statusEffectCmp.lastTick<=tick)
+                {
+                    System.out.println(tick+" "+statusEffect.name+" removed");
+                    entity.remove(statusEffect.cls);
+                    effectsProcessed=true;
+
+                }
+            }
+        }
+        return effectsProcessed;
+    }
+    public boolean addStatusEffectEvents(TickerCmp ticker)
+    {
+        boolean effectsProcessed = false;
         ArrayList<StatusEffectEvt> eventsTorRemove = new ArrayList<>();
         Collections.sort(ticker.statusEffectEvtQueue, new SortStatusEffectEvtByTick());
         for(StatusEffectEvt statusEffectEvt:ticker.statusEffectEvtQueue)
@@ -87,41 +139,15 @@ public class TickerSys extends MyEntitySystem
 
 
                 eventsTorRemove.add(statusEffectEvt);
+
             }
             else break;
         }
+        effectsProcessed = !eventsTorRemove.isEmpty();
         ticker.statusEffectEvtQueue.removeAll(eventsTorRemove);
-
-        if(ticker.getScheduledActions(getGame().getFocus()).isEmpty()) return;
-        Collections.sort(ticker.actionQueue, new SortActionsByTick());
-        Integer nextActionTick = ticker.tick;
-        if(!ticker.actionQueue.isEmpty()) nextActionTick = ticker.actionQueue.get(0).tick;
-
-
-
-        while(ticker.tick<nextActionTick ) ticker.tick++;
-
-
-
-
-        ArrayList<ScheduledEvt> eventsToProc = new ArrayList();
-        for(ScheduledEvt scheduledEvt :ticker.actionQueue)
-        {
-            if(scheduledEvt.tick<=ticker.tick) eventsToProc.add(scheduledEvt);
-            else break;
-        }
-        ticker.actionQueue.removeAll(eventsToProc);
-        for(ScheduledEvt scheduledEvt :eventsToProc)
-        {
-
-            Entity eventEntity = new Entity();
-            eventEntity.add(scheduledEvt.eventComponent);
-            getEngine().addEntity(eventEntity);
-
-
-        }
-
+        return effectsProcessed;
     }
+
 
     public ActionEvt getCurrentAction(Entity entity)
     {

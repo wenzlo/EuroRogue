@@ -8,21 +8,25 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.CodexCmp;
+import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.MenuCmp;
+import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.ShrineCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
+import EuroRogue.Components.WeaponCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.CodexEvt;
 import EuroRogue.EventComponents.GameStateEvt;
@@ -35,6 +39,9 @@ import EuroRogue.MenuItem;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
 import EuroRogue.School;
+import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.TargetType;
+import EuroRogue.WeaponType;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
 
@@ -256,6 +263,57 @@ public class WinSysShrine extends MyEntitySystem
             y++;
         }
 
+        Integer weaponID = inventoryCmp.getSlotEquippedID(EquipmentSlot.RIGHT_HAND_WEAP);
+        if(weaponID!=null && Collections.frequency(manaPoolCmp.unattunedMana(), school)>=3)
+        {
+            Entity weaponEntity = getGame().getEntity(weaponID);
+            Runnable primaryAction = null;
+            NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, weaponEntity);
+            StatusEffect statusEffect = null;
+            switch (school)
+            {
+                case ARC:
+
+                    break;
+                case FIR:
+                    statusEffect = StatusEffect.CALESCENT;
+                    StatusEffect finalStatusEffect = statusEffect;
+                    primaryAction = new Runnable() {
+                        @Override
+                        public void run() {
+                            getGame().weaponFactory.addOnHitSE(weaponEntity, finalStatusEffect, TargetType.ENEMY);
+
+                            manaPoolCmp.removeMana(new School[]{school, school, school}, statsCmp);
+                            shrineCmp.charges--;
+                        }
+                    };
+                    break;
+                case ICE:
+                    statusEffect = StatusEffect.CHILLED;
+                    finalStatusEffect = statusEffect;
+                    primaryAction = new Runnable() {
+                        @Override
+                        public void run() {
+                            getGame().weaponFactory.addOnHitSE(weaponEntity, finalStatusEffect, TargetType.ENEMY);
+
+                            manaPoolCmp.removeMana(new School[]{school, school, school}, statsCmp);
+                            shrineCmp.charges--;
+                        }
+                    };
+                    break;
+            }
+            if(statusEffect!=null)
+            {
+                char chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+                MenuItem menuItem = new MenuItem(getEnchantLabel(weaponEntity, statusEffect, shrineCmp.school, chr));
+                menuItem.addPrimaryAction(primaryAction);
+
+                menuCmp.menuMap.put(Coord.get(x, y), chr, menuItem);
+                getGame().keyLookup.put(chr, menuCmp);
+                getGame().globalMenuIndex++;
+                y++;
+            }
+        }
     }
 
     private IColoredString.Impl getShrineScrollLabel(Skill skill, Character selectionKey)
@@ -299,6 +357,19 @@ public class WinSysShrine extends MyEntitySystem
 
 
 
+        return coloredString;
+    }
+    private IColoredString.Impl getEnchantLabel(Entity weaponEntity, StatusEffect statusEffect, School school, Character selectionKey)
+    {
+        WeaponCmp weaponCmp = (WeaponCmp)CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
+        NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, weaponEntity);
+
+
+        IColoredString.Impl coloredString = new IColoredString.Impl();
+
+        coloredString.append(selectionKey.toString() + ") ", SColor.WHITE);
+        coloredString.append(weaponCmp.weaponType.chr+"+", SColor.LIGHT_GRAY);
+        coloredString.append(statusEffect.name, school.color);
         return coloredString;
     }
 

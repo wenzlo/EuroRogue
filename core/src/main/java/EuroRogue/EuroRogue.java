@@ -207,7 +207,7 @@ public class EuroRogue extends ApplicationAdapter {
     {
 
         shrineWindow = new Entity();
-        Stage shrineStage = buildStage(46, 58,24,15,24,15,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
+        Stage shrineStage = buildStage(40, 62,40,15,40,15,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
         shrineWindow.add(new WindowCmp((MySparseLayers) shrineStage.getActors().get(0),shrineStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, shrineWindow)).columnIndexes = new int[]{3,25};
         shrineWindow.add(new MenuCmp());
@@ -414,7 +414,6 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new StatSys());
         engine.addSystem(new LightingSys());
         engine.addSystem(new DeathSys());
-        engine.addSystem(new StatusEffectRemovalSys());
         engine.addSystem(new NoiseSys());
         engine.addSystem(new MakeCampSys());
         engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory, objectFactory));
@@ -879,21 +878,14 @@ public class EuroRogue extends ApplicationAdapter {
                     if(decoDungeon[focusLocation.x][focusLocation.y]=='>')
                     {
                         depth++;
-                        Entity levelEvtEntity = new Entity();
+                        InventoryCmp inventoryCmp = ( InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, focus);
+                        Entity evtEntity = new Entity();
                         LevelEvt levelEvt = new LevelEvt();
-                        levelEvtEntity.add(levelEvt);
-                        engine.addEntity(levelEvtEntity);
+                        CampEvt campEvt = new CampEvt(focus.hashCode(), inventoryCmp.getEquippedIDs());
+                        evtEntity.add(levelEvt);
+                        evtEntity.add(campEvt);
+                        engine.addEntity(evtEntity);
                     }
-                    break;
-                case 'U':
-                case 'u':
-                    InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, focus);
-                    Integer itemID = inventoryCmp.getSlotEquippedID( EquipmentSlot.RIGHT_HAND_WEAP);
-                    if(itemID==null) break;
-                    Entity itemEvtEntity = new Entity();
-                    ItemEvt itemEvt = new ItemEvt(itemID, focus.hashCode(), ItemEvtType.UNEQUIP);
-                    itemEvtEntity.add(itemEvt);
-                    engine.addEntity(itemEvtEntity);
                     break;
 
                 case 'p':
@@ -913,7 +905,6 @@ public class EuroRogue extends ApplicationAdapter {
                     getFocus().add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
                     getFocus().add( new CodexCmp());
                     mobFactory.setRandomSkillSet(getFocus(), true);
-
 
                     return;
 
@@ -1066,7 +1057,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         input.setRepeatGap(180);
         campInput.setRepeatGap(240);
-        inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, shrineInput, startInput, input, campInput, aimInput);
+        inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, input, shrineInput, startInput,  campInput, aimInput);
         campInput.setIgnoreInput(true);
         Gdx.input.setInputProcessor(inputProcessor);
 

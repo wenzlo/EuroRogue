@@ -49,11 +49,12 @@ public class StatusEffectEvtSys extends MyEntitySystem
     @Override
     public void update(float deltaTime) {
         {
-            if(getGame().gameState!= GameState.PLAYING) return;
             TickerCmp tickerCmp = ((TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker));
             for(Entity entity:entities)
             {
+
                 StatusEffectEvt statusEffectEvt = (StatusEffectEvt) CmpMapper.getComp(CmpType.STATUS_EFFECT_EVT, entity);
+                System.out.println("Processing "+statusEffectEvt.effect);
 
                 if(statusEffectEvt.isProcessed()) return;
                 statusEffectEvt.processed = true;

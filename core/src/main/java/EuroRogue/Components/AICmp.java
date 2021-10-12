@@ -68,6 +68,7 @@ public class AICmp implements Component
                         costMap[i][j] = 1.3;
                         break;
                     case '~':
+                    case '+':
                         costMap[i][j] = 2.0;
                         break;
                     default:

@@ -157,7 +157,7 @@ public class MeleeAttack extends Ability
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getAttackPower()*2;
+        return statsCmp.getAttackPower();
     }
 
 

@@ -8,6 +8,7 @@ public class FOVCmp implements Component
 {
     public GreasedRegion visible;
     public double[][] los;
+    public double[][] fov;
     public GreasedRegion seen;
     public double[][] nightVision;
 
@@ -18,6 +19,7 @@ public class FOVCmp implements Component
     {
         this.visible = new GreasedRegion();
         this.los = new double[mapWidth][mapHeight];
+        this.fov = new double[mapWidth][mapHeight];
         this.nightVision = new double[mapWidth][mapHeight];
         this.seen = new GreasedRegion();
     }

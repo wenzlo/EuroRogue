@@ -62,8 +62,6 @@ public class WinSysDungeon extends MyEntitySystem
     private void putMap(Entity levelEntity)
     {
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL,levelEntity);
-        /*System.out.println("Put Map");
-        for(char[] line : levelCmp.decoDungeon) System.out.println(line);*/
         LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, levelEntity);
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         FOVCmp focusFov = ((FOVCmp) CmpMapper.getComp(CmpType.FOV,getGame().getFocus()));
@@ -80,7 +78,7 @@ public class WinSysDungeon extends MyEntitySystem
         {
             for (int y = Math.max(0, focusPos.y - (display.gridHeight >> 1) - 1), j = 0; y < levelCmp.decoDungeon.length  && j < windowCmp.display.gridHeight + 2; y++, j++)
             {
-                if (focusFov.los[x][y] > 0.0 && lightingCmp.fgLightLevel[x][y]>0) {
+                if (focusFov.fov[x][y] > 0.0 && lightingCmp.fgLightLevel[x][y]>0) {
 
                     if (levelCmp.floors.contains(Coord.get(x, y)))
                         display.put(x, y, levelCmp.decoDungeon[x][y], lightingCmp.fgLighting[x][y]);

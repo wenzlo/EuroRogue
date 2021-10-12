@@ -229,9 +229,6 @@ public class AISys extends MyEntitySystem
                     //put.println(debugDikj);
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
 
-                }else{
-
-                    scheduleRestEvt(entity);
                 }
 
             }

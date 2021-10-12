@@ -1,5 +1,6 @@
 package EuroRogue.AbilityCmpSubSystems;
 
+import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 
 import java.util.ArrayList;
@@ -28,10 +29,11 @@ import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
+import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class Ability extends Technique implements IAbilityCmpSubSys
+public class Ability extends Technique implements Component, IAbilitySubSys
 {
     public boolean aimable = false;
     public boolean aimed = false;
@@ -41,7 +43,6 @@ public class Ability extends Technique implements IAbilityCmpSubSys
     private boolean scroll = false;
     private Integer scrollID = null;
     public Ability(String name, AOE aoe) { super(name, aoe); }
-
 
     @Override
     public void perform(Entity targetEntity, ActionEvt action, EuroRogue game)
