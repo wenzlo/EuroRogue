@@ -121,10 +121,10 @@ public class Immolate extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
 
-        glyph = display.glyph('•',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
+        glyph = display.glyph(' ',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
         SColor color = skill.school.color;
 
         Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));

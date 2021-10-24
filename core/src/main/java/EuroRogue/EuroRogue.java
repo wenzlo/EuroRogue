@@ -7,8 +7,11 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
@@ -26,7 +29,6 @@ import EuroRogue.Components.AICmp;
 import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
-import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.FocusTargetCmp;
@@ -39,11 +41,13 @@ import EuroRogue.Components.ManaCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.ObjectCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.ShrineCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
+import EuroRogue.Components.UiBgLightingCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.GameStateEvt;
@@ -53,6 +57,7 @@ import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.Listeners.ActorListener;
 import EuroRogue.Listeners.ItemListener;
+import EuroRogue.Listeners.ObjectListener;
 import EuroRogue.StatusEffectCmps.Burning;
 import EuroRogue.StatusEffectCmps.Calescent;
 import EuroRogue.StatusEffectCmps.Chilled;
@@ -106,11 +111,12 @@ import EuroRogue.Systems.FocusTargetSys;
 import EuroRogue.Systems.GameStateSys;
 import EuroRogue.Systems.ItemSys;
 import EuroRogue.Systems.LevelSys;
-import EuroRogue.Systems.LightingSys;
+import EuroRogue.Systems.DungeonLightingSys;
 import EuroRogue.Systems.MakeCampSys;
 import EuroRogue.Systems.MenuUpdateSys;
 import EuroRogue.Systems.MovementSys;
 import EuroRogue.Systems.NoiseSys;
+import EuroRogue.Systems.ParticleSys;
 import EuroRogue.Systems.ReactionSys;
 import EuroRogue.Systems.RestIdleCampSys;
 import EuroRogue.Systems.ShrineSys;
@@ -128,6 +134,8 @@ import EuroRogue.Systems.WinSysMana;
 import EuroRogue.Systems.WinSysShrine;
 import EuroRogue.Systems.WinSysStart;
 import EuroRogue.Systems.WinSysStats;
+import EuroRogue.Systems.WinSysUiBg;
+import EuroRogue.Systems.WinSysWorld;
 import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
@@ -156,11 +164,12 @@ public class EuroRogue extends ApplicationAdapter {
     public Integer globalMenuIndex = 0;
     public char[] globalMenuSelectionKeys = "1234567890-=qweruiop[]".toCharArray();
     public HashMap<Character, MenuCmp> keyLookup = new HashMap<>();
-    public Entity shrineWindow, gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, ticker, logWindow, currentLevel;
+    public Entity uiBackgrounds, worldMapWindow, shrineWindow, gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, ticker, logWindow, currentLevel;
     public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows, shrineWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Leto";
+    public String playerName = "tutorial";
+    public int depth = 0;
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
@@ -170,9 +179,9 @@ public class EuroRogue extends ApplicationAdapter {
     public SectionDungeonGenerator dungeonGen;
     public Placement placement;
     /** In number of cells */
-    private static final int gridWidth = 166;
+    private static final int gridWidth = 180;
     /** In number of cells */
-    private static final int gridHeight = 100;
+    private static final int gridHeight = 114;
     /** In number of cells */
     public static final int bigWidth = gridWidth ;
     /** In number of cells */
@@ -183,7 +192,59 @@ public class EuroRogue extends ApplicationAdapter {
     public SquidInput input, aimInput, campInput, startInput, shrineInput;
     public InputMultiplexer inputProcessor;
     private final Color bgColor=Color.BLACK;
-    public int depth = 10;
+
+    public static final String outlineFragmentShader = "#ifdef GL_ES\n"
+            + "precision mediump float;\n"
+            + "precision mediump int;\n"
+            + "#endif\n"
+            + "\n"
+            + "uniform sampler2D u_texture;\n"
+            + "uniform float u_smoothing;\n"
+            + "varying vec4 v_color;\n"
+            + "varying vec2 v_texCoords;\n"
+            + "\n"
+            + "void main() {\n"
+            + "  if(u_smoothing <= 0.0) {\n"
+            + "    float smoothing = -u_smoothing;\n"
+            + "	   vec4 box = vec4(v_texCoords-0.000125, v_texCoords+0.000125);\n"
+            + "    vec2 sample0 = texture2D(u_texture, v_texCoords).ra;\n"
+            + "    vec2 sample1 = texture2D(u_texture, box.xy).ra;\n"
+            + "    vec2 sample2 = texture2D(u_texture, box.zw).ra;\n"
+            + "    vec2 sample3 = texture2D(u_texture, box.xw).ra;\n"
+            + "    vec2 sample4 = texture2D(u_texture, box.zy).ra;\n"
+            + "	   float asum = smoothstep(0.5 - smoothing, 0.5 + smoothing, min(sample0.x, sample0.y)) + 0.5 * (\n"
+            + "                 smoothstep(0.5 - smoothing, 0.5 + smoothing, min(sample1.x, sample1.y)) +\n"
+            + "                 smoothstep(0.5 - smoothing, 0.5 + smoothing, min(sample2.x, sample2.y)) +\n"
+            + "                 smoothstep(0.5 - smoothing, 0.5 + smoothing, min(sample3.x, sample3.y)) +\n"
+            + "                 smoothstep(0.5 - smoothing, 0.5 + smoothing, min(sample4.x, sample4.y)));\n"
+            + "    gl_FragColor = vec4(v_color.rgb, (asum / 3.0) * v_color.a);\n"
+            + "	 } else {\n"
+            + "    vec2 radistance = texture2D(u_texture, v_texCoords).ra;\n"
+            + "    float distance = min(radistance.x, radistance.y);\n"
+            + "	   vec2 box = vec2(0.0, 0.00375 * (u_smoothing + 0.0825));\n"
+            + "	   float asum = 0.7 * (smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, distance) + \n"
+            + "                   smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, texture2D(u_texture, v_texCoords + box.xy).a) +\n"
+            + "                   smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, texture2D(u_texture, v_texCoords - box.xy).a) +\n"
+            + "                   smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, texture2D(u_texture, v_texCoords + box.yx).a) +\n"
+            + "                   smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, texture2D(u_texture, v_texCoords - box.yx).a)),\n"
+            /*+ "	   vec4 box = vec4(v_texCoords-0.000625, v_texCoords+0.000625);\n"
+            + "    vec2 sample0 = texture2D(u_texture, v_texCoords).ra;\n"
+            + "    vec2 sample1 = texture2D(u_texture, box.xy).ra;\n"
+            + "    vec2 sample2 = texture2D(u_texture, box.zw).ra;\n"
+            + "    vec2 sample3 = texture2D(u_texture, box.xw).ra;\n"
+            + "    vec2 sample4 = texture2D(u_texture, box.zy).ra;\n"
+            + "	   float asum = smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, min(sample0.x, sample0.y)) + 0.5 * (\n"
+            + "                 smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, min(sample1.x, sample1.y)) +\n"
+            + "                 smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, min(sample2.x, sample2.y)) +\n"
+            + "                 smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, min(sample3.x, sample3.y)) +\n"
+            + "                 smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, min(sample4.x, sample4.y))),\n"*/
+//            + "                 char = step(distance, 0.35);\n"
+            + "                 fancy = step(0.475, distance);\n"//line thickness original 0.55
+//            + "                 outline = clamp((distance * 0.8 - 0.415) * 18.0, 0.0, 1.0);\n"
+            + "	   gl_FragColor = vec4(v_color.rgb * fancy, (asum + step(0.3, distance)) * v_color.a);\n"
+            + "  }\n"
+            + "}\n";
+
 
     public void newGame()
     {
@@ -199,35 +260,69 @@ public class EuroRogue extends ApplicationAdapter {
         Entity eventEntity = new Entity();
         LevelEvt levelEvt = new LevelEvt();
         eventEntity.add(levelEvt);
-        engine.addEntity(eventEntity);
 
+
+        engine.addEntity(eventEntity);
 
     }
     private void initializeWindows()
     {
-
+        ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, outlineFragmentShader);
         shrineWindow = new Entity();
-        Stage shrineStage = buildStage(40, 62,40,15,40,15,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
+        Stage shrineStage = buildStage(50, 62,27,17,27,17 ,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
         shrineWindow.add(new WindowCmp((MySparseLayers) shrineStage.getActors().get(0),shrineStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, shrineWindow)).columnIndexes = new int[]{3,25};
+        WindowCmp windowCmp = new WindowCmp((MySparseLayers)shrineStage.getActors().get(0),shrineStage, true);
+        windowCmp.display.font.bottomPadding(1).initBySize();
+
+        //windowCmp.display.font.tweakWidth(14*0.90f).tweakHeight(27*0.90f).initBySize();
+        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
+
+        //windowCmp.display.font.shader=outlineShader;
         shrineWindow.add(new MenuCmp());
         engine.addEntity(shrineWindow);
 
+        uiBackgrounds = new Entity();
+
+        TextCellFactory font = DefaultResources.getStretchableSquareFont();
+        Stage uiBgStage = buildStage(0,0,gridWidth/4,gridHeight/4,gridWidth/4,gridHeight/4, cellWidth*4, cellHeight*4, font, SColor.BLACK.toFloatBits());
+        windowCmp = new WindowCmp((MySparseLayers)uiBgStage.getActors().get(0),uiBgStage, true);
+        windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*4 * 1.15f).initBySize();
+        //windowCmp.display.put();
+        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
+
+        windowCmp.display.font.shader = outlineShader;
+        uiBackgrounds.add(windowCmp);
+        uiBackgrounds.add(new UiBgLightingCmp());
+        engine.addEntity(uiBackgrounds);
+
         dungeonWindow = new Entity();
-        Stage dungeonStage = buildStage(42,22,23,23,42,42,cellWidth*3,cellHeight*3, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
-        dungeonWindow.add(new WindowCmp((MySparseLayers) dungeonStage.getActors().get(0),dungeonStage, true));
+
+        font = DefaultResources.getStretchableSquareFont();
+        Stage dungeonStage = buildStage(43,22,17,17,42,42,cellWidth*4,cellHeight*4, font, SColor.BLACK.toFloatBits());
+        windowCmp = new WindowCmp((MySparseLayers)dungeonStage.getActors().get(0),dungeonStage, true);
+        windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*3+9 * 1.15f).initBySize();
+        //windowCmp.display.put();
+        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
+
+        windowCmp.display.font.shader = outlineShader;
+        dungeonWindow.add(windowCmp);
         engine.addEntity(dungeonWindow);
 
+
+
         startWindow = new Entity();
-        Stage startWinStage = buildStage(42,21,69,30,69,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
-        startWindow.add(new WindowCmp((MySparseLayers) startWinStage.getActors().get(0),startWinStage, false));
+
+        Stage startWinStage = buildStage(50,29,56,30,56,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
+        startWindow.add(new WindowCmp((MySparseLayers)startWinStage.getActors().get(0),startWinStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, startWindow)).columnIndexes = new int[]{1,25,40};
         startWindow.add(new MenuCmp());
         engine.addEntity(startWindow);
 
         gameOverWindow = new Entity();
+
         Stage gameOverStage = buildStage(46,26,60,30,60,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
-        gameOverWindow.add(new WindowCmp((MySparseLayers) gameOverStage.getActors().get(0),gameOverStage, false));
+        gameOverWindow.add(new WindowCmp((MySparseLayers)gameOverStage.getActors().get(0),gameOverStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, gameOverWindow)).columnIndexes = new int[]{1,25,40};
         //gameOverWindow.add(new MenuCmp());
         engine.addEntity(gameOverWindow);
@@ -235,65 +330,79 @@ public class EuroRogue extends ApplicationAdapter {
 
 
         campWindow = new Entity();
+
         Stage campWinStage = buildStage(42,21,69,30,69,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
-        campWindow.add(new WindowCmp((MySparseLayers) campWinStage.getActors().get(0),campWinStage, false));
+        campWindow.add(new WindowCmp( (MySparseLayers)campWinStage.getActors().get(0),campWinStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{1,25,49, 65};
         campWindow.add(new MenuCmp());
         engine.addEntity(campWindow);
 
-        Stage fmStage = buildStage(1,1,8,9,10,9,cellWidth*2,cellHeight*2, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
+        Stage fmStage = buildStage(51,1,10,10,10,10,cellWidth*2,cellHeight*2, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
 
         focusManaWindow = new Entity();
-        WindowCmp windowCmp = new WindowCmp((MySparseLayers) fmStage.getActors().get(0), fmStage, true);
+
+        windowCmp = new WindowCmp( (MySparseLayers)fmStage.getActors().get(0), fmStage, true);
         windowCmp.display.font.tweakHeight(cellHeight*2*1.755f).tweakWidth(cellWidth*2*1.75f).initBySize();
+        windowCmp.display.font.shader = outlineShader;
 
         focusManaWindow.add(windowCmp);
         //engine.addEntity(focusManaWindow);
 
-        Stage tmStage = buildStage(1,94,8,9,10,9,cellWidth*2,cellHeight*2, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
+        Stage tmStage = buildStage(2,92,10,10,10,10,cellWidth*2,cellHeight*2, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
 
         targetManaWindow = new Entity();
-        windowCmp = new WindowCmp((MySparseLayers) tmStage.getActors().get(0), tmStage, true);
+
+        windowCmp = new WindowCmp( (MySparseLayers)tmStage.getActors().get(0), tmStage, true);
         windowCmp.display.font.tweakHeight(cellHeight*2*1.755f).tweakWidth(cellWidth*2*1.75f).initBySize();
         targetManaWindow.add(windowCmp);
+        windowCmp.display.font.shader = outlineShader;
 
 
-        Stage fsStage = buildStage(1,20,40,18,40,18,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        Stage fsStage = buildStage(2,22,40,18,40,18,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         focusStatsWindow = new Entity();
-        focusStatsWindow.add(new WindowCmp((MySparseLayers) fsStage.getActors().get(0), fsStage, true));
-        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, focusStatsWindow)).columnIndexes = new int[]{1,20,40};
 
-        Stage tsStage = buildStage(1,56,40,19,40,18,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        focusStatsWindow.add(new WindowCmp( (MySparseLayers)fsStage.getActors().get(0), fsStage, true));
+        windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, focusStatsWindow);
+        windowCmp.columnIndexes = new int[]{1,20,40};
+
+
+
+        Stage tsStage = buildStage(2,57,40,19,40,18,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         targetStatsWindow = new Entity();
-        targetStatsWindow.add(new WindowCmp((MySparseLayers) tsStage.getActors().get(0), tsStage, true));
 
-        Stage logStage = buildStage(112,52,66,20,66,20,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        targetStatsWindow.add(new WindowCmp( (MySparseLayers)tsStage.getActors().get(0), tsStage, true));
+
+        Stage logStage = buildStage(115,53,66,20,66,20,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         logWindow = new Entity();
-        logWindow.add(new WindowCmp((MySparseLayers) logStage.getActors().get(0), logStage, true));
+
+        logWindow.add(new WindowCmp((MySparseLayers)logStage.getActors().get(0), logStage, true));
         logWindow.add(new LogCmp());
 
-        Stage faStage = buildStage(17,0,106,10,106,10, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        Stage faStage = buildStage(70,1,108,10,108,10, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         focusHotBar = new Entity();
-        focusHotBar.add(new WindowCmp((MySparseLayers) faStage.getActors().get(0), faStage, true));
+
+        focusHotBar.add(new WindowCmp((MySparseLayers)faStage.getActors().get(0), faStage, true));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, focusHotBar)).columnIndexes = new int[]{1,28, 55,82};
         focusHotBar.add(new MenuCmp());
         engine.addEntity(focusHotBar);
 
         inventoryWindow = new Entity();
+
         engine.addEntity(inventoryWindow);
-        Stage invStage = buildStage(112,20,66,16,66,16, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
-        inventoryWindow.add(new WindowCmp((MySparseLayers) invStage.getActors().get(0), invStage, true));
+        Stage invStage = buildStage(114,21,66,16,66,16, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        inventoryWindow.add(new WindowCmp((MySparseLayers)invStage.getActors().get(0), invStage, true));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, inventoryWindow)).columnIndexes = new int[]{1,32, 66};
         inventoryWindow.add(new MenuCmp());
 
-        Stage taStage = buildStage(22,92,106,10,106,10, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        Stage taStage = buildStage(22,93,106,8,106,8, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         targetHotBar = new Entity();
-        targetHotBar.add(new WindowCmp((MySparseLayers) taStage.getActors().get(0), taStage, true));
+
+        targetHotBar.add(new WindowCmp((MySparseLayers)taStage.getActors().get(0), taStage, true));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, targetHotBar)).columnIndexes = new int[]{1,28, 55,82};
         targetHotBar.add(new MenuCmp());
         engine.addEntity(targetHotBar);
@@ -308,7 +417,6 @@ public class EuroRogue extends ApplicationAdapter {
 
         for(Entity windowEntity : allWindows)
         {
-
             ((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
         }
     }
@@ -322,6 +430,9 @@ public class EuroRogue extends ApplicationAdapter {
 
         Family items = Family.all(ItemCmp.class, PositionCmp.class).get();
         engine.addEntityListener(items, new ItemListener(this));
+
+        Family objects = Family.all(ObjectCmp.class, PositionCmp.class).get();
+        engine.addEntityListener(objects, new ObjectListener(this));
 
         Family burning = Family.one(Burning.class).get();
         engine.addEntityListener(burning, new BurningListener(this));
@@ -384,10 +495,16 @@ public class EuroRogue extends ApplicationAdapter {
     private void initializeSystems()
     {
         engine.addSystem(new AimSys());
-        engine.addSystem(new WinSysShrine());
+        engine.addSystem(new FOVSys());
+        engine.addSystem(new DungeonLightingSys());
+        engine.addSystem(new ParticleSys());
+        engine.addSystem(new WinSysDungeon());
+        engine.addSystem(new WinSysUiBg());
+        engine.addSystem(new WinSysShrine(((WindowCmp)(CmpMapper.getComp(CmpType.WINDOW, shrineWindow))).display));
         engine.addSystem(new WinSysGameOver());
         engine.addSystem(new ShrineSys());
         engine.addSystem(new TickerSys());
+        engine.addSystem(new StatusEffectRemovalSys());
         engine.addSystem(new CodexSys());
         engine.addSystem(new EventCleanUpSys());
         engine.addSystem(new WinSysLog());
@@ -400,11 +517,11 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new WinSysStart());
         engine.addSystem(new WinSysInventory());
         engine.addSystem(new MovementSys());
-        engine.addSystem(new FOVSys());
+
         engine.addSystem(new AISys());
         engine.addSystem(new DamageApplicationSys());
         engine.addSystem(new FocusTargetSys());
-        engine.addSystem(new WinSysDungeon());
+
         engine.addSystem(new WinSysMana());
         engine.addSystem(new ItemSys());
         engine.addSystem(new StatusEffectEvtSys());
@@ -412,7 +529,7 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new GameStateSys());
         engine.addSystem(new WinSysCamp());
         engine.addSystem(new StatSys());
-        engine.addSystem(new LightingSys());
+
         engine.addSystem(new DeathSys());
         engine.addSystem(new NoiseSys());
         engine.addSystem(new MakeCampSys());
@@ -435,8 +552,7 @@ public class EuroRogue extends ApplicationAdapter {
         objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
         mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory, armorFactory);
 
-        initializeSystems();
-        initializeListeners();
+
 
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
@@ -463,28 +579,13 @@ public class EuroRogue extends ApplicationAdapter {
         // changed at runtime, and the putMap() method does this. This can be very powerful; you might increase the
         // warmth of all colors (additively) if the player is on fire, for instance.
         filterBatch = new FilterBatch();
-        //StretchViewport mainViewport = new StretchViewport(gridWidth * cellWidth, gridHeight * cellHeight);
-                //manaViewport = new StretchViewport(8 * cellWidth, 10 * cellHeight*2),
-                //targetManaViewport = new StretchViewport(8 * cellWidth, 10 * cellHeight*2);
-        //mainViewport.setScreenBounds(0, 0, gridWidth * cellWidth, gridHeight * cellHeight);
-        //manaViewport.setScreenBounds(0, 0, 8 * cellWidth, 10 * cellHeight*2 );
-
-        //Here we make sure our Stage, which holds any text-based grids we make, uses our Batch.
-
-        // the font will try to load Iosevka Slab as an embedded bitmap font with a MSDF effect (multi scale distance
-        // field, a way to allow a bitmap font to stretch while still keeping sharp corners and round curves).
-        // the MSDF effect is handled internally by a shader in SquidLib, and will switch to a different shader if a SDF
-        // effect is used (SDF is called "Stretchable" in DefaultResources, where MSDF is called "Crisp").
-        // this font is covered under the SIL Open Font License (fully free), so there's no reason it can't be used.
-        // it also includes 4 text faces (regular, bold, oblique, and bold oblique) so methods in GDXMarkup can make
-        // italic or bold text without switching fonts (they can color sections of text
-        //MySparseLayers dungeonMySparseLayers = new MySparseLayers(bigWidth, bigHeight, cellWidth*3, cellHeight*3,
-                //DefaultResources.getStretchableSquareFont(), 0, 0);
-        //MySparseLayers manaMySparseLayers = new MySparseLayers(8, 10, cellWidth, cellHeight*2,
-                //DefaultResources.getStretchableCodeFont(), 0, 0);
-
         initializeWindows();
+        initializeSystems();
+        initializeListeners();
         SColor.LIMITED_PALETTE[3] = SColor.DB_GRAPHITE;
+        SColor.LIMITED_PALETTE[23] = SColor.MIDORI;
+        SColor.LIMITED_PALETTE[24] = SColor.CW_DARK_AZURE;
+
 
         startInput = new SquidInput((key, alt, ctrl, shift) ->
         {
@@ -1095,12 +1196,14 @@ public class EuroRogue extends ApplicationAdapter {
         lastFrameTime = System.currentTimeMillis();
 
 
-        filterBatch.begin();
-        filterBatch.end();
+        /*filterBatch.begin();
+        filterBatch.end();*/
         Gdx.graphics.setTitle("EuroRogue Demo running at FPS: " + Gdx.graphics.getFramesPerSecond());
 
         engine.update(System.currentTimeMillis()-lastFrameTime);
-        engine.getSystem(WinSysShrine.class).update(System.currentTimeMillis()-lastFrameTime);
+        //engine.getSystem(WinSysShrine.class).update(System.currentTimeMillis()-lastFrameTime);
+        //engine.getSystem(WinSysUiBg.class).update(System.currentTimeMillis()-lastFrameTime);
+
 
     }
     @Override
@@ -1248,13 +1351,15 @@ public class EuroRogue extends ApplicationAdapter {
         Stage stage = new Stage(stageViewport, filterBatch);
         stage.getViewport().setScreenBounds(x*EuroRogue.cellWidth, y*EuroRogue.cellHeight, gridWidth * cellWidth, gridHeight * cellHeight);
         MySparseLayers stageDisplay = new MySparseLayers(bigWidth, bigHeight, cellWidth, cellHeight, font);
+        stageDisplay.font.tweakWidth(cellWidth * 1.1f).tweakHeight(cellHeight * 1.15f).initBySize();
         stageDisplay.setPosition(0f, 0f);
         stage.addActor(stageDisplay);
         stageDisplay.defaultPackedBackground = bgColor;
-        stageDisplay.font.tweakWidth(cellWidth * 1.1f).tweakHeight(cellHeight * 1.1f).initBySize();
         stage.getActors().get(0).setVisible(true);
         return stage;
     }
+
+
     public void updateAbilities(Entity entity)
     {
         if(entity==null || gameState == GameState.AIMING) return;

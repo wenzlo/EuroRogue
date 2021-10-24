@@ -22,6 +22,7 @@ import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ManaPoolCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
@@ -172,9 +173,10 @@ public class DeathSys extends MyEntitySystem
                 break;
             }
         }
-
-        dropItems(entity, dropLocations);
         removelights(entity);
+        dropItems(entity, dropLocations);
+
+        removeParticleEffects(entity, display);
         removeGlyphs(entity, display);
         getEngine().removeEntity(entity);
 
@@ -240,12 +242,16 @@ public class DeathSys extends MyEntitySystem
     private void removelights(Entity entity)
     {
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
-        windowCmp.lightingHandler.removeLight(windowCmp.lightingHandler.getLightByGlyph(entity.getComponent(GlyphsCmp.class).glyph).hashCode());
+        GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, entity);
+
+        windowCmp.lightingHandler.removeLight(windowCmp.lightingHandler.getLightByGlyph(glyphsCmp.glyph).hashCode());
+        windowCmp.lightingHandler.removeLight(windowCmp.lightingHandler.getLightByGlyph(glyphsCmp.leftGlyph).hashCode());
+        windowCmp.lightingHandler.removeLight(windowCmp.lightingHandler.getLightByGlyph(glyphsCmp.rightGlyph).hashCode());
         CodexCmp codexCmp = (CodexCmp)CmpMapper.getComp(CmpType.CODEX, entity);
         for(Skill skill : codexCmp.prepared)
         {
 
-            Ability abilityComp = (Ability) CmpMapper.getAbilityComp(skill, entity);
+            Ability abilityComp = CmpMapper.getAbilityComp(skill, entity);
             if(abilityComp!=null)
             {
                 TextCellFactory.Glyph  glyph = abilityComp.getGlyph();
@@ -268,6 +274,16 @@ public class DeathSys extends MyEntitySystem
                 TextCellFactory.Glyph  glyph = Ability.getGlyph();
                 if(glyph!=null) display.removeGlyph(Ability.getGlyph());
             }
+        }
+    }
+    private void removeParticleEffects(Entity entity, MySparseLayers display)
+    {
+        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, entity);
+        ArrayList<TextCellFactory.Glyph> glyphs = new ArrayList<>();
+        glyphs.addAll(peCmp.particleEffectsMap.keySet());
+        for(TextCellFactory.Glyph glyph : glyphs)
+        {
+            peCmp.removeEffect(glyph, display);
         }
     }
 }

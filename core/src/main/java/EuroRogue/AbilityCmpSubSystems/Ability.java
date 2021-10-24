@@ -6,7 +6,7 @@ import com.badlogic.ashley.core.Entity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
+import EuroRogue.MySparseLayers;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
@@ -22,14 +22,12 @@ import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.LightHandler;
-import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
-import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
@@ -51,7 +49,7 @@ public class Ability extends Technique implements Component, IAbilitySubSys
         MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).display;
         LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
         Entity performerEntity = game.getEntity(action.performerID);
-        if(action.skill.skillType== Skill.SkillType.REACTION) spawnGlyph(display, lightHandler);
+        if(action.skill.skillType== Skill.SkillType.REACTION) spawnGlyph(display, lightHandler, performerEntity);
         AnimateGlyphEvt animateGlyphEvt = genAnimateGlyphEvt(performerEntity, getTargetedLocation(), action, display);
 
         ItemEvt itemEvt = genItemEvent(performerEntity, targetEntity);
@@ -196,7 +194,7 @@ public class Ability extends Technique implements Component, IAbilitySubSys
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler) {
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer) {
 
     }
 

@@ -14,12 +14,15 @@ import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CharCmp;
+import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.LightCmpTemp;
 import EuroRogue.Components.LightingCmp;
+import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
@@ -36,19 +39,21 @@ import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
+import squidpony.squidmath.FastNoise;
+import squidpony.squidmath.FoamNoise;
 import squidpony.squidmath.GWTRNG;
 import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.Noise;
 import squidpony.squidmath.WhirlingNoise;
 
-public class LightingSys extends MyEntitySystem
+public class DungeonLightingSys extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
     private GWTRNG rng;
 
 
 
-    public LightingSys()
+    public DungeonLightingSys()
     {
         super.priority = 100;
         this.rng = new GWTRNG();
@@ -81,11 +86,12 @@ public class LightingSys extends MyEntitySystem
         if(getGame().gameState== GameState.STARTING) return;
         if(getGame().gameState== GameState.CAMPING) return;
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
-        MySparseLayers display = windowCmp.display;
+        MySparseLayers display = (MySparseLayers)windowCmp.display;
         LightHandler lightingHandler = windowCmp.lightingHandler;
         LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         StatsCmp focusStatsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
+
 
         Iterator<TextCellFactory.Glyph> glyphs = display.glyphs.iterator();
         while (glyphs.hasNext())
@@ -103,10 +109,12 @@ public class LightingSys extends MyEntitySystem
 
                 if(owner!=null)
                 {
+                    InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, owner);
                     if(owner==getGame().getFocus())
                     {
+
                         lightingHandler.calculateFOV(lightMapPos.x, lightMapPos.y);
-                        FOV.reuseFOV(lightingCmp.resistance3x3, lightingCmp.focusNightVision3x3, lightMapPos.x, lightMapPos.y, focusStatsCmp.getPerc()*3);
+                        MyFOV.reuseFOV(lightingCmp.resistance3x3, lightingCmp.focusNightVision3x3, lightMapPos.x, lightMapPos.y, focusStatsCmp.getPerc()*3);
                     }
                     if("actor".equals(type))
                     {
@@ -127,7 +135,41 @@ public class LightingSys extends MyEntitySystem
                             lightingHandler.lightList.get(lightID).radiance.flicker = lightCmp.flicker;
                             lightingHandler.lightList.get(lightID).radiance.strobe = lightCmp.strobe;
                         }
-                        glyph.setColor(getGlyphColor(owner));
+                        glyph.setColor(SColor.colorFromFloat(getGlyphColor(owner)));
+                        CharCmp charCmp =(CharCmp) CmpMapper.getComp(CmpType.CHAR, owner);
+                        if(charCmp.armorChr!=null) glyph.shown = charCmp.armorChr;
+                        else glyph.shown = charCmp.chr;
+                    }
+                    else if ("actorLeft".equals(type))
+                    {
+                        Integer itemId = inventoryCmp.getSlotEquippedID(EquipmentSlot.LEFT_HAND_WEAP);
+                        if(itemId!=null)
+                        {
+
+                            Entity itemEntity = getGame().getEntity(itemId);
+                            LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, itemEntity);
+                            lightingHandler.lightList.get(lightID).radiance.range=lightCmp.level;
+                            lightingHandler.lightList.get(lightID).radiance.color = lightCmp.color;
+                            lightingHandler.lightList.get(lightID).radiance.flicker = lightCmp.flicker;
+                            lightingHandler.lightList.get(lightID).radiance.strobe = lightCmp.strobe;
+
+                        } else lightingHandler.lightList.get(lightID).radiance.range = 0;
+
+                    }
+                    else if ("actorRight".equals(type))
+                    {
+                        Integer itemId = inventoryCmp.getSlotEquippedID(EquipmentSlot.RIGHT_HAND_WEAP);
+                        if(itemId!=null)
+                        {
+                            Entity itemEntity = getGame().getEntity(itemId);
+                            LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, itemEntity);
+                            lightingHandler.lightList.get(lightID).radiance.range=lightCmp.level;
+                            lightingHandler.lightList.get(lightID).radiance.color = lightCmp.color;
+                            lightingHandler.lightList.get(lightID).radiance.flicker = lightCmp.flicker;
+                            lightingHandler.lightList.get(lightID).radiance.strobe = lightCmp.strobe;
+
+                        } else lightingHandler.lightList.get(lightID).radiance.range = 0;
+
                     }
                 }
                 Light light = lightingHandler.lightList.get(lightID);
@@ -152,7 +194,7 @@ public class LightingSys extends MyEntitySystem
         lightingCmp.fgLightLevel =new double[(levelCmp.decoDungeon[0].length)][levelCmp.decoDungeon.length];
         lightingCmp.fgLighting=new float[(levelCmp.decoDungeon[0].length)][levelCmp.decoDungeon.length];
 
-        double[][] tempFov=new double[levelCmp.decoDungeon[0].length][levelCmp.decoDungeon.length];
+        double[][] tempFov = new double[levelCmp.decoDungeon[0].length][levelCmp.decoDungeon.length];
         for(Light light : lightingHandler.lightList.values())
         {
             Radiance radiance = light.radiance;
@@ -161,28 +203,32 @@ public class LightingSys extends MyEntitySystem
         }
 
         lightingHandler.update();
+        /*display.clear();
+        lightingHandler.draw(display);*/
+
         lightingCmp.focusSeen3x3.or(new GreasedRegion(lightingHandler.fovResult,0.0).not());
         lightingCmp.focusSeen3x3.or(new GreasedRegion(lightingCmp.focusNightVision3x3, 0.0).not());
 
-
+        //System.out.println(new GreasedRegion(lightingHandler.resistances, 0.0));
         for(int x=0;x<lightingCmp.bgLighting[0].length;x++){
             for(int y=0;y<lightingCmp.bgLighting.length;y++)
             {
                 if(lightingHandler.fovResult[x][y]>0)
                 {
                     char chr = levelCmp.decoDungeon[Math.round(x/3)][Math.round(y/3)];
+
                     Noise.Noise3D flicker = new WhirlingNoise();
                     if(chr =='~' || chr ==',')
                     {
 
                         //bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), bgColors[Math.round(x/3)][Math.round(y/3)], lightingHandler.colorLighting[0][x][y]);
                         lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.bgColors[Math.round(x/3)][Math.round(y/3)], (0xAAp-9f + (0xC8p-9f * lightingHandler.colorLighting[0][x][y] *
-                                (1f + 0.25f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00125)))));
+                                (1f + 0.40f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00070)))));
                     }
                     else
                     {
                         lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.bgColors[Math.round(x/3)][Math.round(y/3)], (0xAAp-9f + (0xC8p-9f * lightingHandler.colorLighting[0][x][y] *
-                                (1f + 0.13f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00125)))-0.15f));
+                                (1f + 0.25f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00125)))-0.15f));
                     }
 
                 }
@@ -192,6 +238,7 @@ public class LightingSys extends MyEntitySystem
 
 
             }
+
         }
         if(getGame().gameState==GameState.AIMING)
         {
@@ -225,7 +272,7 @@ public class LightingSys extends MyEntitySystem
         }
 
         FOVCmp fovCmp = (FOVCmp)CmpMapper.getComp(CmpType.FOV, getGame().getFocus());
-        //System.out.println(new GreasedRegion(fovCmp.fov, 0.0).not());
+
         for(int x = 0; x< levelCmp.colors[0].length; x++){
             for(int y = 0; y< levelCmp.colors.length; y++)
             {
@@ -238,7 +285,7 @@ public class LightingSys extends MyEntitySystem
 
                         //bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), bgColors[Math.round(x/3)][Math.round(y/3)], lightingHandler.colorLighting[0][x][y]);
                         lightingCmp.fgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], (0xAAp-9f + (0xC8p-9f * (float) (lightingCmp.fgLightLevel[x][y]*1.25) *
-                                (1f + 0.35f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00125)))));
+                                (1f + 0.5f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00070)))));
                     }
                     else lightingCmp.fgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], MathUtils.clamp((float)(lightingCmp.fgLightLevel[x][y]),0.3f, 0.7f));
 
@@ -251,7 +298,7 @@ public class LightingSys extends MyEntitySystem
 
 
 
-        lightingHandler.draw(lightingCmp.bgLighting);
+       lightingHandler.draw(lightingCmp.bgLighting);
 
         glyphs = display.glyphs.iterator();
 
@@ -271,17 +318,22 @@ public class LightingSys extends MyEntitySystem
                 }
             }
         }
+
     }
 
-    public SColor getGlyphColor(Entity entity)
+    public float getGlyphColor(Entity entity)
     {
         CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, entity);
+        float color = charCmp.color.toFloatBits();
+        if(charCmp.armorColor!=null) color = charCmp.armorColor.toFloatBits();
 
-        if(CmpMapper.getStatusEffectComp(StatusEffect.BURNING, entity)!=null) return rng.getRandomElement(new SColor[]{SColor.SAFETY_ORANGE, SColor.BRIGHT_GOLDEN_YELLOW,SColor.CW_DARK_YELLOW});
-        if(CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, entity)!=null) return SColor.BABY_BLUE;
+        if(CmpMapper.getStatusEffectComp(StatusEffect.BURNING, entity)!=null) return rng.getRandomElement(new SColor[]{SColor.SAFETY_ORANGE, SColor.BRIGHT_GOLDEN_YELLOW,SColor.CW_DARK_YELLOW}).toFloatBits();
+        if(CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, entity)!=null) return SColor.BABY_BLUE.toFloatBits();
+        if(CmpMapper.getStatusEffectComp(StatusEffect.CHILLED, entity)!=null) return SColor.lerpFloatColors(color, SColor.BABY_BLUE.toFloatBits(), 0.3f);
+        if(CmpMapper.getStatusEffectComp(StatusEffect.CALESCENT, entity)!=null) return SColor.lerpFloatColors(color, SColor.BRIGHT_GOLDEN_YELLOW.toFloatBits(), 0.3f);
 
 
-        return charCmp.color;
+        return color;
     }
 
 

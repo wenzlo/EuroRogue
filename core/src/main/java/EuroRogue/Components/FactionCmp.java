@@ -10,5 +10,5 @@ public class FactionCmp implements Component {
      {
          this.faction=faction;
      }
-     public enum Faction {PLAYER, MONSTER}
+     public enum Faction {PLAYER, MONSTER, RAT}
 }

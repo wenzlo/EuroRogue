@@ -36,7 +36,7 @@ public class StatusEffectRemovalSys extends MyEntitySystem
     @Override
     public void addedToEngine(Engine engine)
     {
-        entities = engine.getEntitiesFor(Family.one(Hungry.class, Starving.class, Bleeding.class, Burning.class, Calescent.class, Chilled.class, Frozen.class, Staggered.class).get());
+        entities = engine.getEntitiesFor(Family.one(Hungry.class, Starving.class).get());
     }
 
     /**
@@ -57,7 +57,6 @@ public class StatusEffectRemovalSys extends MyEntitySystem
                    if(statusEffectCmp==null || statusEffectCmp.lastTick==null) continue;
                    if(statusEffectCmp.lastTick<=tickerCmp.tick)
                    {
-                       System.out.println(tickerCmp.tick+" "+statusEffect.name+" removed");
                        entity.remove(statusEffect.cls);
 
                    }

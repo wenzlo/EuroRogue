@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
@@ -19,14 +20,17 @@ import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.ItemCmp;
+import EuroRogue.Components.ItemType;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.ManaCmp;
 import EuroRogue.Components.ManaPoolCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WeaponCmp;
+import EuroRogue.Components.WindowCmp;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.CodexEvt;
 import EuroRogue.EventComponents.ItemEvt;
@@ -39,6 +43,7 @@ import EuroRogue.StatusEffectCmps.StatusEffect;
 import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.SColor;
+import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidmath.Coord;
 
 public class ItemSys extends MyEntitySystem
@@ -62,17 +67,13 @@ public class ItemSys extends MyEntitySystem
             Entity itemEntity = getGame().getEntity(itemEvt.itemID);
             if(itemEntity==null)
             {
-                System.out.println("Item entity = null error");
                 continue;
             }
             Entity actorEntity = getGame().getEntity(itemEvt.actorID);
             if(actorEntity==null)
             {
-                System.out.println("Actor entity = null error "+itemEvt.actorID);
-                System.out.println(getGame().getFocus().hashCode());
                 continue;
             }
-
 
             Entity otherActorEntity = getGame().getEntity(itemEvt.otherActorID);
             ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
@@ -87,13 +88,7 @@ public class ItemSys extends MyEntitySystem
                         if(itemEntityToRemove!=null) unequip(itemEntityToRemove, actorEntity);
                     }
                     equip(itemEntity, actorEntity);
-                    LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, itemEntity);
-                    if(lightCmp!=null)
-                    {
-                        LightCmp actorLight = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, actorEntity);
-                        actorLight.color = lightCmp.color;
-                        actorLight.level = lightCmp.level;
-                    }
+
 
                     break;
                 case PICKUP:
@@ -125,8 +120,13 @@ public class ItemSys extends MyEntitySystem
     }
     private void equip(Entity itemEntity, Entity actorEntity)
     {
+        WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         EquipmentCmp equipmentCmp = (EquipmentCmp)CmpMapper.getComp(CmpType.EQUIPMENT, itemEntity);
+        LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, itemEntity);
         StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actorEntity);
+        GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actorEntity);
+        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, actorEntity);
+        ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         if(!equipmentCmp.canEquip(statsCmp)) return;
 
         InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, actorEntity);
@@ -155,12 +155,31 @@ public class ItemSys extends MyEntitySystem
 
             }
         }
+        if(Arrays.asList(equipmentCmp.slotsOccupied).contains(EquipmentSlot.CHEST))
+        {
+            CharCmp itemCharCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntity);
+            CharCmp actorCharCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, actorEntity);
+            actorCharCmp.armorColor =  itemCharCmp.color;
+            actorCharCmp.armorChr = Character.valueOf(itemCharCmp.chr);
+
+        }
+
+
+        if(equipmentCmp.lightLevel > 0) lightCmp.level = equipmentCmp.lightLevel; lightCmp.color = equipmentCmp.lightColor;
+        if(itemCmp.type== ItemType.TORCH) {
+            peCmp.addEffect(glyphsCmp.leftGlyph, ParticleEmittersCmp.ParticleEffect.TORCH_P, windowCmp.display);
+        }
+
     }
     private void unequip(Entity itemEntity, Entity actorEntity)
     {
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, actorEntity);
+        WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         EquipmentCmp equipmentCmp = (EquipmentCmp) CmpMapper.getComp(CmpType.EQUIPMENT, itemEntity);
         WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, itemEntity);
+        GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actorEntity);
+        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, actorEntity);
+        ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         inventoryCmp.unequip(itemEntity.hashCode());
 
         equipmentCmp.equipped = false;
@@ -177,13 +196,18 @@ public class ItemSys extends MyEntitySystem
                 meleeAttack.damageType = DamageType.BLUDGEONING;
             }
         }
-        LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, itemEntity);
-        if(lightCmp!=null)
+        if(Arrays.asList(equipmentCmp.slotsOccupied).contains(EquipmentSlot.CHEST))
         {
-            LightCmp actorLight = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, actorEntity);
-            actorLight.level=0;
-            actorLight.color= SColor.COSMIC_LATTE.toFloatBits();
 
+            CharCmp actorCharCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, actorEntity);
+            actorCharCmp.armorChr = null;
+            actorCharCmp.armorColor = null;
+
+        }
+        LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, itemEntity);
+        lightCmp.level = 0;
+        if(itemCmp.type== ItemType.TORCH) {
+            peCmp.removeEffect(glyphsCmp.leftGlyph, windowCmp.display);
         }
     }
     private void drop(Entity itemEntity, Entity actorEntity)
@@ -194,6 +218,9 @@ public class ItemSys extends MyEntitySystem
         ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Coord actorPosition = levelCmp.actors.getPosition(actorEntity.hashCode());
+        LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, itemEntity);
+
+        lightCmp.level=0;
         if(equipmentCmp!=null && inventoryCmp!=null )
             if(equipmentCmp.equipped)
             {
@@ -206,14 +233,6 @@ public class ItemSys extends MyEntitySystem
                 for(StatusEffect statusEffect : equipmentCmp.statusEffects.keySet())
                 {
                     actorEntity.remove(statusEffect.cls);
-                }
-                LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, itemEntity);
-                if(lightCmp!=null)
-                {
-                    LightCmp actorLight = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, actorEntity);
-                    actorLight.level=0;
-                    actorLight.color= SColor.COSMIC_LATTE.toFloatBits();
-
                 }
 
             }

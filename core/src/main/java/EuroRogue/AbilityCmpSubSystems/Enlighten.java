@@ -29,6 +29,7 @@ import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
+import squidpony.squidgrid.gui.gdx.SparseLayers;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
@@ -93,11 +94,8 @@ public class Enlighten extends Ability
     {
         inactivate();
         GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer);
-        PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, performer);
-        TextCellFactory.Glyph glyph = display.glyph(glyphsCmp.glyph.shown, glyphsCmp.glyph.getPackedColor(), positionCmp.coord.x, positionCmp.coord.y);
-        Light light = new Light(Coord.get(positionCmp.coord.x*3, positionCmp.coord.y*3), new Radiance(0 , SColor.lerpFloatColors(getSkill().school.color.toFloatBits(),SColor.WHITE_FLOAT_BITS, 0.3f)));
-        glyph.setName(light.hashCode() + " " + "0" + " temp");
-        return new AnimateGlyphEvt(glyph, skill.animationType, eventCmp);
+
+        return new AnimateGlyphEvt(glyphsCmp.glyph, AnimationsSys.AnimationType.SELF_BUFF, eventCmp);
     }
 
     @Override
@@ -105,10 +103,6 @@ public class Enlighten extends Ability
         return null;
     }
 
-    @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler) {
-
-    }
 
     @Override
     public HashMap<StatusEffect, SEParameters> getStatusEffects() {

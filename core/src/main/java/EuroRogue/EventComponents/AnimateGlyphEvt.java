@@ -1,5 +1,9 @@
 package EuroRogue.EventComponents;
 
+import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
+import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
+
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Systems.AnimationsSys;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
@@ -12,6 +16,7 @@ public class AnimateGlyphEvt implements IEventComponent
     public AnimationsSys.AnimationType animationType;
     public Coord startLocation, endLocation;
     public IEventComponent sourceEvent;
+    public ParticleEffectActor pea;
 
     public AnimateGlyphEvt(TextCellFactory.Glyph glyph, AnimationsSys.AnimationType animationType,
                            Coord startLocation, Coord endLocation, IEventComponent sourceEvent)
@@ -24,14 +29,16 @@ public class AnimateGlyphEvt implements IEventComponent
     }
 
     public AnimateGlyphEvt(TextCellFactory.Glyph glyph, AnimationsSys.AnimationType animationType,
-                           Coord startLocation, Direction direction, IEventComponent sourceEvent)
+                           Coord startLocation, Coord endLocation, IEventComponent sourceEvent, ParticleEffectActor pea)
     {
         this.glyph=glyph;
         this.animationType=animationType;
         this.startLocation=startLocation;
-        this.endLocation=startLocation;
+        this.endLocation=endLocation;
         this.sourceEvent=sourceEvent;
+        this.pea = pea;
     }
+
 
     public AnimateGlyphEvt(TextCellFactory.Glyph glyph, AnimationsSys.AnimationType animationType, IEventComponent sourceEvent)
     {

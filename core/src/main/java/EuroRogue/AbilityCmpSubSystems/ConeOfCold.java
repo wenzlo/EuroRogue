@@ -45,9 +45,10 @@ public class ConeOfCold extends Ability
     public ConeOfCold()
     {
 
-        super("Cone of Cold", new ConeAOE(Coord.get(0,0),1, (double)0, (double)90, Radius.CIRCLE));
+        super("Cone of Cold", new ConeAOE(Coord.get(0,0),1, 0, 90, Radius.CIRCLE));
         aoe.getReach().limit = AimLimit.FREE;
         statusEffects.put(StatusEffect.CHILLED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
+        //super.aimable = true;
     }
 
 
@@ -97,6 +98,7 @@ public class ConeOfCold extends Ability
 
         coneAOE.setRadius(1+statsCmp.getIntel()/2);
         coneAOE.setOrigin(positionCmp.coord);
+        coneAOE.setMaxRange(1+statsCmp.getIntel()/2);
     }
 
     @Override
@@ -179,7 +181,7 @@ public class ConeOfCold extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
         glyph = display.glyph('•',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
         SColor color = skill.school.color;

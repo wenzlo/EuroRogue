@@ -7,6 +7,8 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 
+import EuroRogue.EventComponents.AnimateGlyphEvt;
+import EuroRogue.MySparseLayers;
 import EuroRogue.MyFOV;
 import EuroRogue.LightHandler;
 import EuroRogue.AbilityCmpSubSystems.Skill;
@@ -65,10 +67,11 @@ public class MovementSys extends MyEntitySystem
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
             SpatialMap actorMap = levelCmp.actors;
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-            System.out.println(Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT));
+
+
             if(levelCmp.doors.contains(moveEvt.destination) && levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y] =='+')
             {
-                System.out.println("Opening Door "+ moveEvt.destination);
+
                 LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING,getGame().currentLevel);
                 openDoor(moveEvt.destination, levelCmp, lightingCmp);
                 continue;
@@ -76,7 +79,7 @@ public class MovementSys extends MyEntitySystem
             else if (levelCmp.doors.contains(moveEvt.destination) && levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y] =='/'
                     && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
             {
-                System.out.println("Closing Door "+ moveEvt.destination);
+
                 LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING,getGame().currentLevel);
                 closeDoor(moveEvt.destination, levelCmp, lightingCmp);
                 continue;
@@ -85,9 +88,6 @@ public class MovementSys extends MyEntitySystem
             actorMap.move(positionCmp.coord,  moveEvt.destination);
             if(actorMap.get(moveEvt.destination) == null) return;
             if((Integer) actorMap.get(moveEvt.destination)!=actor.hashCode()) return;
-
-            //System.out.println(positionCmp.coord+" "+moveEvt.destination);
-            //System.out.println(positionCmp.coord.toGoTo(moveEvt.destination).deltaX+" "+positionCmp.coord.toGoTo(moveEvt.destination).deltaY+" "+"orientation "+positionCmp.orientation);
 
             positionCmp.orientation = Direction.getRoughDirection(positionCmp.coord.toGoTo(moveEvt.destination).deltaX, positionCmp.coord.toGoTo(moveEvt.destination).deltaY);
             positionCmp.coord = moveEvt.destination;
@@ -106,13 +106,23 @@ public class MovementSys extends MyEntitySystem
 
             if(levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y]==',' || levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y]=='~') actor.remove(Burning.class);
 
-            float duration = 0.18f * moveEvt.animSpeed;
-            windowCmp.display.slide(0f, glyphsCmp.glyph, positionCmp.coord.x, positionCmp.coord.y, duration, null);
-            if(glyphsCmp.leftGlyph!=null)
-                windowCmp.display.slide(0f,glyphsCmp.leftGlyph, glyphsCmp.getLeftGlyphPositionX(windowCmp.display, positionCmp), glyphsCmp.getLeftGlyphPositionY(windowCmp.display, positionCmp), duration, null);
-            if(glyphsCmp.rightGlyph!=null)
-                windowCmp.display.slide(0f,glyphsCmp.rightGlyph, glyphsCmp.getRightGlyphPositionX(windowCmp.display, positionCmp), glyphsCmp.getRightGlyphPositionY(windowCmp.display, positionCmp), duration, null);
+            Entity eventEntity1 = new Entity();
+            AnimateGlyphEvt glyphSlide = new AnimateGlyphEvt(glyphsCmp.glyph, AnimationsSys.AnimationType.SLIDE, null, positionCmp.coord, moveEvt );
+            eventEntity1.add(glyphSlide);
 
+            Entity eventEntity2 = new Entity();
+            Coord lEnd = Coord.get((int)glyphsCmp.getLeftGlyphPositionX(windowCmp.display, positionCmp), (int)glyphsCmp.getLeftGlyphPositionY(windowCmp.display, positionCmp));
+            AnimateGlyphEvt lGlyphSlide = new AnimateGlyphEvt(glyphsCmp.leftGlyph, AnimationsSys.AnimationType.OFFSET_SLIDE, null, lEnd, moveEvt );
+            eventEntity2.add(lGlyphSlide);
+
+            Entity eventEntity3 = new Entity();
+            Coord rEnd = Coord.get((int)glyphsCmp.getRightGlyphPositionX(windowCmp.display, positionCmp), (int)glyphsCmp.getRightGlyphPositionY(windowCmp.display, positionCmp));
+            AnimateGlyphEvt rGlyphSlide = new AnimateGlyphEvt(glyphsCmp.rightGlyph, AnimationsSys.AnimationType.OFFSET_SLIDE, null, rEnd, moveEvt );
+            eventEntity3.add(rGlyphSlide);
+
+            getEngine().addEntity(eventEntity1);
+            getEngine().addEntity(eventEntity2);
+            getEngine().addEntity(eventEntity3);
         }
     }
     private void genLogEvent(Entity entity, Coord oldPos, Coord newPos)

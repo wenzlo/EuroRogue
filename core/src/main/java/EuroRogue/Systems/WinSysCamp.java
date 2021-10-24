@@ -35,7 +35,7 @@ public class WinSysCamp extends MyEntitySystem
     {
 
         WindowCmp window = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().campWindow));
-        MySparseLayers display = window.display;
+        MySparseLayers display = (MySparseLayers) window.display;
         if(display.isVisible()==false) return;
 
         getGame().globalMenuIndex = 1; //key=1;

@@ -14,12 +14,14 @@ import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.FactionCmp;
 import EuroRogue.Components.LevelCmp;
-import EuroRogue.Components.NoiseMap;
+import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.NoiseMapCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.MoveEvt;
+import EuroRogue.GameState;
 import EuroRogue.ItemEvtType;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.TerrainType;
@@ -42,6 +44,7 @@ public class NoiseSys extends MyEntitySystem
     @Override
     public void update(float deltaTime)
     {
+        if(getGame().gameState!= GameState.PLAYING) return;
 
         for (Entity entity : entities)
         {
@@ -65,12 +68,12 @@ public class NoiseSys extends MyEntitySystem
 
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
         TerrainType terrainType = TerrainType.getTerrainTypeFromChar(levelCmp.decoDungeon[positionCmp.coord.x][positionCmp.coord.y]);
-        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.NOISE_MAP, actor);
-        noiseMap.noiseMap.clearSounds();
+        NoiseMapCmp noiseMapCmp = (NoiseMapCmp) CmpMapper.getComp(CmpType.NOISE_MAP, actor);
+        noiseMapCmp.noiseMap.clearSounds();
 
-        noiseMap.noiseMap.setSound(positionCmp.coord, statsCmp.getMoveSndLvl()*terrainType.noiseMult);
-        noiseMap.noiseMap.scan();
-        OrderedMap<Coord, Double> alerted = noiseMap.noiseMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
+        noiseMapCmp.noiseMap.setSound(positionCmp.coord, statsCmp.getMoveSndLvl()*terrainType.noiseMult);
+        noiseMapCmp.noiseMap.scan();
+        OrderedMap<Coord, Double> alerted = noiseMapCmp.noiseMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
         alerted.remove(positionCmp.coord);
         for(Coord position : alerted.keySet())
         {
@@ -91,16 +94,17 @@ public class NoiseSys extends MyEntitySystem
         if(!Arrays.asList(new ItemEvtType[]{ItemEvtType.DROP, ItemEvtType.EQUIP, ItemEvtType.UNEQUIP}).contains(itemEvent.type)) return;
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Entity actor = getGame().getEntity(itemEvent.actorID);
+
         FactionCmp factionCmp = (FactionCmp) CmpMapper.getComp(CmpType.FACTION, actor);
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
 
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.NOISE_MAP, actor);
-        noiseMap.noiseMap.clearSounds();
-        noiseMap.noiseMap.setSound(positionCmp.coord, statsCmp.getMoveSndLvl());
-        noiseMap.noiseMap.scan();
-        OrderedMap<Coord, Double> alerted = noiseMap.noiseMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
+        NoiseMapCmp noiseMapCmp = (NoiseMapCmp) CmpMapper.getComp(CmpType.NOISE_MAP, actor);
+        noiseMapCmp.noiseMap.clearSounds();
+        noiseMapCmp.noiseMap.setSound(positionCmp.coord, statsCmp.getMoveSndLvl());
+        noiseMapCmp.noiseMap.scan();
+        OrderedMap<Coord, Double> alerted = noiseMapCmp.noiseMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
         alerted.remove(positionCmp.coord);
         for(Coord position : alerted.keySet())
         {
@@ -134,8 +138,8 @@ public class NoiseSys extends MyEntitySystem
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performerEntity);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
 
-        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.NOISE_MAP, performerEntity);
-        noiseMap.noiseMap.clearSounds();
+        NoiseMapCmp noiseMapCmp = (NoiseMapCmp) CmpMapper.getComp(CmpType.NOISE_MAP, performerEntity);
+        noiseMapCmp.noiseMap.clearSounds();
         double noiseLvl = 0;
         try {
             noiseLvl = abilityCmp.getNoiseLvl(performerEntity);
@@ -145,9 +149,9 @@ public class NoiseSys extends MyEntitySystem
             e.printStackTrace();
         }
 
-        noiseMap.noiseMap.setSound(positionCmp.coord, noiseLvl);
-        noiseMap.noiseMap.scan();
-        OrderedMap<Coord, Double> alerted = noiseMap.noiseMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
+        noiseMapCmp.noiseMap.setSound(positionCmp.coord, noiseLvl);
+        noiseMapCmp.noiseMap.scan();
+        OrderedMap<Coord, Double> alerted = noiseMapCmp.noiseMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
         alerted.remove(positionCmp.coord);
         for(Coord position : alerted.keySet())
         {

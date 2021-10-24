@@ -19,8 +19,9 @@ import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LevelCmp;
-import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.LightingCmp;
+import EuroRogue.Components.NoiseMapCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
@@ -39,6 +40,7 @@ import EuroRogue.GameState;
 import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MobFactory;
+import EuroRogue.MobType;
 import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
@@ -50,6 +52,7 @@ import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
+import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidgrid.mapping.SerpentMapGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
@@ -103,10 +106,11 @@ public class LevelSys extends MyEntitySystem
         if(eventsFamily.size()>0) return;
         entitiesToAdd.clear();
 
-        MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
+        MySparseLayers display = (MySparseLayers) ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
         display.glyphs.clear();
 
         LevelCmp oldLevelCmp = getGame().currentLevel.remove(LevelCmp.class);
+
 
         if(oldLevelCmp!=null)
         {
@@ -125,6 +129,14 @@ public class LevelSys extends MyEntitySystem
 
                     getEngine().removeEntity(itemEntity);
                 }
+
+                ParticleEmittersCmp peCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, entity);
+                for(TextCellFactory.Glyph glyph : peCmp.particleEffectsMap.keySet())
+                {
+                    peCmp.removeEffect(glyph, display);
+                }
+
+
                 getEngine().removeEntity(entity);
             }
             for(Integer id:oldLevelCmp.items)
@@ -135,18 +147,37 @@ public class LevelSys extends MyEntitySystem
             {
                 getEngine().removeEntity(getGame().getEntity(id));
             }
+            if(display.getStage().getActors().size>1)
+            {
+                System.out.println(display.getStage().getActors().size);
+                System.out.println(display.getStage().getActors().removeIndex(1));
+                System.out.println("post removal "+display.getStage().getActors().size);
+            }
 
         }
 
         LevelEvt levelEvt = (LevelEvt) CmpMapper.getComp(CmpType.LEVEL_EVT, entities.get(0));
         levelEvt.processed=true;
 
-        Entity newLevel = newLevel();
-        while(newLevel == null)
+        Entity newLevel = null;
+        if("tutorial".equals(getGame().playerName) && getGame().depth==0)
         {
-            newLevel=newLevel();
 
+            while(newLevel == null)
+            {
+                newLevel=newTutorialLevel();
+
+            }
         }
+        else
+        {
+            while(newLevel == null)
+            {
+                newLevel=newLevel();
+
+            }
+        }
+
 
         LevelCmp newLevelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, newLevel);
 
@@ -165,7 +196,6 @@ public class LevelSys extends MyEntitySystem
         AICmp playerAiCmp = new AICmp(newLevelCmp.bareDungeon, newLevelCmp.decoDungeon, new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
         player.remove(AICmp.class);
         player.add(playerAiCmp);
-        AICmp newAIcmp = (AICmp)CmpMapper.getComp(CmpType.AI, player);
 
         player.remove(FOVCmp.class);
         player.add(new FOVCmp(newLevelCmp.decoDungeon[0].length,newLevelCmp.decoDungeon.length));
@@ -173,25 +203,41 @@ public class LevelSys extends MyEntitySystem
         GlyphsCmp glyphsCmp = new GlyphsCmp(display, '@', SColor.WHITE, loc.x, loc.y);
         glyphsCmp.leftGlyph = display.glyph('•', SColor.WHITE, loc.x, loc.y);
         glyphsCmp.rightGlyph = display.glyph('•', SColor.WHITE, loc.x, loc.y);
+        player.remove(GlyphsCmp.class);
         player.add(glyphsCmp);
         Light light = new Light(Coord.get(getGame().dungeonGen.stairsUp.x*3+1, getGame().dungeonGen.stairsUp.y*3+1), new Radiance(5, SColor.COSMIC_LATTE.toFloatBits()) );
-        dungeonWindowCmp.lightingHandler.addLight(light.hashCode(), light);
+        Light leftLight = new Light(Coord.get(getGame().dungeonGen.stairsUp.x*3+1, getGame().dungeonGen.stairsUp.y*3+1), new Radiance(0, SColor.BLACK.toFloatBits()) );
+        Light rightLight = new Light(Coord.get(getGame().dungeonGen.stairsUp.x*3+1, getGame().dungeonGen.stairsUp.y*3+1), new Radiance(0, SColor.BLACK.toFloatBits()) );
 
         glyphsCmp.glyph.setName(light.hashCode() + " " + player.hashCode()+ " actor");
+        glyphsCmp.leftGlyph.setName(leftLight.hashCode() + " " + player.hashCode()+ " actorLeft");
+        glyphsCmp.rightGlyph.setName(rightLight.hashCode() + " " + player.hashCode()+ " actorRight");
 
 
 
         playerAiCmp.dijkstraMap.initializeCost(playerAiCmp.getTerrainCosts(newLevelCmp.decoDungeon));
         player.add(new FOVCmp(EuroRogue.bigWidth,EuroRogue.bigHeight));
+        player.remove(NoiseMapCmp.class);
+        player.add(new NoiseMapCmp(newLevelCmp.bareDungeon));
         newLevelCmp.actors.add(getGame().dungeonGen.stairsUp, player.hashCode(), player.hashCode());
         for(Skill skill : ((CodexCmp)CmpMapper.getComp(CmpType.CODEX, player)).prepared )
         {
             CmpMapper.getAbilityComp(skill, player).setMap(newLevelCmp.decoDungeon);
         }
-
-
+        getGame().engine.removeEntity(getGame().currentLevel);
         getGame().currentLevel=newLevel;
-        getEngine().addEntity(newLevel);
+        getEngine().addEntity(getGame().currentLevel);
+        LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, newLevel);
+        dungeonWindowCmp.lightingHandler = new LightHandler(lightingCmp.resistance3x3, SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
+        dungeonWindowCmp.lightingHandler.lightList.clear();
+        if(getGame().depth>0)
+        {
+            dungeonWindowCmp.lightingHandler.addLight(light.hashCode(), light);
+            dungeonWindowCmp.lightingHandler.addLight(leftLight.hashCode(), leftLight);
+            dungeonWindowCmp.lightingHandler.addLight(rightLight.hashCode(), rightLight);
+        }
+
+
 
         for(Entity entity : entitiesToAdd)
         {
@@ -206,7 +252,6 @@ public class LevelSys extends MyEntitySystem
         Entity eventEntity = new Entity();
         eventEntity.add(new GameStateEvt(GameState.PLAYING));
         getEngine().addEntity(eventEntity);
-        //System.out.println("new level actors "+newLevelCmp.actors);
 
     }
 
@@ -222,10 +267,12 @@ public class LevelSys extends MyEntitySystem
         serpentMapGenerator.putWalledRoundRoomCarvers(5);
         serpentMapGenerator.putCaveCarvers(5);
         serpentMapGenerator.generate();
-        getGame().dungeonGen.generate(serpentMapGenerator.getDungeon(), serpentMapGenerator.getEnvironment());
+
 
         getGame().dungeonGen.addLake(15);
+        getGame().dungeonGen.addGrass(3, 20);
         getGame().dungeonGen.addDoors(100, true);
+        getGame().dungeonGen.generate(serpentMapGenerator.getDungeon(), serpentMapGenerator.getEnvironment());
 
         char[][] finalDungeon = MyDungeonUtility.closeDoors(getGame().dungeonGen.getDungeon());
         char[][] bareDungeon = MyDungeonUtility.closeDoors(getGame().dungeonGen.getBareDungeon());
@@ -277,10 +324,7 @@ public class LevelSys extends MyEntitySystem
 
         newLevel.add(levelCmp);
         newLevel.add(lightingCmp);
-        WindowCmp dungeonWindowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
-        dungeonWindowCmp.lightingHandler = new LightHandler(MyDungeonUtility.generateSimpleResistances3x3(levelCmp.decoDungeon), SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
-        dungeonWindowCmp.lightingHandler.lightList.clear();
         addShrine(shrine1, newLevel);
         addShrine(shrine2, newLevel);
 
@@ -347,13 +391,18 @@ public class LevelSys extends MyEntitySystem
     }
     public Entity newTutorialLevel()
     {
-        Entity newLevel = new Entity();
-        char[][] tutLevel = new char[22][22];
-        //tutLevel = MyDungeonUtility.wallWrap(tutLevel);
 
-        getGame().dungeonGen.setDungeon(tutLevel);
+        Entity newLevel = new Entity();
+
+        SerpentMapGenerator serpentMapGenerator = new SerpentMapGenerator(24, 24, new GWTRNG(rng.nextInt()));
+
+
+        serpentMapGenerator.putBoxRoomCarvers(1);
+        serpentMapGenerator.generate();
+
+
         getGame().dungeonGen.addDoors(100, true);
-        getGame().dungeonGen.generate();
+        getGame().dungeonGen.generate(serpentMapGenerator.getDungeon(), serpentMapGenerator.getEnvironment());
 
         char[][] finalDungeon = MyDungeonUtility.closeDoors(getGame().dungeonGen.getDungeon());
         char[][] bareDungeon = MyDungeonUtility.closeDoors(getGame().dungeonGen.getBareDungeon());
@@ -365,55 +414,52 @@ public class LevelSys extends MyEntitySystem
         GreasedRegion stairsUpFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(levelCmp.resistance, new double[levelCmp.resistance.length][levelCmp.resistance[0].length] , getGame().dungeonGen.stairsUp.x, getGame().dungeonGen.stairsUp.y),0.0).not();
         GreasedRegion stairsDownFOV = new GreasedRegion(squidpony.squidgrid.FOV.reuseFOV(levelCmp.resistance, new double[levelCmp.resistance.length][levelCmp.resistance[0].length] , getGame().dungeonGen.stairsDown.x, getGame().dungeonGen.stairsDown.y),0.0).not();
 
-        Coord shrine1Coord = null;
-        Coord shrine2Coord = null;
-        Coord shrine3Coord = null;
-        Entity shrine1 = null;
-        Entity shrine2 = null;
-        Entity shrine3 = null;
 
-        ArrayList<School> schools = new ArrayList(Arrays.asList(School.values()));
-        for(OrderedSet<Coord> centers : getGame().dungeonGen.placement.getCenters())
-        {
-            if(shrine1Coord==null)
-            {
-                shrine1Coord = centers.first();
-                School school = rng.getRandomElement(schools);
-                schools.remove(school);
-                shrine1 = objectFactory.getShrine(shrine1Coord, school);
-            }
-            else if(shrine2Coord==null)
-            {
-                shrine2Coord = centers.first();
-                School school = rng.getRandomElement(schools);
-                schools.remove(school);
-                shrine2 = objectFactory.getShrine(shrine2Coord, school);
-            }
-            else if(shrine3Coord==null)
-            {
-                shrine3Coord = centers.first();
-                School school = rng.getRandomElement(schools);
-                schools.remove(school);
-                shrine3 = objectFactory.getShrine(shrine3Coord, school);
-            }
-        }
 
 
         levelCmp.decoDungeon[getGame().dungeonGen.stairsUp.x][getGame().dungeonGen.stairsUp.y]='<';
         levelCmp.decoDungeon[getGame().dungeonGen.stairsDown.x][getGame().dungeonGen.stairsDown.y]='>';
-        LightingCmp lightingCmp = new LightingCmp(levelCmp.decoDungeon);
+
 
         newLevel.add(levelCmp);
+
+
+        LightingCmp lightingCmp = new LightingCmp(levelCmp.decoDungeon);
         newLevel.add(lightingCmp);
         WindowCmp dungeonWindowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
-        dungeonWindowCmp.lightingHandler = new LightHandler(MyDungeonUtility.generateSimpleResistances3x3(levelCmp.decoDungeon), SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
+        dungeonWindowCmp.lightingHandler = new LightHandler(MyDungeonUtility.generateSimpleResistances3x3(levelCmp.decoDungeon), SColor.BLACK, Radius.CIRCLE, 0, (MySparseLayers)dungeonWindowCmp.display);
         dungeonWindowCmp.lightingHandler.lightList.clear();
-        addShrine(shrine1, newLevel);
-        addShrine(shrine2, newLevel);
-        addShrine(shrine3, newLevel);
 
         GreasedRegion spwnCrds = new GreasedRegion();
+
+        int numShrines = 0;
+        ArrayList<School> schools = new ArrayList(Arrays.asList(School.values()));
+        OrderedSet<OrderedSet<Coord>> roomCenters = getGame().dungeonGen.placement.getCenters();
+
+        for(OrderedSet<Coord> roomCenter : roomCenters)
+        {
+
+            School school = rng.getRandomElement(schools);
+            schools.remove(school);
+            Coord position = roomCenter.randomItem(rng);
+            addShrine(objectFactory.getShrine(position, school), newLevel);
+            spwnCrds.remove(position);
+            numShrines++;
+        }
+        for(OrderedSet<Coord> alongWall : getGame().dungeonGen.placement.getAlongStraightWalls())
+        {
+
+            School school = rng.getRandomElement(schools);
+            schools.remove(school);
+            Coord position = alongWall.randomItem(rng);
+            addShrine(objectFactory.getShrine(position, school), newLevel);
+            spwnCrds.remove(position);
+            numShrines++;
+            if(numShrines==4)break;
+        }
+
+
         spwnCrds.addAll(new GreasedRegion(levelCmp.decoDungeon, '.'));
 
         //player.add(new FocusCmp());
@@ -446,15 +492,15 @@ public class LevelSys extends MyEntitySystem
 
         }
         FOV fov = new FOV();
-        /*for(int i=0;i<10;i++)
+        for(int i=0;i<4;i++)
         {
             Coord loc = rng.getRandomElement(spwnCrds);
 
-            GreasedRegion deadZone = new GreasedRegion(fov.calculateFOV(levelCmp.resistance, loc.x, loc.y, 12, Radius.CIRCLE), 0.0).not();
+            GreasedRegion deadZone = new GreasedRegion(fov.calculateFOV(levelCmp.resistance, loc.x, loc.y, 8, Radius.CIRCLE), 0.0).not();
 
             spwnCrds.andNot(deadZone);
 
-            Entity mob = mobFactory.generateRndMob(loc, levelCmp,"Enemy "+i, getGame().depth);
+            Entity mob = mobFactory.generateMob(MobType.RAT, loc, levelCmp, getGame().depth);
             CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, mob);
             for(Skill skill : codexCmp.prepared)
             {
@@ -462,13 +508,13 @@ public class LevelSys extends MyEntitySystem
             }
             entitiesToAdd.add(mob);
 
-        }*/
-        /*for(int i=0;i<3;i++)
+        }
+        for(int i=0;i<1;i++)
         {
             Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
             entitiesToAdd.add(getGame().foodFactory.generateFoodITem(itemLoc));
-        }*/
+        }
 
 
         return newLevel;
@@ -488,16 +534,6 @@ public class LevelSys extends MyEntitySystem
         levelCmp.decoDungeon[position.x][position.y] = charCmp.chr;
         levelCmp.colors[position.x][position.y] = charCmp.color.toFloatBits();
         levelCmp.resistance = MyDungeonUtility.generateSimpleResistances(levelCmp.decoDungeon);
-        System.out.println("Resistance after shrine addition");
-        System.out.println(new GreasedRegion(levelCmp.resistance, 0.0));
-        levelEntity.add(new LightingCmp(levelCmp.decoDungeon));
-
-        LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
-        LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, shrineEntity);
-
-
-        Light light = new Light(Coord.get(position.x*3+1, position.y*3+1), new Radiance(lightCmp.level, lightCmp.color, lightCmp.flicker, lightCmp.strobe) );
-        lightHandler.addLight(shrineEntity.hashCode(), light);
 
         entitiesToAdd.add(shrineEntity);
 

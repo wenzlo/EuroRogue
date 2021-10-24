@@ -39,6 +39,7 @@ public class WeaponFactory
         weapon.add(new NameCmp(weaponType.name));
         weapon.add(new ItemCmp(ItemType.WEAPON));
         weapon.add(new CharCmp(weaponType.chr, SColor.LIGHT_GRAY));
+        weapon.add(new LightCmp());
         EquipmentCmp equipmentCmp = new EquipmentCmp(weaponType.slots);
         equipmentCmp.statusEffects.put(weaponType.grantedEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER));
         weapon.add(equipmentCmp);

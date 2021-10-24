@@ -2,13 +2,13 @@ package EuroRogue.Listeners;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
-
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
-import EuroRogue.Components.NoiseMap;
+import EuroRogue.Components.NoiseMapCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EuroRogue;
@@ -17,6 +17,7 @@ import EuroRogue.LightHandler;
 import EuroRogue.Systems.FOVSys;
 import squidpony.squidgrid.gui.gdx.LightingHandler;
 import squidpony.squidgrid.gui.gdx.Radiance;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
 
 public class ActorListener implements EntityListener {
@@ -43,14 +44,23 @@ public class ActorListener implements EntityListener {
         LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
 
         Light light = new Light(Coord.get(position.x*3+1, position.y*3+1), new Radiance(lightCmp.level, lightCmp.color) );
+        Light leftLight = new Light(Coord.get(position.x*3+1, position.y*3+1), new Radiance(0, SColor.BLACK.toFloatBits()) );
+        Light rightLight = new Light(Coord.get(position.x*3+1, position.y*3+1), new Radiance(0, SColor.BLACK.toFloatBits()) );
 
         lightHandler.addLight(light.hashCode(), light);
+        lightHandler.addLight(leftLight.hashCode(), leftLight);
+        lightHandler.addLight(rightLight.hashCode(), rightLight);
         glyphsCmp.glyph.setName(light.hashCode() + " " + entity.hashCode()+ " actor");
+        glyphsCmp.leftGlyph.setName(leftLight.hashCode() + " " + entity.hashCode()+ " actorLeft");
+        glyphsCmp.rightGlyph.setName(rightLight.hashCode() + " " + entity.hashCode()+ " actorRight");
+
 
         game.engine.getSystem(FOVSys.class).updateFOV(entity);
 
-        entity.remove(NoiseMap.class);
-        entity.add(new NoiseMap(levelCmp.bareDungeon));
+        entity.remove(NoiseMapCmp.class);
+        entity.add(new NoiseMapCmp(levelCmp.bareDungeon));
+        WindowCmp dungeonWindow = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow);
+
 
     }
 

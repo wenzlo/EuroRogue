@@ -91,7 +91,7 @@ public class IceShield extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
         glyph = display.glyph('*',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
         SColor color = skill.school.color;

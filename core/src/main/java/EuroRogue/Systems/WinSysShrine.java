@@ -35,6 +35,7 @@ import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.GameState;
 import EuroRogue.IColoredString;
 import EuroRogue.ItemEvtType;
+import EuroRogue.LightHandler;
 import EuroRogue.MenuItem;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
@@ -43,17 +44,24 @@ import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import EuroRogue.WeaponType;
 import squidpony.squidgrid.gui.gdx.SColor;
+import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidmath.Coord;
+import squidpony.squidmath.GreasedRegion;
 
 public class WinSysShrine extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
     private Integer shrineID;
+    private MySparseLayers display;
+    private LightHandler lightHandler;
 
 
 
-    public WinSysShrine() {
-        super.priority = 7;
+    public WinSysShrine(MySparseLayers display)
+    {
+        super.priority = 10;
+        this.display = display;
+        lightHandler = new LightHandler();
     }
 
 
@@ -92,7 +100,7 @@ public class WinSysShrine extends MyEntitySystem
            ShrineCmp shrineCmp = ((ShrineCmp) CmpMapper.getComp(CmpType.SHRINE, shrineEntity));
 
            WindowCmp window = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().shrineWindow));
-           MySparseLayers display = window.display;
+           MySparseLayers display = (MySparseLayers) window.display;
            if(display.isVisible()==false) return;
 
            updateShrineMenu(getGame().shrineWindow, shrineEntity);
@@ -102,7 +110,7 @@ public class WinSysShrine extends MyEntitySystem
            Stage stage = window.stage;
 
            display.clear();
-           display.putBorders(shrineCmp.school.color.toFloatBits(), shrineCmp.school.name + " Shrine");
+           //display.fillBackground(SColor.DARK_GRAY);
            for(Coord coord : menuCmp.menuMap.positions())
            {
                display.put(window.columnIndexes[coord.x], coord.y+1, menuCmp.menuMap.get(coord).label);

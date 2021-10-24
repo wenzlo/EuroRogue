@@ -5,7 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-
+import EuroRogue.MySparseLayers;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.EquipmentSlot;
@@ -20,7 +20,6 @@ import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.ItemEvtType;
 import EuroRogue.LightHandler;
-import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
@@ -113,7 +112,7 @@ public class DaggerThrow extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
         glyph = display.glyph(chr ,getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
 

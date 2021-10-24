@@ -35,7 +35,7 @@ public class WinSysStart extends MyEntitySystem
     {
 
         WindowCmp window = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().startWindow));
-        MySparseLayers display = window.display;
+        MySparseLayers display = (MySparseLayers)window.display;
         if(display.isVisible()==false) return;
 
         MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, getGame().startWindow);
@@ -43,7 +43,7 @@ public class WinSysStart extends MyEntitySystem
         Stage stage = window.stage;
 
         display.clear();
-        display.putBorders(SColor.SLATE_GRAY.toFloatBits(), "Start Menu");
+
         display.put(window.columnIndexes[1]-10, 2, "Player Name: "+getGame().playerName, SColor.WHITE);
 
         for(Coord coord : menuCmp.menuMap.positions())

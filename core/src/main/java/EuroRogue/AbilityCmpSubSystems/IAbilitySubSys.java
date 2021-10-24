@@ -16,10 +16,10 @@ import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.LightHandler;
-import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
+import EuroRogue.MySparseLayers;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
@@ -50,7 +50,7 @@ public interface IAbilitySubSys extends Component
     AnimateGlyphEvt
                 genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display);
     TextCellFactory.Glyph getGlyph();
-    void        spawnGlyph(MySparseLayers display, LightHandler lightingHandler);
+    void        spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer);
     HashMap<StatusEffect, SEParameters>
                 getStatusEffects();
     void        addStatusEffect(StatusEffect statusEffect, SEParameters seParameters);

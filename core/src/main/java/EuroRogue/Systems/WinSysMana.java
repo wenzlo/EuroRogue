@@ -26,7 +26,7 @@ public class WinSysMana extends MyEntitySystem
 
     public WinSysMana()
     {
-        super.priority = 0;
+        super.priority = 10;
     }
 
     /**
@@ -53,21 +53,20 @@ public class WinSysMana extends MyEntitySystem
         MySparseLayers display = null;
         Stage stage = null;
         StatsCmp statsCmp;
-        SColor bgColor=SColor.BLACK;
         for(Entity entity:entities)
         {
 
             if(game.getFocus()==entity)
             {
 
-                display = game.focusManaWindow.getComponent(WindowCmp.class).display;
+                display = (MySparseLayers)game.focusManaWindow.getComponent(WindowCmp.class).display;
                 stage = game.focusManaWindow.getComponent(WindowCmp.class).stage;
                 statsCmp= (StatsCmp)CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
 
 
 
             } else {
-                display = game.targetManaWindow.getComponent(WindowCmp.class).display;
+                display = (MySparseLayers)game.targetManaWindow.getComponent(WindowCmp.class).display;
                 stage = game.targetManaWindow.getComponent(WindowCmp.class).stage;
                 statsCmp= (StatsCmp)CmpMapper.getComp(CmpType.STATS, getGame().getFocusTarget());
             }
@@ -75,7 +74,6 @@ public class WinSysMana extends MyEntitySystem
             display.clear();
             //display.putBorders(SColor.BRONZE.toFloatBits(), "Weary");
 
-            display.fillBackground(bgColor);
             display.put(1,0,manaPoolCmp.activeToIColoredString());
             display.put(1,1, "──────", SColor.BRONZE);
             display.put(1,5, "──────", SColor.BRONZE);

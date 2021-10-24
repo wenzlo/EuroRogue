@@ -62,6 +62,15 @@ public class StatsCmp implements Component
         return Math.round(10 * moveSndLvlMult);
     }
     public StatsCmp(){}
+    public StatsCmp(int str, int dex, int con, int perc, int intel)
+    {
+        this.str = str;
+        this.dex = dex;
+        this.con = con;
+        this.perc = perc;
+        this.intel = intel;
+        this.hp = getMaxHP();
+    }
     public StatsCmp(GWTRNG rng)
     {
         ArrayList<School> pool = new ArrayList<>();
@@ -108,7 +117,7 @@ public class StatsCmp implements Component
 
     public int getMaxHP()
     {
-        return Math.round((Arrays.stream(new int[]{str, con, dex, intel, perc}).sum()*4+8* con)*getStatMultiplier(StatType.MAX_HP));
+        return Math.round((Arrays.stream(new int[]{str, con, dex, intel, perc}).sum()*4+8 * con)*getStatMultiplier(StatType.MAX_HP));
     }
 
     public int getSpellPower()

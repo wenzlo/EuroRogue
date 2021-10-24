@@ -26,6 +26,7 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
@@ -61,8 +62,9 @@ public class MobFactory
 
         mob.add(new FactionCmp(FactionCmp.Faction.PLAYER));
         mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
-        mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
+        mob.add(new LightCmp(0, SColor.AURORA_BURNT_YELLOW.toFloatBits()));
         mob.add(new FocusCmp());
+        mob.add(new ParticleEmittersCmp());
 
         setRandomSkillSet(mob, true);
         addTorch(mob);
@@ -90,7 +92,7 @@ public class MobFactory
     public Entity generateRndMob(Coord loc, LevelCmp levelCmp, String name, int depth)
     {
 
-        MySparseLayers display = game.dungeonWindow.getComponent(WindowCmp.class).display;
+        MySparseLayers display = (MySparseLayers) game.dungeonWindow.getComponent(WindowCmp.class).display;
         Entity mob = new Entity();
         mob.add(new NameCmp(name));
         CodexCmp codexCmp = new CodexCmp();
@@ -117,10 +119,22 @@ public class MobFactory
         if(!codexCmp.prepared.contains(Skill.DAGGER_THROW))
             addRndWeapon(mob);
         addRndArmor(mob);
-        System.out.println("Adding mob "+name+" "+mob.hashCode());
-        for(Integer id : ((InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob)).getAllItemIDs())
-            System.out.println(id);
+        mob.add(new ParticleEmittersCmp());
+
+
         return mob;
+    }
+
+    public Entity generateMob(MobType mobType, Coord loc, LevelCmp levelCmp, int depth)
+    {
+        switch (mobType)
+        {
+            case RAT:
+                return generateRat(loc, levelCmp, depth);
+
+        }
+        return null;
+
     }
 
     public void setRandomSkillSet(Entity mob, boolean player)
@@ -183,9 +197,9 @@ public class MobFactory
         Entity torch = new Entity();
         torch.add(new NameCmp("Torch"));
         torch.add(new ItemCmp(ItemType.TORCH));
-        torch.add(new EquipmentCmp(new EquipmentSlot[]{EquipmentSlot.LEFT_HAND_WEAP}));
-        torch.add(new CharCmp('*', SColor.SAFETY_ORANGE));
-        torch.add(new LightCmp(rng.between(3, 6), SColor.COSMIC_LATTE.toFloatBits()));
+        torch.add(new EquipmentCmp(new EquipmentSlot[]{EquipmentSlot.LEFT_HAND_WEAP}, rng.between(3, 6), SColor.LIGHT_YELLOW_DYE.toFloatBits()));
+        torch.add(new CharCmp('*', SColor.DARK_BROWN));
+        torch.add(new LightCmp(0, SColor.BLACK.toFloatBits()));
         InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, mob);
         inventoryCmp.put(torch.hashCode());
 
@@ -241,12 +255,11 @@ public class MobFactory
         stats.put(StatType.PERC, 1);
         ArrayList<StatType> statPool = new ArrayList<>();
         statPool.addAll(stats.keySet());
-        System.out.println(statPool);
 
         for (int i = 0; i < total-5; i++)
         {
             StatType stat = rng.getRandomElement(statPool);
-            System.out.println(stat);
+
             statPool.add(stat);
             stats.put(stat, stats.get(stat)+1);
         }
@@ -262,6 +275,36 @@ public class MobFactory
 
         return statsCmp;
 
+    }
+
+    private Entity generateRat(Coord loc, LevelCmp levelCmp, int depth)
+    {
+        MySparseLayers display = (MySparseLayers) game.dungeonWindow.getComponent(WindowCmp.class).display;
+        Entity mob = new Entity();
+        mob.add(new NameCmp("Rat"));
+        CodexCmp codexCmp = new CodexCmp();
+        mob.add(codexCmp);
+        mob.add(new PositionCmp(loc));
+        mob.add(new CharCmp('r', SColor.DARK_BROWN));
+        GlyphsCmp glyphsCmp = new GlyphsCmp(display, 'r', SColor.DARK_BROWN, loc.x, loc.y);
+        glyphsCmp.leftGlyph = display.glyph(',', SColor.DARK_BROWN, loc.x, loc.y);
+        glyphsCmp.rightGlyph = display.glyph(',', SColor.DARK_BROWN, loc.x, loc.y);
+        mob.add(glyphsCmp);
+        StatsCmp statsCmp = new StatsCmp(0, 2, 0, 3, 0);
+        mob.add(statsCmp);
+        mob.add(new InventoryCmp(new EquipmentSlot[0], statsCmp.getStr()+1));
+        AICmp aiCmp = new AICmp(levelCmp.bareDungeon, levelCmp.decoDungeon, new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
+        mob.add(aiCmp);
+        mob.add(new FOVCmp(levelCmp.decoDungeon[0].length,levelCmp.decoDungeon.length));
+        mob.add(new FactionCmp(FactionCmp.Faction.RAT));
+        mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
+        mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
+        mob.add(new ParticleEmittersCmp());
+        levelCmp.actors.add(loc, mob.hashCode(), mob.hashCode());
+
+        setRandomSkillSet(mob, false);
+
+        return mob;
     }
 
 }

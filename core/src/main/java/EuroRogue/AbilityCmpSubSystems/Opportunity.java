@@ -132,7 +132,7 @@ public class Opportunity extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler) {
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer) {
 
     }
 

@@ -114,7 +114,6 @@ public class TickerSys extends MyEntitySystem
                 if(statusEffectCmp==null || statusEffectCmp.lastTick==null) continue;
                 if(statusEffectCmp.lastTick<=tick)
                 {
-                    System.out.println(tick+" "+statusEffect.name+" removed");
                     entity.remove(statusEffect.cls);
                     effectsProcessed=true;
 

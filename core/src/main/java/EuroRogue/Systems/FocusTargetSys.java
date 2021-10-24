@@ -37,7 +37,7 @@ public class FocusTargetSys extends MyEntitySystem
     public void update(float deltaTime)
     {
         if(entities.size()==0) return;
-        MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW,getGame().dungeonWindow)).display;
+        MySparseLayers display = (MySparseLayers) ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW,getGame().dungeonWindow)).display;
 
         Entity focusTarget = entities.get(0);
         GlyphsCmp ftGlyph = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH,focusTarget);

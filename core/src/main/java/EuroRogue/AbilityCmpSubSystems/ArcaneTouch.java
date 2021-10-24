@@ -8,6 +8,7 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
@@ -105,8 +106,6 @@ public class ArcaneTouch extends Ability
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        TextCellFactory.Glyph glyph = getGlyph();
-
         return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
     }
 
@@ -116,15 +115,18 @@ public class ArcaneTouch extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
 
-        glyph = display.glyph('•',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
+        glyph = display.glyph(' ',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
         SColor color = skill.school.color;
 
         Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));
         glyph.setName(light.hashCode() + " " + "0" + " temp");
         lightingHandler.addLight(light.hashCode(), light);
+        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
+        peCmp.addEffect(glyph, ParticleEmittersCmp.ParticleEffect.MAGIC_MISSILE_P, display);
+        peCmp.particleEffectsMap.get(glyph).setScale(0.75f);
 
     }
 

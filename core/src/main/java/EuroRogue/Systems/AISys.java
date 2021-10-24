@@ -33,7 +33,7 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
-import EuroRogue.Components.NoiseMap;
+import EuroRogue.Components.NoiseMapCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.StatsCmp;
@@ -111,7 +111,7 @@ public class AISys extends MyEntitySystem
 
             previousTick=currentTick;
 
-            MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
+            MySparseLayers display = (MySparseLayers) ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
             ArrayList<StatusEffect> focusStatusEffects = getGame().getStatusEffects(getGame().getFocus());
             if(focusStatusEffects.contains(StatusEffect.FROZEN) || focusStatusEffects.contains(StatusEffect.BURNING))
                 if(display.hasActiveAnimations()) continue;
@@ -423,7 +423,7 @@ public class AISys extends MyEntitySystem
         ticker.actionQueue.add(scheduledEvt);
 
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
-        ability.spawnGlyph(windowCmp.display, windowCmp.lightingHandler);
+        ability.spawnGlyph(windowCmp.display, windowCmp.lightingHandler, entity);
         if(ability.getTargetType()==ENEMY && ability.getSkill()!=Skill.CHARGE) rotate(entity, getGame().getEntity(targetID));
         if(ability.getTargetType()==AOE && getGame().gameState!=GameState.AIMING)
         {
@@ -477,12 +477,12 @@ public class AISys extends MyEntitySystem
         ScheduledEvt scheduledEvt = new ScheduledEvt(scheduledTick,entity.hashCode(),campEvt);
         ticker.actionQueue.add(scheduledEvt);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        NoiseMap noiseMap = (NoiseMap) CmpMapper.getComp(CmpType.NOISE_MAP, entity);
-        noiseMap.noiseMap.clearSounds();
+        NoiseMapCmp noiseMapCmp = (NoiseMapCmp) CmpMapper.getComp(CmpType.NOISE_MAP, entity);
+        noiseMapCmp.noiseMap.clearSounds();
 
-        noiseMap.noiseMap.setSound(positionCmp.coord, 15);
-        noiseMap.noiseMap.scan();
-        OrderedMap<Coord, Double> alerted = noiseMap.noiseMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
+        noiseMapCmp.noiseMap.setSound(positionCmp.coord, 15);
+        noiseMapCmp.noiseMap.scan();
+        OrderedMap<Coord, Double> alerted = noiseMapCmp.noiseMap.findAlerted(levelCmp.actors.positions(), new HashMap<>());
         alerted.remove(positionCmp.coord);
         for(Coord position : alerted.keySet())
         {
@@ -590,9 +590,9 @@ public class AISys extends MyEntitySystem
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
         if(glyphsCmp.leftGlyph!=null)
-            windowCmp.display.slide(0f,glyphsCmp.leftGlyph, glyphsCmp.getLeftGlyphPositionX(windowCmp.display, positionCmp), glyphsCmp.getLeftGlyphPositionY(windowCmp.display, positionCmp), 0.1f, null);
+            (windowCmp.display).slide(0f,glyphsCmp.leftGlyph, glyphsCmp.getLeftGlyphPositionX( windowCmp.display, positionCmp), glyphsCmp.getLeftGlyphPositionY(windowCmp.display, positionCmp), 0.1f, null);
         if(glyphsCmp.rightGlyph!=null)
-            windowCmp.display.slide(0f,glyphsCmp.rightGlyph, glyphsCmp.getRightGlyphPositionX(windowCmp.display, positionCmp), glyphsCmp.getRightGlyphPositionY(windowCmp.display, positionCmp), 0.1f, null);
+            (windowCmp.display).slide(0f,glyphsCmp.rightGlyph, glyphsCmp.getRightGlyphPositionX( windowCmp.display, positionCmp), glyphsCmp.getRightGlyphPositionY(windowCmp.display, positionCmp), 0.1f, null);
     }
 
 }

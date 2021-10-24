@@ -49,8 +49,6 @@ public class MyFOV extends FOV
                 }
             }
         }
-        System.out.println("Simple");
-        System.out.println(new GreasedRegion(portion,0.0));
         return portion;
     }
 
@@ -153,7 +151,6 @@ public class MyFOV extends FOV
                 }
             }
         }
-        System.out.println(new GreasedRegion(portion, 0.0));
         return portion;
     }
 }

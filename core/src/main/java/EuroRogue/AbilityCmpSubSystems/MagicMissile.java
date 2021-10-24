@@ -1,6 +1,8 @@
 package EuroRogue.AbilityCmpSubSystems;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -8,6 +10,7 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
@@ -33,6 +36,7 @@ public class MagicMissile extends Ability
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
     private Coord targetedLocation;
+    public ParticleEffectActor particleEffect = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/magicMissile" ),Gdx.files.internal("" ));
 
     public MagicMissile()
     {
@@ -78,7 +82,8 @@ public class MagicMissile extends Ability
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
         //TextCellFactory.Glyph glyph = display.glyph('°',getSkill().school.color, startPos.x, startPos.y);
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
+
+        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp, particleEffect);
     }
 
     @Override
@@ -87,14 +92,18 @@ public class MagicMissile extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
-        glyph = display.glyph('°',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
+        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
+        glyph = display.glyph(' ',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
         SColor color = skill.school.color;
 
-        Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.4f)));
+        Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(4, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));
         glyph.setName(light.hashCode() + " " + "0" + " temp");
         lightingHandler.addLight(light.hashCode(), light);
+        peCmp.addEffect(glyph, ParticleEmittersCmp.ParticleEffect.MAGIC_MISSILE_P, display);
+        peCmp.particleEffectsMap.get(glyph).setScale(0.75f);
+
     }
 
     @Override

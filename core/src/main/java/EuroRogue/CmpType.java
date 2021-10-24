@@ -25,13 +25,15 @@ import EuroRogue.Components.ManaCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.NameCmp;
-import EuroRogue.Components.NoiseMap;
+import EuroRogue.Components.NoiseMapCmp;
 import EuroRogue.Components.ObjectCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.ShrineCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
+import EuroRogue.Components.UiBgLightingCmp;
 import EuroRogue.Components.WeaponCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.ActionEvt;
@@ -90,9 +92,10 @@ public enum CmpType
     MENU(MenuCmp.class),
     MOVE_EVT(MoveEvt.class),
     NAME(NameCmp.class),
-    NOISE_MAP(NoiseMap.class),
+    NOISE_MAP(NoiseMapCmp.class),
     OBJECT(ObjectCmp.class),
     POSITION(PositionCmp.class),
+    PARTICLES(ParticleEmittersCmp.class),
     REST_EVT(RestEvt.class),
     SCROLL(ScrollCmp.class),
     SHRINE(ShrineCmp.class),
@@ -101,6 +104,7 @@ public enum CmpType
     STAT_EVT(StatEvt.class),
     STATUS_EFFECT_EVT(StatusEffectEvt.class),
     TICKER(TickerCmp.class),
+    UIBG_LIGHTING(UiBgLightingCmp.class),
     WEAPON(WeaponCmp.class),
     WINDOW(WindowCmp.class);
 

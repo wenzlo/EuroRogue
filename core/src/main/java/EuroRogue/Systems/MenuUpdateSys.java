@@ -419,7 +419,7 @@ public class MenuUpdateSys extends MyEntitySystem {
 
         }
 
-        IColoredString.Impl abilityLabel = new IColoredString.Impl("Food Rations = "+ inventoryCmp.getFoodIDs().size(), SColor.BRIGHT_GOLD_BROWN);
+        IColoredString.Impl abilityLabel = new IColoredString.Impl("ƒood Rations = "+ inventoryCmp.getFoodIDs().size(), SColor.BRIGHT_GOLD_BROWN);
         MenuItem menuItem = new MenuItem(abilityLabel);
         menuCmp.menuMap.put(Coord.get(0,13),null, menuItem);
 
@@ -644,6 +644,24 @@ public class MenuUpdateSys extends MyEntitySystem {
         menuCmp.menuMap.put(Coord.get(1,2), chr, menuItem );
         getGame().keyLookup.put(chr, menuCmp);;
         getGame().globalMenuIndex++;
+
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
+        menuCmp.menuMap.put(Coord.get(1,5), null, new MenuItem(new IColoredString.Impl("Stat Increase Costs", SColor.WHITE)));
+        int x=1;int y=7;
+        for (StatType statType : StatType.CORE_STATS)
+        {
+            Coord coord = Coord.get(x, y);
+            float statColor = SColor.WHITE.toFloatBits();
+            IColoredString.Impl statLabel = new IColoredString.Impl(statType.name()+" ",  SColor.colorFromFloat(statColor));
+            for(School mana : statsCmp.getStatCost(statType)) statLabel.append('■', mana.color);
+
+            menuItem = new MenuItem(statLabel);
+
+            menuCmp.menuMap.put(coord, null, menuItem);
+
+
+            y++;
+        }
 
     }
 

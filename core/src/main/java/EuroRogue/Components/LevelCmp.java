@@ -51,8 +51,7 @@ public class LevelCmp implements Component
         LineKit.pruneLines(this.lineDungeon, new GreasedRegion(), prunedDungeon);
         this.environment = environment;
         this.resistance = MyDungeonUtility.generateSimpleResistances(decoDungeon);
-        System.out.println("Resistance at level creation");
-        System.out.println(new GreasedRegion(this.resistance, 0.0));
+
         this.bgColors = MyMapUtility.generateDefaultBGColorsFloat(decoDungeon);
         this.colors = MyMapUtility.generateDefaultColorsFloat(decoDungeon);
         this.floors = new GreasedRegion(bareDungeon, '.');

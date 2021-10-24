@@ -19,7 +19,7 @@ public class WinSysGameOver extends MyEntitySystem
 
     public WinSysGameOver()
     {
-        super.priority=102;
+        super.priority=9;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class WinSysGameOver extends MyEntitySystem
     {
 
         WindowCmp window = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().gameOverWindow));
-        MySparseLayers display = window.display;
+        MySparseLayers display = (MySparseLayers) window.display;
         if(display.isVisible()==false) return;
 
         //getGame().globalMenuIndex = 1; //key=1;

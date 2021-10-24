@@ -16,6 +16,7 @@ import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightingCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.GameState;
@@ -54,7 +55,8 @@ public class WinSysDungeon extends MyEntitySystem
     @Override
     public void update(float deltaTime)
     {
-        if(!((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display.isVisible()) return;
+        WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
+        if(!windowCmp.display.isVisible()) return;
         putMap(getGame().currentLevel);
 
     }
@@ -70,7 +72,8 @@ public class WinSysDungeon extends MyEntitySystem
         Ability aimAbility = null;
         if(aimingCmp!=null) aimAbility = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
         LineKit.pruneLines(levelCmp.lineDungeon, focusFov.seen, levelCmp.prunedDungeon);
-        MySparseLayers display = windowCmp.display;
+
+        MySparseLayers display = (MySparseLayers) windowCmp.display;
         display.clear();
         display.put(levelCmp.prunedDungeon, lightingCmp.fgLighting, lightingCmp.bgLighting);
 
@@ -144,5 +147,7 @@ public class WinSysDungeon extends MyEntitySystem
         stage.draw();
 
     }
+
+
 
 }

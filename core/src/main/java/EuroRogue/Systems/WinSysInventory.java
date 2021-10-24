@@ -23,7 +23,7 @@ public class WinSysInventory extends MyEntitySystem
 
     public WinSysInventory()
     {
-        super.priority=1;
+        super.priority=11;
     }
 
     /**
@@ -46,13 +46,12 @@ public class WinSysInventory extends MyEntitySystem
     public void update(float deltaTime)
     {
         EuroRogue game = getGame();
-        MySparseLayers display = game.inventoryWindow.getComponent(WindowCmp.class).display;
+        MySparseLayers display = (MySparseLayers)game.inventoryWindow.getComponent(WindowCmp.class).display;
         if(!display.isVisible()) return;
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.inventoryWindow);
         MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, game.inventoryWindow);
 
 
-        SColor bgColor = (SColor) display.defaultBackground;
         Stage stage = game.inventoryWindow.getComponent(WindowCmp.class).stage;
         String caption = "Inventory─────────────────────────Equipment SLots";
 
@@ -60,8 +59,7 @@ public class WinSysInventory extends MyEntitySystem
 
 
         display.clear();
-        display.fillBackground(bgColor);
-        display.putBorders(SColor.SLATE_GRAY.toFloatBits(),caption);
+
 
         for(Coord coord : menuCmp.menuMap.positions())
         {

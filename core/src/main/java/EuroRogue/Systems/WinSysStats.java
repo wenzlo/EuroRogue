@@ -27,7 +27,7 @@ public class WinSysStats extends MyEntitySystem
 
     public WinSysStats()
     {
-        super.priority=0;
+        super.priority=10;
     }
 
     /**
@@ -69,7 +69,7 @@ public class WinSysStats extends MyEntitySystem
             }
             else
             {
-                display = game.targetStatsWindow.getComponent(WindowCmp.class).display;
+                display = (MySparseLayers)game.targetStatsWindow.getComponent(WindowCmp.class).display;
                 bgColor = (SColor) display.defaultBackground;
                 stage = game.targetStatsWindow.getComponent(WindowCmp.class).stage;
                 Entity focusTarget = game.getFocusTarget();
@@ -83,13 +83,13 @@ public class WinSysStats extends MyEntitySystem
 
             StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
             display.clear();
-            display.putBorders(SColor.SLATE_GRAY.toFloatBits(),caption);
+
             String statsSB = statsCmp.toString();
             int y = 1;
             int x = 1;
             for(String string:StringKit.split(statsSB, "\n"))
             {
-                display.put(x,y,string, SColor.WHITE);
+                display.put(x,y,string,SColor.LIGHT_YELLOW_DYE);
                 y++;
                 if(y>16)
                 {

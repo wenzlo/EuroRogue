@@ -27,7 +27,7 @@ public class WinSysLog extends MyEntitySystem
 
     public WinSysLog()
     {
-        super.priority = 0;
+        super.priority = 11;
     }
 
 
@@ -63,14 +63,14 @@ public class WinSysLog extends MyEntitySystem
             }
         }
 
-        MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.logWindow)).display;
+        MySparseLayers display = (MySparseLayers)((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.logWindow)).display;
         Stage stage = game.logWindow.getComponent(WindowCmp.class).stage;
         LogCmp logCmp = (LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow);
         Integer currentTick = ((TickerCmp) CmpMapper.getComp(CmpType.TICKER, game.ticker)).tick;
 
         display.clear();
-        display.putBorders(SColor.BROWN.toFloatBits(), String.valueOf(getGame().depth));
-        display.fillBackground(display.defaultBackground);
+
+
         display.put(1, 18, currentTick.toString(),SColor.WHITE);
 
 

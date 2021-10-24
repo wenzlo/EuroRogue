@@ -10,6 +10,7 @@ import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.ItemType;
+import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.StatusEffectCmps.SEParameters;
@@ -41,6 +42,7 @@ public class ArmorFactory
         armor.add(new ItemCmp(ItemType.ARMOR));
         armor.add(new CharCmp('Ω', armorType.color));
         armor.add(new ArmorCmp(armorType));
+        armor.add(new LightCmp());
         EquipmentCmp equipmentCmp = new EquipmentCmp(new EquipmentSlot[]{EquipmentSlot.CHEST});
         equipmentCmp.statusEffects.put(armorType.grantedEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER));
         armor.add(equipmentCmp);

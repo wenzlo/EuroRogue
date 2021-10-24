@@ -27,7 +27,7 @@ public class WinSysHotBar extends MyEntitySystem
 
     public WinSysHotBar()
     {
-        super.priority=0;
+        super.priority=10;
         caption.append("Ability   ", SColor.WHITE);
         caption.append("cost/range/dmg──┼", SColor.SLATE_GRAY);
         caption.append("Scroll    ", SColor.WHITE);
@@ -62,28 +62,26 @@ public class WinSysHotBar extends MyEntitySystem
             {
                 window = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().focusHotBar));
                 menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, getGame().focusHotBar);
-                display = window.display;
+                display =(MySparseLayers) window.display;
                 stage = window.stage;
             }
             else
             {
                 window = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().targetHotBar));
                 menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, getGame().targetHotBar);
-                display = window.display;
+                display = (MySparseLayers)window.display;
                 stage = window.stage;
                 focus = false;
 
             }
             display.clear();
-            display.putBorders(SColor.SLATE_GRAY.toFloatBits(), null);
+
             display.put(1,0,caption);
 
             for(Coord coord : menuCmp.menuMap.positions())
             {
                 display.put(window.columnIndexes[coord.x], coord.y+1, menuCmp.menuMap.get(coord).label);
             }
-
-
 
             stage.getViewport().apply(false);
             stage.act();
