@@ -8,6 +8,8 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
@@ -20,6 +22,7 @@ import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
@@ -110,9 +113,7 @@ public class Immolate extends Ability
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        TextCellFactory.Glyph glyph = getGlyph();
-
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.MELEE_FIRE, startPos, targetCoord, eventCmp);
     }
 
     @Override
@@ -124,12 +125,15 @@ public class Immolate extends Ability
     public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
 
-        glyph = display.glyph(' ',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
+        GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer);
+        glyph = display.glyph(' ',getSkill().school.color.toFloatBits(), glyphsCmp.rightGlyph.getX(), glyphsCmp.rightGlyph.getY());
         SColor color = skill.school.color;
 
-        Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));
+        Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.4f)));
         glyph.setName(light.hashCode() + " " + "0" + " temp");
         lightingHandler.addLight(light.hashCode(), light);
+        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
+        peCmp.addEffect(glyph, ParticleEmittersCmp.ParticleEffect.FIRE_P, display);
 
     }
 

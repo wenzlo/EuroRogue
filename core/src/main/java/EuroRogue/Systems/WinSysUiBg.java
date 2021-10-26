@@ -49,7 +49,7 @@ public class WinSysUiBg extends MyEntitySystem
      */
     @Override
     public void addedToEngine(Engine engine) {
-        entities = engine.getEntitiesFor(Family.one(GameStateEvt.class, ShrineEvt.class).get());
+        entities = engine.getEntitiesFor(Family.one(GameStateEvt.class).get());
     }
 
     /**
@@ -78,9 +78,9 @@ public class WinSysUiBg extends MyEntitySystem
 
             //uiBgWindowCmp.display.fillBackground(SColor.BREWED_MUSTARD_BROWN);
 
-            for(Entity windowEntity : getGame().allWindows)
+            for(Entity windowEntity : getGame().uiBgWindows)
             {
-                if(windowEntity== getGame().dungeonWindow)continue;
+                if(windowEntity == getGame().dungeonWindow)continue;
                 WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity);
                 if(!windowCmp.display.isVisible()) continue;
                 int x = windowCmp.stage.getViewport().getScreenX();
@@ -113,8 +113,6 @@ public class WinSysUiBg extends MyEntitySystem
             Noise.Noise3D flicker = new WhirlingNoise();
 
 
-            //lightHandler.calculateFOV(Coord.get(8, 10));
-
             lightHandler.updateAll();
 
 
@@ -130,12 +128,9 @@ public class WinSysUiBg extends MyEntitySystem
             uiBgWindowCmp.display.put(uiBgLightingCmp.bgLighting);
 
         }
-
-
         uiBgWindowCmp.stage.act();
         uiBgWindowCmp.stage.getViewport().apply(false);
         uiBgWindowCmp.stage.draw();
-
     }
 
     private void rectangle(int x, int y, int w, int h, char[][]map)

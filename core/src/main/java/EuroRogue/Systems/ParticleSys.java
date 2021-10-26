@@ -6,6 +6,9 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
@@ -28,7 +31,6 @@ import squidpony.squidmath.Coord;
 public class ParticleSys extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
-    private ImmutableArray<Entity> animations;
 
     public ParticleSys()
     {
@@ -40,7 +42,6 @@ public class ParticleSys extends MyEntitySystem
     public void addedToEngine(Engine engine)
     {
         entities = engine.getEntitiesFor(Family.all(ParticleEmittersCmp.class).get());
-        animations = engine.getEntitiesFor(Family.all(AnimateGlyphEvt.class).get());
 
     }
 
@@ -49,15 +50,35 @@ public class ParticleSys extends MyEntitySystem
     {
        for(Entity entity : entities) {
            ParticleEmittersCmp particleEmittersCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, entity);
-
+           HashMap<TextCellFactory.Glyph, ArrayList<ParticleEmittersCmp.ParticleEffect>> effectsToRemove = new HashMap<>();
            for (TextCellFactory.Glyph glyph : particleEmittersCmp.particleEffectsMap.keySet()) {
-               ParticleEffectActor pea = particleEmittersCmp.particleEffectsMap.get(glyph);
-               pea.setPosition(glyph.getX(), glyph.getY());
-               if(!pea.isRunning() && glyph.isVisible()) pea.start();
-               else if (!glyph.isVisible()) pea.allowCompletion();
+               ArrayList<ParticleEmittersCmp.ParticleEffect> effects = new ArrayList<>();
+               for(ParticleEmittersCmp.ParticleEffect effect : particleEmittersCmp.particleEffectsMap.get(glyph).keySet())
+               {
+                   ParticleEffectActor pea = particleEmittersCmp.particleEffectsMap.get(glyph).get(effect);
+                   pea.setPosition(glyph.getX(), glyph.getY());
+                   if(!pea.isRunning() && glyph.isVisible() && !pea.isAutoRemove()) pea.start();
+                   else if (!glyph.isVisible()) pea.allowCompletion();
+                   if(pea.isAutoRemove() && !pea.isRunning())
+                   {
+                       effects.add(effect);
+
+                   }
+
+               }
+               effectsToRemove.put(glyph, effects);
+
+           }WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
+           for(TextCellFactory.Glyph glyph : effectsToRemove.keySet())
+           {
+               for(ParticleEmittersCmp.ParticleEffect effect : effectsToRemove.get(glyph))
+               {
+                   particleEmittersCmp.removeEffect(glyph, effect, windowCmp.display);
+               }
            }
 
        }
+
     }
 
 }

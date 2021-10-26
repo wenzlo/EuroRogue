@@ -124,9 +124,6 @@ public class DeathSys extends MyEntitySystem
         {
             if(!playerCodexCmp.known.contains(skill) && Skill.qualify(skill, playerStats))
             {
-
-
-
                 for(Coord pos : dropLocations)
                 {
                     if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
@@ -138,10 +135,8 @@ public class DeathSys extends MyEntitySystem
                         dropLocations.remove(pos);
                         break;
                     }
-
                 }
                 break;
-
             }
         }
         for(Skill skill : entityCodexCmp.known)
@@ -281,9 +276,18 @@ public class DeathSys extends MyEntitySystem
         ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, entity);
         ArrayList<TextCellFactory.Glyph> glyphs = new ArrayList<>();
         glyphs.addAll(peCmp.particleEffectsMap.keySet());
-        for(TextCellFactory.Glyph glyph : glyphs)
-        {
-            peCmp.removeEffect(glyph, display);
+        ArrayList<ParticleEmittersCmp.ParticleEffect> effects = new ArrayList<>();
+        for(TextCellFactory.Glyph glyph : glyphs) {
+            for(ParticleEmittersCmp.ParticleEffect effect : peCmp.particleEffectsMap.get(glyph).keySet())
+            {
+               effects.add(effect);
+            }
+            System.out.println(effects);
+            for (ParticleEmittersCmp.ParticleEffect effect : effects)
+            {
+                peCmp.removeEffect(glyph, effect, display);
+            }
+
         }
     }
 }

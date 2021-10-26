@@ -131,9 +131,12 @@ public class LevelSys extends MyEntitySystem
                 }
 
                 ParticleEmittersCmp peCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, entity);
-                for(TextCellFactory.Glyph glyph : peCmp.particleEffectsMap.keySet())
-                {
-                    peCmp.removeEffect(glyph, display);
+                for(TextCellFactory.Glyph glyph : peCmp.particleEffectsMap.keySet()) {
+                    for(ParticleEmittersCmp.ParticleEffect effect : peCmp.particleEffectsMap.get(glyph).keySet())
+                    {
+                        peCmp.removeEffect(glyph, effect, display);
+                    }
+
                 }
 
 
@@ -160,7 +163,7 @@ public class LevelSys extends MyEntitySystem
         levelEvt.processed=true;
 
         Entity newLevel = null;
-        if("tutorial".equals(getGame().playerName) && getGame().depth==0)
+        if(getGame().depth==0)
         {
 
             while(newLevel == null)

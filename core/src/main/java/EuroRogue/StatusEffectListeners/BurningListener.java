@@ -37,7 +37,7 @@ public class BurningListener extends StatusEffectListener
         ParticleEmittersCmp peaCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, entity);
         GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, entity);
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW,game.dungeonWindow);
-        peaCmp.removeEffect(glyphsCmp.glyph, windowCmp.display);
+        peaCmp.removeEffect(glyphsCmp.glyph, ParticleEmittersCmp.ParticleEffect.BURNING_P, windowCmp.display);
     }
 
 }

@@ -1,10 +1,15 @@
 package EuroRogue.StatusEffectListeners;
 
+import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
+import EuroRogue.Components.WindowCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.StatusEffectCmps.Bleeding;
@@ -21,6 +26,7 @@ public class BleedingListener implements EntityListener {
     public void entityAdded(Entity entity)
     {
         StatusEffectEvt statusEffectEvt = (StatusEffectEvt) CmpMapper.getComp(CmpType.STATUS_EFFECT_EVT, entity);
+        if(statusEffectEvt==null) return;
         if(statusEffectEvt.effect!=StatusEffect.BLEEDING) return;
         Entity targetEntity = game.getEntity(statusEffectEvt.targetID);
         Bleeding bleeding = (Bleeding) CmpMapper.getStatusEffectComp(StatusEffect.BLEEDING, targetEntity);
@@ -28,13 +34,23 @@ public class BleedingListener implements EntityListener {
         {
             bleeding.damagePerMove ++;
             bleeding.name = bleeding.name+"I";
+            return;
         }
-
+        ParticleEmittersCmp peaCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, targetEntity);
+        GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, targetEntity);
+        WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW,game.dungeonWindow);
+        peaCmp.addEffect(glyphsCmp.glyph, ParticleEmittersCmp.ParticleEffect.BLEED_P, windowCmp.display);
     }
 
 
     @Override
     public void entityRemoved(Entity entity) {
 
+        ParticleEmittersCmp peaCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, entity);
+        if(peaCmp==null) return;
+        GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, entity);
+        WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW,game.dungeonWindow);
+
+        peaCmp.removeEffect(glyphsCmp.glyph, ParticleEmittersCmp.ParticleEffect.BLEED_P, windowCmp.display);
     }
 }

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ParticleEmittersCmp;
@@ -101,7 +102,7 @@ public class AnimationsSys extends MyEntitySystem
                     Entity actor = getGame().getEntity(actionEvt.performerID);
                     Entity scroll = getGame().getEntity(actionEvt.scrollID);
                     Ability ability = CmpMapper.getAbilityComp(actionEvt.skill,actor );
-                    ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, actor);
+                    ParticleEmittersCmp performerPeaCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, actor);
                     if(scroll!=null) ability = CmpMapper.getAbilityComp(actionEvt.skill,scroll );
                     BlastAOE blastAOE = (BlastAOE) ability.aoe;
                     Coord center = blastAOE.getCenter();
@@ -119,8 +120,8 @@ public class AnimationsSys extends MyEntitySystem
                         TextCellFactory.Glyph glyph = display.glyph('*', SColor.LIGHT_YELLOW_DYE.toFloatBits(), center.x, center.y);
                         Light light = new Light(coord, new Radiance(3*intensity, SColor.SAFETY_ORANGE.toFloatBits()));
                         glyph.setName(light.hashCode() + " 0 " + " temp");
-                        peCmp.addEffect(glyph, ParticleEmittersCmp.ParticleEffect.FIRE_P, display);
-                        peCmp.particleEffectsMap.get(glyph).setScale(intensity*1.5f);
+                        performerPeaCmp.addEffect(glyph, ParticleEmittersCmp.ParticleEffect.FIRE_P, display);
+                        performerPeaCmp.particleEffectsMap.get(glyph).get(ParticleEmittersCmp.ParticleEffect.FIRE_P).setScale(intensity*1.5f);
                         killList.put(light.hashCode(), glyph);
                         display.slide(delay, glyph, coord.x, coord.y, 0.2f, null);
                         delay = (float) (delay+(0.2/blastAOE.findArea().keySet().size()));
@@ -131,7 +132,7 @@ public class AnimationsSys extends MyEntitySystem
                                 for(Integer lightID : killList.keySet())
                                 {
                                     lightHandler.removeLight(lightID);
-                                    peCmp.removeEffect(killList.get(lightID), display);
+                                    performerPeaCmp.removeEffect(killList.get(lightID), ParticleEmittersCmp.ParticleEffect.FIRE_P, display);
                                     display.glyphs.remove(killList.get(lightID));
 
 
@@ -205,7 +206,7 @@ public class AnimationsSys extends MyEntitySystem
                     actor = getGame().getEntity(actionEvt.performerID);
                     scroll = getGame().getEntity(actionEvt.scrollID);
                     ability = CmpMapper.getAbilityComp(actionEvt.skill,actor );
-                    peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, actor);
+                    performerPeaCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, actor);
                     if(scroll!=null) ability = CmpMapper.getAbilityComp(actionEvt.skill,scroll );
                     ConeAOE coneAOE = (ConeAOE) ability.aoe;
                     center = coneAOE.getOrigin();
@@ -220,8 +221,8 @@ public class AnimationsSys extends MyEntitySystem
                         TextCellFactory.Glyph glyph = display.glyph('*', SColor.WHITE.toFloatBits(), center.x, center.y);
                         light = new Light(coord, new Radiance(3, SColor.BABY_BLUE.toFloatBits()));
                         glyph.setName(light.hashCode() + " 0 " + " temp");
-                        peCmp.addEffect(glyph, ParticleEmittersCmp.ParticleEffect.ICE_P, display);
-                        peCmp.particleEffectsMap.get(glyph).setScale(1.2f);
+                        performerPeaCmp.addEffect(glyph, ParticleEmittersCmp.ParticleEffect.ICE_P, display);
+                        performerPeaCmp.particleEffectsMap.get(glyph).get(ParticleEmittersCmp.ParticleEffect.ICE_P).setScale(1.2f);
 
 
                         Light finalLight3 = light;
@@ -232,7 +233,7 @@ public class AnimationsSys extends MyEntitySystem
                             {
 
                                     lightHandler.removeLight(finalLight3.hashCode());
-                                    peCmp.removeEffect(finalGlyph, display);
+                                    performerPeaCmp.removeEffect(finalGlyph, ParticleEmittersCmp.ParticleEffect.ICE_P, display);
                                     display.glyphs.remove(finalGlyph);
 
 
@@ -301,23 +302,26 @@ public class AnimationsSys extends MyEntitySystem
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     SColor color = actionEvt.skill.school.color;
                     light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
-
-                    Entity target = getGame().getEntity(actionEvt.targetsDmg.get(0));
+                    actor = getGame().getEntity(actionEvt.performerID);
+                    AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI, actor);
+                    Entity target = getGame().getEntity(aiCmp.target);
                     TextCellFactory.Glyph targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
 
-                    TextCellFactory.Glyph finalTargetGlyph = targetGlyph;
-                    actor = getGame().getEntity(actionEvt.performerID);
-                    peCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, actor);
+                    final TextCellFactory.Glyph finalTargetGlyph = targetGlyph;
+
+                    performerPeaCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, actor);
+                    ParticleEmittersCmp targetPeaCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, target);
 
                     Light finalLight = light;
-                    Runnable burst = () -> {
-                        animation.pea.dispose();
-                        display.removeGlyph(animation.glyph);
-                        peCmp.removeEffect(animation.glyph, display);
-                        windowCmp.lightingHandler.removeLight(finalLight.hashCode());
 
-                        display.burst(0,xe,ye,1, Radius.CIRCLE, '.', color.toFloatBits(), color.toFloatBits(),0.18f, null);
+                    Runnable burst = () -> {
+                        performerPeaCmp.removeEffect(animation.glyph, ParticleEmittersCmp.ParticleEffect.ARCANE_P, display);
+                        windowCmp.lightingHandler.removeLight(finalLight.hashCode());
+                        targetPeaCmp.addEffect(finalTargetGlyph, ParticleEmittersCmp.ParticleEffect.ARCANE_DMG, display);
+                        display.removeGlyph(animation.glyph);
+
+                        //display.burst(0,xe,ye,1, Radius.CIRCLE, '.', color.toFloatBits(), color.toFloatBits(),0.18f, null);
 
                     };
 
@@ -340,16 +344,11 @@ public class AnimationsSys extends MyEntitySystem
                     targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
 
-                    finalTargetGlyph = targetGlyph;
+                    //finalTargetGlyph = targetGlyph;
 
                     burst = () -> {
                         display.removeGlyph(animation.glyph);
                         display.burst(0,xe,ye,1, Radius.CIRCLE, '.', color.toFloatBits(), color.toFloatBits(),0.18f, null);
-
-                        if(finalTargetGlyph !=null)
-                        {
-                            display.tint(0,finalTargetGlyph, color.toFloatBits(), 0.10f, null );
-                        }
 
 
                     };
@@ -357,8 +356,34 @@ public class AnimationsSys extends MyEntitySystem
                     display.slide(0f, animation.glyph, xe, ye, 0.18f, burst);
 
                     break;
+                case ICE_SHIELD:
 
-                case MELEE_MAGIC:
+                    xe = animation.endLocation.x;
+
+                    ye = animation.endLocation.y;
+                    actionEvt = (ActionEvt) animation.sourceEvent;
+                    target = getGame().getEntity(levelCmp.actors.get((Integer) ((ActionEvt) animation.sourceEvent).targetsDmg.keySet().toArray()[0]));
+                    targetPeaCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, target);
+                    GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target);
+
+                    postRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            targetPeaCmp.addEffect(glyphsCmp.glyph, ParticleEmittersCmp.ParticleEffect.ICE_DMG, display);
+
+                            windowCmp.lightingHandler.removeLightByGlyph(animation.glyph);
+
+
+                            display.removeGlyph(animation.glyph);
+                        }
+                    };
+
+                    display.slide(0.3f, animation.glyph, xe, ye,0.03f, postRunnable);
+
+
+                    break;
+
+                case MELEE_ARCANE:
 
                     xe = animation.endLocation.x;
 
@@ -371,19 +396,86 @@ public class AnimationsSys extends MyEntitySystem
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
                     light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
                     actor = getGame().getEntity(actionEvt.performerID);
-                    peCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, actor);
+                    performerPeaCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, actor);
+                    targetPeaCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, target);
+                    TextCellFactory.Glyph finalTargetGlyph2 = targetGlyph;
 
                     Light finalLight1 = light;
                     burst = () -> {
-                        display.removeGlyph(animation.glyph);
-                        peCmp.removeEffect(animation.glyph, display);
+
+                        performerPeaCmp.removeEffect(animation.glyph, ParticleEmittersCmp.ParticleEffect.ARCANE_P, display);
                         windowCmp.lightingHandler.removeLight(finalLight1.hashCode());
-                        display.burst(0,xe,ye,1, Radius.CIRCLE, '.', color.toFloatBits(), color.toFloatBits(),0.14f, null);
+                        targetPeaCmp.addEffect(finalTargetGlyph2, ParticleEmittersCmp.ParticleEffect.ARCANE_DMG, display);
+                        display.removeGlyph(animation.glyph);
+
+                        //display.burst(0,xe,ye,1, Radius.CIRCLE, '.', color.toFloatBits(), color.toFloatBits(),0.14f, null);
 
                     };
 
                     direction = Direction.toGoTo(animation.startLocation, animation.endLocation);
-                    display.bump(0, animation.glyph, direction, 0.12f, burst);
+                    display.slide(0f, animation.glyph, xe, ye, 0.12f, burst);
+
+
+                    break;
+                case MELEE_ICE:
+
+                    xe = animation.endLocation.x;
+
+                    ye = animation.endLocation.y;
+                    actionEvt = (ActionEvt) animation.sourceEvent;
+                    color = actionEvt.skill.school.color;
+                    target = getGame().getEntity(actionEvt.targetsDmg.get(0));
+                    if(target==null) target = getGame().getEntity(levelCmp.actors.get(animation.endLocation));
+                    targetGlyph = null;
+                    if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
+                    light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
+                    actor = getGame().getEntity(actionEvt.performerID);
+                    performerPeaCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, actor);
+                    targetPeaCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, target);
+                    TextCellFactory.Glyph finalTargetGlyph3 = targetGlyph;
+
+                    finalLight1 = light;
+                    burst = () -> {
+                        performerPeaCmp.removeEffect(animation.glyph, ParticleEmittersCmp.ParticleEffect.ICE_P, display);
+                        windowCmp.lightingHandler.removeLight(finalLight1.hashCode());
+                        targetPeaCmp.addEffect(finalTargetGlyph3, ParticleEmittersCmp.ParticleEffect.ICE_DMG, display);
+                        display.removeGlyph(animation.glyph);
+                        //display.burst(0,xe,ye,1, Radius.CIRCLE, '.', color.toFloatBits(), color.toFloatBits(),0.14f, null);
+
+                    };
+
+                    direction = Direction.toGoTo(animation.startLocation, animation.endLocation);
+                    display.slide(0f, animation.glyph, xe, ye, 0.12f, burst);
+
+
+                    break;
+                case MELEE_FIRE:
+
+                    xe = animation.endLocation.x;
+
+                    ye = animation.endLocation.y;
+                    actionEvt = (ActionEvt) animation.sourceEvent;
+                    color = actionEvt.skill.school.color;
+                    target = getGame().getEntity(actionEvt.targetsDmg.get(0));
+                    if(target==null) target = getGame().getEntity(levelCmp.actors.get(animation.endLocation));
+                    targetGlyph = null;
+                    if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
+                    light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
+                    actor = getGame().getEntity(actionEvt.performerID);
+                    performerPeaCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, actor);
+                    targetPeaCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, target);
+                    TextCellFactory.Glyph finalTargetGlyph4 = targetGlyph;
+
+                    finalLight1 = light;
+                    burst = () -> {
+                        performerPeaCmp.removeEffect(animation.glyph, ParticleEmittersCmp.ParticleEffect.FIRE_P, display);
+                        windowCmp.lightingHandler.removeLight(finalLight1.hashCode());
+                        targetPeaCmp.addEffect(finalTargetGlyph4, ParticleEmittersCmp.ParticleEffect.FIRE_DMG, display);
+                        display.removeGlyph(animation.glyph);
+                    };
+
+                    direction = Direction.toGoTo(animation.startLocation, animation.endLocation);
+                    display.slide(0f, animation.glyph, xe, ye, 0.12f, burst);
 
 
                     break;
@@ -402,7 +494,7 @@ public class AnimationsSys extends MyEntitySystem
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
                     light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
 
-                    finalTargetGlyph = targetGlyph;
+                    TextCellFactory.Glyph finalTargetGlyph5 = targetGlyph;
 
                     Light finalLight2 = light;
                     burst = () -> {
@@ -410,9 +502,9 @@ public class AnimationsSys extends MyEntitySystem
                         windowCmp.lightingHandler.removeLight(finalLight2.hashCode());
                         //display.burst(0,xe,ye,1, Radius.CIRCLE, '.', color.toFloatBits(), color.toFloatBits(),0.14f, null);
 
-                        if(finalTargetGlyph !=null)
+                        if(finalTargetGlyph5 !=null)
                         {
-                            display.tint(0,finalTargetGlyph, color.toFloatBits(), 0.10f, null );
+                            display.tint(0,finalTargetGlyph5, color.toFloatBits(), 0.10f, null );
                         }
 
                     };
@@ -441,7 +533,10 @@ public class AnimationsSys extends MyEntitySystem
         TINT,
         PROJ_MAGIC,
         PROJECTILE,
-        MELEE_MAGIC,
+        MELEE_ARCANE,
+        MELEE_FIRE,
+        MELEE_ICE,
+        ICE_SHIELD,
         MELEE_WEAPON,
         WIGGLE
     }

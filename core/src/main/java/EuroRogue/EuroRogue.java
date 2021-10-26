@@ -58,6 +58,7 @@ import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.Listeners.ActorListener;
 import EuroRogue.Listeners.ItemListener;
 import EuroRogue.Listeners.ObjectListener;
+import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.Burning;
 import EuroRogue.StatusEffectCmps.Calescent;
 import EuroRogue.StatusEffectCmps.Chilled;
@@ -125,6 +126,7 @@ import EuroRogue.Systems.StatusEffectEvtSys;
 import EuroRogue.Systems.StatusEffectRemovalSys;
 import EuroRogue.Systems.TickerSys;
 import EuroRogue.Systems.WinSysCamp;
+import EuroRogue.Systems.WinSysCampUiBg;
 import EuroRogue.Systems.WinSysDungeon;
 import EuroRogue.Systems.WinSysGameOver;
 import EuroRogue.Systems.WinSysHotBar;
@@ -135,7 +137,7 @@ import EuroRogue.Systems.WinSysShrine;
 import EuroRogue.Systems.WinSysStart;
 import EuroRogue.Systems.WinSysStats;
 import EuroRogue.Systems.WinSysUiBg;
-import EuroRogue.Systems.WinSysWorld;
+import EuroRogue.Systems.WinSysShrineUiBg;
 import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
@@ -164,8 +166,8 @@ public class EuroRogue extends ApplicationAdapter {
     public Integer globalMenuIndex = 0;
     public char[] globalMenuSelectionKeys = "1234567890-=qweruiop[]".toCharArray();
     public HashMap<Character, MenuCmp> keyLookup = new HashMap<>();
-    public Entity uiBackgrounds, worldMapWindow, shrineWindow, gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, ticker, logWindow, currentLevel;
-    public  List<Entity> playingWindows, campingWindows, allWindows, startWindows, gameOverWindows, shrineWindows;
+    public Entity uiBackgrounds, worldMapWindow, shrineWindow, shrineWinBG, gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, campWInBg, ticker, logWindow, currentLevel;
+    public  List<Entity> playingWindows, campingWindows, allWindows, uiBgWindows, startWindows, gameOverWindows, shrineWindows;
     public float lastFrameTime;
     public GameState gameState;
     public String playerName = "tutorial";
@@ -254,8 +256,9 @@ public class EuroRogue extends ApplicationAdapter {
         foodFactory = new FoodFactory();
         objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
         mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory, armorFactory);
-
+        engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory, objectFactory));
         dungeonGen = new SectionDungeonGenerator(42, 42, new GWTRNG(rng.nextInt()));
+
 
         Entity eventEntity = new Entity();
         LevelEvt levelEvt = new LevelEvt();
@@ -269,7 +272,7 @@ public class EuroRogue extends ApplicationAdapter {
     {
         ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, outlineFragmentShader);
         shrineWindow = new Entity();
-        Stage shrineStage = buildStage(50, 62,27,17,27,17 ,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
+        Stage shrineStage = buildStage(52, 51,28,18,27,17 ,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
         shrineWindow.add(new WindowCmp((MySparseLayers) shrineStage.getActors().get(0),shrineStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, shrineWindow)).columnIndexes = new int[]{3,25};
         WindowCmp windowCmp = new WindowCmp((MySparseLayers)shrineStage.getActors().get(0),shrineStage, true);
@@ -293,7 +296,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         windowCmp.display.font.shader = outlineShader;
         uiBackgrounds.add(windowCmp);
-        uiBackgrounds.add(new UiBgLightingCmp());
+        uiBackgrounds.add(new UiBgLightingCmp(windowCmp.display.gridWidth, windowCmp.display.gridHeight));
         engine.addEntity(uiBackgrounds);
 
         dungeonWindow = new Entity();
@@ -309,7 +312,21 @@ public class EuroRogue extends ApplicationAdapter {
         dungeonWindow.add(windowCmp);
         engine.addEntity(dungeonWindow);
 
+        shrineWinBG = new Entity();
 
+        font = DefaultResources.getStretchableSquareFont();
+        int width = ((MySparseLayers) shrineStage.getActors().get(0)).gridWidth/4;
+        int height = ((MySparseLayers) shrineStage.getActors().get(0)).gridHeight/2;
+        Stage shrineBgStage = buildStage(52, 52, width, height, width, height ,cellWidth*4,cellHeight*4, font, SColor.WHITE.toFloatBits());
+        windowCmp = new WindowCmp((MySparseLayers)shrineBgStage.getActors().get(0),shrineBgStage, true);
+        windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*4 * 1.15f).initBySize();
+        //windowCmp.display.put();
+        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
+
+        windowCmp.display.font.shader = outlineShader;
+        shrineWinBG.add(windowCmp);
+        shrineWinBG.add(new UiBgLightingCmp(windowCmp.display.gridWidth, windowCmp.display.gridHeight));
+        engine.addEntity(shrineWinBG);
 
         startWindow = new Entity();
 
@@ -327,15 +344,30 @@ public class EuroRogue extends ApplicationAdapter {
         //gameOverWindow.add(new MenuCmp());
         engine.addEntity(gameOverWindow);
 
-
-
         campWindow = new Entity();
 
-        Stage campWinStage = buildStage(42,21,69,30,69,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        Stage campWinStage = buildStage(48,27,56,26,56,26,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
         campWindow.add(new WindowCmp( (MySparseLayers)campWinStage.getActors().get(0),campWinStage, false));
-        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{1,25,49, 65};
+        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{1,25,40, 65};
         campWindow.add(new MenuCmp());
         engine.addEntity(campWindow);
+
+        campWInBg = new Entity();
+
+        font = DefaultResources.getStretchableSquareFont();
+        width = ((MySparseLayers) campWinStage.getActors().get(0)).gridWidth/4+1;
+        height = ((MySparseLayers) campWinStage.getActors().get(0)).gridHeight/2+1;
+        Stage campBgStage = buildStage(46, 26, width, height, width, height ,cellWidth*4,cellHeight*4, font, SColor.WHITE.toFloatBits());
+        windowCmp = new WindowCmp((MySparseLayers)campBgStage.getActors().get(0), campBgStage, true);
+        windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*4 * 1.15f).initBySize();
+        //windowCmp.display.put();
+        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
+
+        windowCmp.display.font.shader = outlineShader;
+        campWInBg.add(windowCmp);
+        campWInBg.add(new UiBgLightingCmp(windowCmp.display.gridWidth, windowCmp.display.gridHeight));
+        engine.addEntity(campWInBg);
+
 
         Stage fmStage = buildStage(51,1,10,10,10,10,cellWidth*2,cellHeight*2, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
 
@@ -365,8 +397,6 @@ public class EuroRogue extends ApplicationAdapter {
         focusStatsWindow.add(new WindowCmp( (MySparseLayers)fsStage.getActors().get(0), fsStage, true));
         windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, focusStatsWindow);
         windowCmp.columnIndexes = new int[]{1,20,40};
-
-
 
         Stage tsStage = buildStage(2,57,40,19,40,18,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
@@ -407,10 +437,12 @@ public class EuroRogue extends ApplicationAdapter {
         targetHotBar.add(new MenuCmp());
         engine.addEntity(targetHotBar);
 
-        allWindows = Arrays.asList(shrineWindow, gameOverWindow, startWindow, dungeonWindow, campWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
+        allWindows = Arrays.asList(shrineWinBG, shrineWindow, gameOverWindow, startWindow, dungeonWindow, campWindow, campWInBg, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
+        uiBgWindows = Arrays.asList(startWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
+
         playingWindows = Arrays.asList(dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
-        shrineWindows = Arrays.asList(shrineWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
-        campingWindows = Arrays.asList(campWindow, focusManaWindow, focusHotBar, inventoryWindow, focusStatsWindow, logWindow);
+        shrineWindows = Arrays.asList(shrineWinBG, shrineWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
+        campingWindows = Arrays.asList(campWInBg, campWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
         startWindows = Arrays.asList(focusManaWindow, inventoryWindow, focusHotBar, focusStatsWindow, startWindow);
         gameOverWindows = Arrays.asList(gameOverWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow );
 
@@ -422,7 +454,7 @@ public class EuroRogue extends ApplicationAdapter {
     }
     private void initializeListeners()
     {
-        Family bleedingEvt = Family.one(StatusEffectEvt.class).get();
+        Family bleedingEvt = Family.one(StatusEffectEvt.class, Bleeding.class).get();
         engine.addEntityListener(bleedingEvt, new BleedingListener(this));
 
         Family actors = Family.all(AICmp.class).get();
@@ -500,6 +532,8 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new ParticleSys());
         engine.addSystem(new WinSysDungeon());
         engine.addSystem(new WinSysUiBg());
+        engine.addSystem(new WinSysShrineUiBg());
+        engine.addSystem(new WinSysCampUiBg());
         engine.addSystem(new WinSysShrine(((WindowCmp)(CmpMapper.getComp(CmpType.WINDOW, shrineWindow))).display));
         engine.addSystem(new WinSysGameOver());
         engine.addSystem(new ShrineSys());
@@ -533,7 +567,7 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new DeathSys());
         engine.addSystem(new NoiseSys());
         engine.addSystem(new MakeCampSys());
-        engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory, objectFactory));
+
 
 
     }

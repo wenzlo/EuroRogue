@@ -64,7 +64,6 @@ public class TickerSys extends MyEntitySystem
 
         entitiesWithSEs = engine.getEntitiesFor(Family.one(Hungry.class, Starving.class, Bleeding.class, Burning.class, Calescent.class, Chilled.class, Frozen.class, Staggered.class).get());
 
-
     }
 
     /**

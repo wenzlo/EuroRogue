@@ -36,6 +36,12 @@ public class MySparseLayers extends SubcellLayers
         super(gridWidth, gridHeight, cellWidth, cellHeight, font, 0f, 0f);
     }
 
+    public TextCellFactory.Glyph glyph(char shown, float color, float x, float y) {
+        TextCellFactory.Glyph g = this.font.glyph(shown, color, x, y);
+        super.glyphs.add(g);
+        return g;
+    }
+
     public int getBigWidth()
     {
         return (int) (getStage().getViewport().getWorldWidth()/cellWidth());
@@ -329,9 +335,9 @@ public class MySparseLayers extends SubcellLayers
         return lightIDs;
     }
 
-    public HashMap<Integer, TextCellFactory.Glyph> summonWithParticlesAndLight(float delay, int startX, int startY, int endX, int endY, char shown,
+    /*public HashMap<Integer, TextCellFactory.Glyph> summonWithParticlesAndLight(float delay, int startX, int startY, int endX, int endY, char shown,
                                                                                final float startColor, final float endColor, float duration, float intensity, LightHandler lightHandler,
-                                                                               Entity performer, ParticleEmittersCmp.ParticleEffect particleType, /* @Nullable */ Runnable postRunnable)
+                                                                               Entity performer, ParticleEmittersCmp.ParticleEffect particleType, *//* @Nullable *//* Runnable postRunnable)
     {
         duration = Math.max(0.015f, duration);
         ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
@@ -367,7 +373,7 @@ public class MySparseLayers extends SubcellLayers
         {
             sequence[index++] = Actions.run(postRunnable);
         }
-        /* Do this one last, so that hasActiveAnimations() returns true during 'postRunnables' */
+        *//* Do this one last, so that hasActiveAnimations() returns true during 'postRunnables' *//*
         sequence[index] = Actions.run(new Runnable() {
             @Override
             public void run() {
@@ -377,5 +383,5 @@ public class MySparseLayers extends SubcellLayers
         });
         glyph.addAction(Actions.sequence(sequence));
         return killList;
-    }
+    }*/
 }

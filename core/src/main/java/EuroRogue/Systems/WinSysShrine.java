@@ -156,10 +156,11 @@ public class WinSysShrine extends MyEntitySystem
 
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, focusEntity);
+        menuCmp.menuMap.put(Coord.get(0,1), null, new MenuItem(new IColoredString.Impl( school.name+" Shrine", school.color )));
 
-        menuCmp.menuMap.put(Coord.get(0,1), null, new MenuItem(new IColoredString.Impl("Charges = "+shrineCmp.charges, SColor.WHITE )));
+        menuCmp.menuMap.put(Coord.get(0,2), null, new MenuItem(new IColoredString.Impl("Charges = "+shrineCmp.charges, SColor.WHITE )));
         int x = 0;
-        int y = 3;
+        int y = 4;
         for (Integer itemID : inventoryCmp.getScrollsIDs())
         {
 
@@ -339,7 +340,6 @@ public class WinSysShrine extends MyEntitySystem
 
         return coloredString;
     }
-
     private IColoredString.Impl getManaLabel(School spent, School gained, Character selectionKey)
     {
 

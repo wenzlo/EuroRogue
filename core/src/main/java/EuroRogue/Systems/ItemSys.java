@@ -207,7 +207,7 @@ public class ItemSys extends MyEntitySystem
         LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, itemEntity);
         lightCmp.level = 0;
         if(itemCmp.type== ItemType.TORCH) {
-            peCmp.removeEffect(glyphsCmp.leftGlyph, windowCmp.display);
+            peCmp.removeEffect(glyphsCmp.leftGlyph, ParticleEmittersCmp.ParticleEffect.TORCH_P, windowCmp.display);
         }
     }
     private void drop(Entity itemEntity, Entity actorEntity)

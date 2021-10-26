@@ -11,17 +11,23 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 
 public class ParticleEmittersCmp implements Component
 {
-    public HashMap<TextCellFactory.Glyph, ParticleEffectActor> particleEffectsMap = new HashMap<>();
+    public HashMap<TextCellFactory.Glyph, HashMap<ParticleEffect,ParticleEffectActor>> particleEffectsMap = new HashMap<>();
 
     public enum ParticleEffect
     {
         TORCH_P,
+        BLEED_P,
         FIRE_P,
         ICE_P,
+        ICE_SHIELD,
         CHILLED_P,
         CALESCENT_P,
+        STAGGERED_P,
         BURNING_P,
-        MAGIC_MISSILE_P
+        ARCANE_P,
+        ARCANE_DMG,
+        ICE_DMG,
+        FIRE_DMG
     }
 
     public void addEffect(TextCellFactory.Glyph glyph, ParticleEffect effect, MySparseLayers display)
@@ -32,11 +38,27 @@ public class ParticleEmittersCmp implements Component
             case TORCH_P:
                 pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/pixelFlame" ),Gdx.files.internal("" ));
                 break;
+            case BLEED_P:
+                pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/bleeding" ),Gdx.files.internal("" ));
+                pea.setScale(0.5f);
+                break;
+            case STAGGERED_P:
+                pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/staggerred" ),Gdx.files.internal("" ));
+                pea.setScale(0.3f);
+                break;
             case FIRE_P:
                 pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/fireSpell" ),Gdx.files.internal("" ));
+                pea.setScale(0.75f);
                 break;
             case ICE_P:
                 pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/iceSpell" ),Gdx.files.internal("" ));
+                pea.setScale(0.75f);
+                break;
+            case ICE_SHIELD:
+                pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/iceShield" ),Gdx.files.internal("" ));
+                pea.setScale(0.3f);
+                pea.setAutoRemove(true);
+                pea.start();
                 break;
             case CHILLED_P:
                 pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/chilled" ),Gdx.files.internal("" ));
@@ -50,22 +72,56 @@ public class ParticleEmittersCmp implements Component
                 pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/burning" ),Gdx.files.internal("" ));
                 pea.setScale(0.5f);
                 break;
-            case MAGIC_MISSILE_P:
+            case ARCANE_P:
                 pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/magicMissile" ),Gdx.files.internal("" ));
+                pea.setScale(0.75f);
+                break;
+            case ARCANE_DMG:
+                pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/arcaneDmg" ),Gdx.files.internal("" ));
+                pea.setScale(0.75f);
+                pea.setAutoRemove(true);
+                pea.start();
+                break;
+            case ICE_DMG:
+                pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/iceDmg" ),Gdx.files.internal("" ));
+                pea.setScale(0.75f);
+                pea.setAutoRemove(true);
+                pea.start();
+                break;
+            case FIRE_DMG:
+                pea = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/fireDmg" ),Gdx.files.internal("" ));
+                pea.setScale(0.75f);
+                pea.setAutoRemove(true);
+                pea.start();
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + effect);
         }
-        particleEffectsMap.put(glyph, pea);
+        if(particleEffectsMap.keySet().contains(glyph))
+        {
+            particleEffectsMap.get(glyph).put(effect, pea);
+
+        } else {
+            HashMap<ParticleEffect,ParticleEffectActor> effects  = new HashMap<>();
+            effects.put(effect, pea);
+            particleEffectsMap.put(glyph, effects);
+        }
+
         display.getStage().addActor(pea);
-        //pea.start();
     }
 
-    public  void removeEffect(TextCellFactory.Glyph glyph, MySparseLayers display)
-    {
-        ParticleEffectActor pea = particleEffectsMap.get(glyph);
-        display.getStage().getActors().removeValue(pea, true);
-        particleEffectsMap.remove(glyph);
+    public  void removeEffect(TextCellFactory.Glyph glyph, ParticleEffect effect, MySparseLayers display) {
+        System.out.println("Removing " + effect);
+        HashMap<ParticleEffect, ParticleEffectActor> effects = particleEffectsMap.get(glyph);
+        if(effects==null) return;
+        if (effects.containsKey(effect))
+        {
+            display.getStage().getActors().removeValue(effects.get(effect), true);
+            effects.remove(effect);
+            System.out.println(effect+" "+effects.keySet());
+        }
+
+        if(effects.isEmpty()) particleEffectsMap.remove(glyph);
 
     }
 
