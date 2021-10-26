@@ -16,6 +16,7 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.TickerCmp;
@@ -99,8 +100,11 @@ public class ActionSys extends MyEntitySystem
                 if(glyph!=null)
                 {
                     WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
+                    ParticleEmittersCmp peaCmp = (ParticleEmittersCmp)CmpMapper.getComp(CmpType.PARTICLES, performerEntity);
+                    peaCmp.removeEffectsByGlyph(glyph, windowCmp.display);
                     windowCmp.lightingHandler.removeLightByGlyph(glyph);
                     windowCmp.display.glyphs.remove(abilityCmp.getGlyph());
+
                 }
 
 

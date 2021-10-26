@@ -103,7 +103,7 @@ public class WinSysUiBg extends MyEntitySystem
             }
             for(int x = 0; x< uiBgLightingCmp.fgColors.length; x++) {
                 for (int y = 0; y < uiBgLightingCmp.fgColors[0].length; y++) {
-                    uiBgLightingCmp.fgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), uiBgLightingCmp.fgColors[x][y], MathUtils.clamp((float) (uiBgLightingCmp.fgLightLevel[x][y]), 0.3f, 0.9f));
+                    uiBgLightingCmp.fgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), uiBgLightingCmp.fgColors[x][y], MathUtils.clamp((float) (uiBgLightingCmp.fgLightLevel[x][y]), 0.4f, 0.9f));
                 }
             }
 

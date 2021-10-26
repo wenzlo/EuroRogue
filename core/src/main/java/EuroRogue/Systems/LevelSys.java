@@ -265,7 +265,6 @@ public class LevelSys extends MyEntitySystem
 
         SerpentMapGenerator serpentMapGenerator = new SerpentMapGenerator(42, 42, new GWTRNG(rng.nextInt()));
 
-
         serpentMapGenerator.putWalledBoxRoomCarvers(5);
         serpentMapGenerator.putWalledRoundRoomCarvers(5);
         serpentMapGenerator.putCaveCarvers(5);
@@ -442,17 +441,18 @@ public class LevelSys extends MyEntitySystem
 
         for(OrderedSet<Coord> roomCenter : roomCenters)
         {
-
+            if(numShrines==4) break;
             School school = rng.getRandomElement(schools);
             schools.remove(school);
             Coord position = roomCenter.randomItem(rng);
+            System.out.println(position+" "+school);
             addShrine(objectFactory.getShrine(position, school), newLevel);
             spwnCrds.remove(position);
             numShrines++;
         }
         for(OrderedSet<Coord> alongWall : getGame().dungeonGen.placement.getAlongStraightWalls())
         {
-
+            if(numShrines==4) break;
             School school = rng.getRandomElement(schools);
             schools.remove(school);
             Coord position = alongWall.randomItem(rng);
