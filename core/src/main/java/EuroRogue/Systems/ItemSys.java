@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -37,6 +38,7 @@ import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.School;
+import EuroRogue.SortByDistance;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
@@ -210,7 +212,7 @@ public class ItemSys extends MyEntitySystem
             peCmp.removeEffect(glyphsCmp.leftGlyph, ParticleEmittersCmp.ParticleEffect.TORCH_P, windowCmp.display);
         }
     }
-    private void drop(Entity itemEntity, Entity actorEntity)
+    public void drop(Entity itemEntity, Entity actorEntity)
     {
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, actorEntity);
         EquipmentCmp equipmentCmp = (EquipmentCmp) CmpMapper.getComp(CmpType.EQUIPMENT, itemEntity);
@@ -249,21 +251,23 @@ public class ItemSys extends MyEntitySystem
 
         BlastAOE aoe = new BlastAOE(actorPosition, 2, Radius.CIRCLE);
         aoe.setMap(levelCmp.bareDungeon);
-        if(levelCmp.items.positions().contains(actorPosition))
+
+        Coord dropLocation = actorPosition;
+        for(Coord pos : aoe.findArea().keySet())
         {
-            for(Coord pos : aoe.findArea().keySet())
+            if(!levelCmp.items.positions().contains(dropLocation) && levelCmp.floors.contains(dropLocation))
             {
-                if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
-                {
-                    actorPosition = Coord.get(pos.x, pos.y);
-                    break;
-                }
-            }
+                itemEntity.remove(PositionCmp.class);
+                itemEntity.add(new PositionCmp(dropLocation));
+
+                break;
+
+            } else dropLocation=pos;
         }
+
 
         itemCmp.ownerID = null;
 
-        itemEntity.add(new PositionCmp(actorPosition));
         inventoryCmp.remove(itemEntity.hashCode());
     }
     private void pickup(Entity itemEntity, Entity actorEntity)
@@ -273,7 +277,7 @@ public class ItemSys extends MyEntitySystem
         ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, actorEntity);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+        itemEntity.remove(PositionCmp.class);
         switch (itemCmp.type)
         {
             case FOOD:

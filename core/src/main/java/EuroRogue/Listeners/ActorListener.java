@@ -2,8 +2,19 @@ package EuroRogue.Listeners;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
+
+import java.util.ArrayList;
+
+import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
+import EuroRogue.Components.FOVCmp;
+import EuroRogue.Components.FocusCmp;
+import EuroRogue.Components.NameCmp;
+import EuroRogue.TerrainType;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
+import EuroRogue.Components.CharCmp;
+import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
@@ -15,6 +26,8 @@ import EuroRogue.EuroRogue;
 import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.Systems.FOVSys;
+import squidpony.squidai.DijkstraMap;
+import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.gui.gdx.LightingHandler;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -35,11 +48,19 @@ public class ActorListener implements EntityListener {
     @Override
     public void entityAdded(Entity entity)
     {
+        NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
+
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
+        WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow);
         if(levelCmp == null) return;
+        System.out.println(nameCmp.name+" added by listener"+entity.hashCode());
         Coord position = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
-        GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, entity);
+        levelCmp.actors.put(position, entity.hashCode(), entity.hashCode());
         LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, entity);
+        CharCmp charCmp = (CharCmp)CmpMapper.getComp(CmpType.CHAR, entity);
+        GlyphsCmp glyphsCmp = new GlyphsCmp(windowCmp.display, charCmp.chr, '•','•',charCmp.color, position.x, position.y);
+        entity.add(glyphsCmp);
+
 
         LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
 
@@ -54,12 +75,18 @@ public class ActorListener implements EntityListener {
         glyphsCmp.leftGlyph.setName(leftLight.hashCode() + " " + entity.hashCode()+ " actorLeft");
         glyphsCmp.rightGlyph.setName(rightLight.hashCode() + " " + entity.hashCode()+ " actorRight");
 
-
+        entity.add(new FOVCmp(levelCmp.bareDungeon.length, levelCmp.bareDungeon[0].length));
         game.engine.getSystem(FOVSys.class).updateFOV(entity);
+        AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI,entity);
+        aiCmp.dijkstraMap = new DijkstraMap(levelCmp.bareDungeon, Measurement.EUCLIDEAN);
+        aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(levelCmp.decoDungeon));
 
         entity.remove(NoiseMapCmp.class);
         entity.add(new NoiseMapCmp(levelCmp.bareDungeon));
-        WindowCmp dungeonWindow = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow);
+        for(Skill skill : ((CodexCmp)CmpMapper.getComp(CmpType.CODEX, entity)).prepared )
+        {
+            CmpMapper.getAbilityComp(skill, entity).setMap(levelCmp.decoDungeon);
+        }
 
 
     }
@@ -67,10 +94,29 @@ public class ActorListener implements EntityListener {
     @Override
     public void entityRemoved(Entity entity)
     {
+        NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
+        System.out.println(nameCmp.name+" removed");
         LevelCmp level = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
-        Coord position = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
-        level.actors.remove(entity.hashCode());
-        LightingHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
-        lightHandler.removeLight(position);
+        if(level!=null)
+        {
+            Coord position = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
+            level.actors.remove(entity.hashCode());
+            LightingHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
+            lightHandler.removeLight(position);
+        }
+
+
+
+        WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow);
+        GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, entity);
+        if(glyphsCmp!=null)
+        {
+            windowCmp.display.removeGlyph(glyphsCmp.glyph);
+            windowCmp.display.removeGlyph(glyphsCmp.leftGlyph);
+            windowCmp.display.removeGlyph(glyphsCmp.rightGlyph);
+        }
+
+
+
     }
 }

@@ -34,7 +34,7 @@ public class WinSysShrineUiBg extends MyEntitySystem
 
     public WinSysShrineUiBg()
     {
-        super.priority=8;
+        super.priority=10;
 
     }
 

@@ -304,8 +304,6 @@ public class AISys extends MyEntitySystem
         {
             if(entPos==ai.location) continue;
             Integer entID = levelCmp.actors.get(entPos);
-            Entity otherEnt = getGame().getEntity(entID);
-            FOVCmp otherFOV = (FOVCmp) CmpMapper.getComp(CmpType.FOV,otherEnt);
             FactionCmp.Faction otherFaction = ((FactionCmp) CmpMapper.getComp(CmpType.FACTION, getGame().getEntity(entID))).faction;
 
             if(selfFOV.visible.contains(entPos))

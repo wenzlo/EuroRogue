@@ -117,7 +117,7 @@ public class AnimationsSys extends MyEntitySystem
                         float intensity = (float) (blastAOE.findArea().get(coord)*1f);
 
 
-                        TextCellFactory.Glyph glyph = display.glyph('*', SColor.LIGHT_YELLOW_DYE.toFloatBits(), center.x, center.y);
+                        TextCellFactory.Glyph glyph = display.glyph(' ', SColor.LIGHT_YELLOW_DYE.toFloatBits(), center.x, center.y);
                         Light light = new Light(coord, new Radiance(3*intensity, SColor.SAFETY_ORANGE.toFloatBits()));
                         glyph.setName(light.hashCode() + " 0 " + " temp");
                         performerPeaCmp.addEffect(glyph, ParticleEmittersCmp.ParticleEffect.FIRE_P, display);

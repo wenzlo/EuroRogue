@@ -90,7 +90,7 @@ public class ActionSys extends MyEntitySystem
             }
 
             if(targetType!=AOE) getGame().updateAbility(abilityCmp, performerEntity);
-            if(abilityCmp==null) System.out.println("Ability comp = Null");
+
             if(!abilityCmp.isAvailable() && abilityCmp.getSkill().skillType != Skill.SkillType.REACTION || performerEntity==null)
             {
                 LogEvt logEvt = generateCancelLogEvt(action, performerEntity);

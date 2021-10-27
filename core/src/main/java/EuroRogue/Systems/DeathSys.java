@@ -22,6 +22,7 @@ import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ManaPoolCmp;
+import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
@@ -40,6 +41,7 @@ import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
+import squidpony.squidmath.GreasedRegion;
 
 public class DeathSys extends MyEntitySystem
 {
@@ -113,9 +115,12 @@ public class DeathSys extends MyEntitySystem
 
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Coord actorPosition = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
+        System.out.println(actorPosition);
         BlastAOE aoe = new BlastAOE(actorPosition, 2, Radius.CIRCLE);
         aoe.setMap(levelCmp.bareDungeon);
+        System.out.println(new GreasedRegion(levelCmp.bareDungeon, '.'));
         ArrayList<Coord> dropLocations = new ArrayList<>();
+        System.out.println(aoe.findArea().keySet());
         dropLocations.addAll(aoe.findArea().keySet());
         Collections.sort(dropLocations, new SortByDistance(actorPosition));
 
@@ -169,8 +174,8 @@ public class DeathSys extends MyEntitySystem
             }
         }
         removelights(entity);
-        dropItems(entity, dropLocations);
 
+        dropItems(entity, dropLocations);
         removeParticleEffects(entity, display);
         removeGlyphs(entity, display);
         getEngine().removeEntity(entity);
@@ -202,6 +207,7 @@ public class DeathSys extends MyEntitySystem
     {
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+        Coord entityPos = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity)).coord;
         ArrayList<Integer> itemsToDrop = new ArrayList<>();
         itemsToDrop.addAll(inventoryCmp.getItemIDs());
         itemsToDrop.addAll(inventoryCmp.getEquippedIDs());
@@ -212,20 +218,23 @@ public class DeathSys extends MyEntitySystem
 
             if(itemEntity!=null)
             {
+                NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME,itemEntity);
                 ItemCmp itemCmp = (ItemCmp)CmpMapper.getComp(CmpType.ITEM, itemEntity);
                 EquipmentCmp equipmentCmp = (EquipmentCmp) CmpMapper.getComp(CmpType.EQUIPMENT, itemEntity);
                 if(equipmentCmp!=null)
                     equipmentCmp.equipped = false;
-                Coord location;
+                Collections.sort(dropLocations, new SortByDistance(entityPos));
+
                 for(Coord pos : dropLocations)
                 {
                     if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
                     {
-                        location = Coord.get(pos.x, pos.y);
+                        System.out.println("Dropping "+nameCmp.name+" at "+ pos);
                         itemCmp.ownerID = null;
+                        itemEntity.remove(PositionCmp.class);
+                        itemEntity.add(new PositionCmp(pos));
 
-                        itemEntity.add(new PositionCmp(location));
-                        dropLocations.remove(location);
+                        dropLocations.remove(pos);
 
                         break;
                     }
@@ -282,7 +291,7 @@ public class DeathSys extends MyEntitySystem
             {
                effects.add(effect);
             }
-            System.out.println(effects);
+
             for (ParticleEmittersCmp.ParticleEffect effect : effects)
             {
                 peCmp.removeEffect(glyph, effect, display);

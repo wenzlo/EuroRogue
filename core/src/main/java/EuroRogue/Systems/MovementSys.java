@@ -59,8 +59,10 @@ public class MovementSys extends MyEntitySystem
     {
         for (Entity entity : entities)
         {
+
             EuroRogue game = getGame();
             MoveEvt moveEvt = (MoveEvt) CmpMapper.getComp(CmpType.MOVE_EVT,entity);
+
             Entity actor = game.getEntity(moveEvt.entityID);
 
             moveEvt.processed=true;
