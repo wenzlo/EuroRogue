@@ -8,6 +8,7 @@ import EuroRogue.Components.ArmorCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.EquipmentSlot;
+import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.ItemType;
 import EuroRogue.Components.LightCmp;

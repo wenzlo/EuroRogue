@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
@@ -36,6 +37,7 @@ import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.School;
+import EuroRogue.SortByDistance;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
