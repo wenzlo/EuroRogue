@@ -14,7 +14,6 @@ import EuroRogue.Components.WindowCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
-import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
 
 public class WinSysInventory extends MyEntitySystem

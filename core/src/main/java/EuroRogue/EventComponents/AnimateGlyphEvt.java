@@ -1,11 +1,8 @@
 package EuroRogue.EventComponents;
 
-import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
 import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
 
-import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Systems.AnimationsSys;
-import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 

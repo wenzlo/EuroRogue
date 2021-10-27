@@ -10,7 +10,6 @@ import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.UiBgLightingCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.Light;
 import EuroRogue.LightHandler;
@@ -34,7 +33,7 @@ public class WinSysShrineUiBg extends MyEntitySystem
 
     public WinSysShrineUiBg()
     {
-        super.priority=8;
+        super.priority=10;
 
     }
 

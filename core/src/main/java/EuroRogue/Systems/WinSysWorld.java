@@ -5,30 +5,15 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
-import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
-import EuroRogue.Components.AimingCmp;
-import EuroRogue.Components.CharCmp;
-import EuroRogue.Components.FOVCmp;
-import EuroRogue.Components.GlyphsCmp;
-import EuroRogue.Components.LevelCmp;
-import EuroRogue.Components.LightingCmp;
-import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
-import EuroRogue.MySparseLayers;
-import squidpony.ArrayTools;
 import squidpony.squidgrid.gui.gdx.ICellVisible;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.SparseLayers;
-import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidgrid.gui.gdx.WildMapView;
-import squidpony.squidgrid.mapping.LineKit;
 import squidpony.squidgrid.mapping.WildMap;
-import squidpony.squidmath.Coord;
 
 
 public class WinSysWorld extends MyEntitySystem

@@ -20,6 +20,13 @@ public class GlyphsCmp implements Component
     {
         this.glyph = mySparseLayers.glyph(chr, color, x,y);
     }
+    public GlyphsCmp(MySparseLayers mySparseLayers, char chr, char leftChr, char rightChr, SColor color, int x, int y)
+    {
+        this.glyph = mySparseLayers.glyph(chr, color, x,y);
+        this.leftGlyph = mySparseLayers.glyph(leftChr, color, x,y);
+        this.rightGlyph = mySparseLayers.glyph(rightChr, color, x,y);
+
+    }
     public void setVisibility(boolean bool)
     {
         glyph.setVisible(bool);

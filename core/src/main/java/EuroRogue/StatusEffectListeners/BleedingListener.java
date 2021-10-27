@@ -1,14 +1,12 @@
 package EuroRogue.StatusEffectListeners;
 
-import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
-import EuroRogue.Components.NameCmp;
-import EuroRogue.Components.ParticleEmittersCmp;
+import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.StatusEffectEvt;
@@ -36,21 +34,21 @@ public class BleedingListener implements EntityListener {
             bleeding.name = bleeding.name+"I";
             return;
         }
-        ParticleEmittersCmp peaCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, targetEntity);
+        ParticleEffectsCmp peaCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, targetEntity);
         GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, targetEntity);
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW,game.dungeonWindow);
-        peaCmp.addEffect(glyphsCmp.glyph, ParticleEmittersCmp.ParticleEffect.BLEED_P, windowCmp.display);
+        peaCmp.addEffect(glyphsCmp.glyph, ParticleEffectsCmp.ParticleEffect.BLEED_P, windowCmp.display);
     }
 
 
     @Override
     public void entityRemoved(Entity entity) {
 
-        ParticleEmittersCmp peaCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, entity);
+        ParticleEffectsCmp peaCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, entity);
         if(peaCmp==null) return;
         GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, entity);
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW,game.dungeonWindow);
 
-        peaCmp.removeEffect(glyphsCmp.glyph, ParticleEmittersCmp.ParticleEffect.BLEED_P, windowCmp.display);
+        peaCmp.removeEffect(glyphsCmp.glyph, ParticleEffectsCmp.ParticleEffect.BLEED_P, windowCmp.display);
     }
 }

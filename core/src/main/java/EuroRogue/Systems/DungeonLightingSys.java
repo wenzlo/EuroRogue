@@ -6,7 +6,6 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.math.MathUtils;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
@@ -22,7 +21,6 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.LightCmpTemp;
 import EuroRogue.Components.LightingCmp;
-import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
@@ -34,13 +32,10 @@ import EuroRogue.MyFOV;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import squidpony.StringKit;
-import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.FastNoise;
-import squidpony.squidmath.FoamNoise;
 import squidpony.squidmath.GWTRNG;
 import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.Noise;
@@ -55,7 +50,7 @@ public class DungeonLightingSys extends MyEntitySystem
 
     public DungeonLightingSys()
     {
-        super.priority = 100;
+        super.priority = 9;
         this.rng = new GWTRNG();
     }
 
@@ -83,13 +78,15 @@ public class DungeonLightingSys extends MyEntitySystem
 
     public void updateLighting()
     {
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+        if(levelCmp==null) return;
         if(getGame().gameState== GameState.STARTING) return;
         if(getGame().gameState== GameState.CAMPING) return;
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         MySparseLayers display = (MySparseLayers)windowCmp.display;
         LightHandler lightingHandler = windowCmp.lightingHandler;
         LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+
         StatsCmp focusStatsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
 
 
@@ -130,6 +127,7 @@ public class DungeonLightingSys extends MyEntitySystem
                         else
                         {
                             LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, owner);
+
                             lightingHandler.lightList.get(lightID).radiance.range=lightCmp.level;
                             lightingHandler.lightList.get(lightID).radiance.color = lightCmp.color;
                             lightingHandler.lightList.get(lightID).radiance.flicker = lightCmp.flicker;
@@ -179,7 +177,6 @@ public class DungeonLightingSys extends MyEntitySystem
 
             }
         }
-
         for(Integer id : levelCmp.objects.identities())
         {
             Entity owner= getGame().getEntity(id);
@@ -243,6 +240,7 @@ public class DungeonLightingSys extends MyEntitySystem
         if(getGame().gameState==GameState.AIMING)
         {
             AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
+            System.out.println( getGame().getFocus()+" "+aimingCmp);
             Ability aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
             if(aimingCmp.scroll) aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getScrollForSkill(aimingCmp.skill, getGame().getFocus()));
 
@@ -298,7 +296,7 @@ public class DungeonLightingSys extends MyEntitySystem
 
 
 
-       lightingHandler.draw(lightingCmp.bgLighting);
+        lightingHandler.draw(lightingCmp.bgLighting);
 
         glyphs = display.glyphs.iterator();
 
@@ -310,8 +308,11 @@ public class DungeonLightingSys extends MyEntitySystem
 
                 Integer ownerID = Integer.parseInt(splitName[1]);
                 Entity owner = getGame().getEntity(ownerID);
+
                 if (owner != null) {
+
                     PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, owner);
+                    if(positionCmp==null) continue;
                     GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, owner);
                     if (fovCmp.visible.contains(positionCmp.coord)) glyphsCmp.setVisibility(true);
                     else glyphsCmp.setVisibility(false);

@@ -42,11 +42,8 @@ import EuroRogue.MySparseLayers;
 import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
-import EuroRogue.WeaponType;
 import squidpony.squidgrid.gui.gdx.SColor;
-import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.GreasedRegion;
 
 public class WinSysShrine extends MyEntitySystem
 {

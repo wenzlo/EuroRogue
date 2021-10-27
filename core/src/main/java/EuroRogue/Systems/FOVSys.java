@@ -5,11 +5,9 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
-import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightingCmp;
@@ -19,11 +17,7 @@ import EuroRogue.Components.WindowCmp;
 import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MyFOV;
-import squidpony.squidai.DijkstraMap;
-import squidpony.squidgrid.FOV;
-import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.Radius;
-import squidpony.squidmath.Coord;
 import squidpony.squidmath.GreasedRegion;
 
 

@@ -15,7 +15,6 @@ import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.NumberTools;
 
 public class LightHandler extends LightingHandler

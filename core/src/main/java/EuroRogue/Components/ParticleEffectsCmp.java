@@ -10,7 +10,7 @@ import java.util.HashMap;
 import EuroRogue.MySparseLayers;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 
-public class ParticleEmittersCmp implements Component {
+public class ParticleEffectsCmp implements Component {
     public HashMap<TextCellFactory.Glyph, HashMap<ParticleEffect, ParticleEffectActor>> particleEffectsMap = new HashMap<>();
 
     public enum ParticleEffect {
@@ -112,7 +112,6 @@ public class ParticleEmittersCmp implements Component {
         if (effects.containsKey(effect)) {
             display.getStage().getActors().removeValue(effects.get(effect), true);
             effects.remove(effect);
-            System.out.println(effect + " " + effects.keySet());
         }
 
         if (effects.isEmpty()) particleEffectsMap.remove(glyph);

@@ -1,14 +1,10 @@
 package EuroRogue.Components;
 
 import com.badlogic.ashley.core.Component;
-import com.badlogic.gdx.graphics.Color;
 
 import EuroRogue.MyMapUtility;
-import EuroRogue.MyDungeonUtility;
 import squidpony.squidgrid.gui.gdx.MapUtility;
 import squidpony.squidgrid.gui.gdx.SColor;
-import squidpony.squidgrid.mapping.DungeonUtility;
-import squidpony.squidmath.GreasedRegion;
 
 public class UiBgLightingCmp implements Component
 {

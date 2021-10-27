@@ -6,7 +6,7 @@ import com.badlogic.ashley.core.Entity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import EuroRogue.MySparseLayers;
+
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
@@ -22,6 +22,7 @@ import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.LightHandler;
+import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;

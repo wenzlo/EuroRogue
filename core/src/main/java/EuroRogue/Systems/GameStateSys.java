@@ -7,6 +7,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.GameStateEvt;
@@ -59,6 +60,7 @@ public class GameStateSys extends MyEntitySystem
             setWindowVisibility(newGameState);
             setInputProcessor(newGameState);
             ((GameStateEvt)CmpMapper.getComp(CmpType.GAMESTATE_EVT, entity)).setProcessed(true);
+            if(getGame().gameState==GameState.AIMING) getGame().getFocus().remove(AimingCmp.class);
             getGame().gameState=newGameState;
         }
 

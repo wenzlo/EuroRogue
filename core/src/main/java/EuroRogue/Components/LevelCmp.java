@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import EuroRogue.MyDungeonUtility;
-import EuroRogue.MyFOV;
 import EuroRogue.MyMapUtility;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.SpatialMap;

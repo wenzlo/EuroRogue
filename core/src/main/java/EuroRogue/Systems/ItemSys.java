@@ -6,7 +6,6 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
@@ -25,7 +24,7 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.ManaCmp;
 import EuroRogue.Components.ManaPoolCmp;
-import EuroRogue.Components.ParticleEmittersCmp;
+import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.StatsCmp;
@@ -42,8 +41,6 @@ import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Radius;
-import squidpony.squidgrid.gui.gdx.SColor;
-import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidmath.Coord;
 
 public class ItemSys extends MyEntitySystem
@@ -125,7 +122,7 @@ public class ItemSys extends MyEntitySystem
         LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, itemEntity);
         StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actorEntity);
         GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actorEntity);
-        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, actorEntity);
+        ParticleEffectsCmp peCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, actorEntity);
         ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         if(!equipmentCmp.canEquip(statsCmp)) return;
 
@@ -167,7 +164,7 @@ public class ItemSys extends MyEntitySystem
 
         if(equipmentCmp.lightLevel > 0) lightCmp.level = equipmentCmp.lightLevel; lightCmp.color = equipmentCmp.lightColor;
         if(itemCmp.type== ItemType.TORCH) {
-            peCmp.addEffect(glyphsCmp.leftGlyph, ParticleEmittersCmp.ParticleEffect.TORCH_P, windowCmp.display);
+            peCmp.addEffect(glyphsCmp.leftGlyph, ParticleEffectsCmp.ParticleEffect.TORCH_P, windowCmp.display);
         }
 
     }
@@ -178,7 +175,7 @@ public class ItemSys extends MyEntitySystem
         EquipmentCmp equipmentCmp = (EquipmentCmp) CmpMapper.getComp(CmpType.EQUIPMENT, itemEntity);
         WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, itemEntity);
         GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actorEntity);
-        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, actorEntity);
+        ParticleEffectsCmp peCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, actorEntity);
         ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         inventoryCmp.unequip(itemEntity.hashCode());
 
@@ -207,10 +204,10 @@ public class ItemSys extends MyEntitySystem
         LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, itemEntity);
         lightCmp.level = 0;
         if(itemCmp.type== ItemType.TORCH) {
-            peCmp.removeEffect(glyphsCmp.leftGlyph, ParticleEmittersCmp.ParticleEffect.TORCH_P, windowCmp.display);
+            peCmp.removeEffect(glyphsCmp.leftGlyph, ParticleEffectsCmp.ParticleEffect.TORCH_P, windowCmp.display);
         }
     }
-    private void drop(Entity itemEntity, Entity actorEntity)
+    public void drop(Entity itemEntity, Entity actorEntity)
     {
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, actorEntity);
         EquipmentCmp equipmentCmp = (EquipmentCmp) CmpMapper.getComp(CmpType.EQUIPMENT, itemEntity);
@@ -249,21 +246,23 @@ public class ItemSys extends MyEntitySystem
 
         BlastAOE aoe = new BlastAOE(actorPosition, 2, Radius.CIRCLE);
         aoe.setMap(levelCmp.bareDungeon);
-        if(levelCmp.items.positions().contains(actorPosition))
+
+        Coord dropLocation = actorPosition;
+        for(Coord pos : aoe.findArea().keySet())
         {
-            for(Coord pos : aoe.findArea().keySet())
+            if(!levelCmp.items.positions().contains(dropLocation) && levelCmp.floors.contains(dropLocation))
             {
-                if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
-                {
-                    actorPosition = Coord.get(pos.x, pos.y);
-                    break;
-                }
-            }
+                itemEntity.remove(PositionCmp.class);
+                itemEntity.add(new PositionCmp(dropLocation));
+
+                break;
+
+            } else dropLocation=pos;
         }
+
 
         itemCmp.ownerID = null;
 
-        itemEntity.add(new PositionCmp(actorPosition));
         inventoryCmp.remove(itemEntity.hashCode());
     }
     private void pickup(Entity itemEntity, Entity actorEntity)
@@ -273,7 +272,7 @@ public class ItemSys extends MyEntitySystem
         ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, actorEntity);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+        itemEntity.remove(PositionCmp.class);
         switch (itemCmp.type)
         {
             case FOOD:

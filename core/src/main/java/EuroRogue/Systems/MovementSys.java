@@ -7,10 +7,6 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 
-import EuroRogue.EventComponents.AnimateGlyphEvt;
-import EuroRogue.MySparseLayers;
-import EuroRogue.MyFOV;
-import EuroRogue.LightHandler;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
@@ -25,20 +21,20 @@ import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.DamageType;
 import EuroRogue.EuroRogue;
+import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.DamageEvent;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.EventComponents.MoveEvt;
 import EuroRogue.IColoredString;
+import EuroRogue.LightHandler;
 import EuroRogue.MyEntitySystem;
+import EuroRogue.MyFOV;
 import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.Burning;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
-import squidpony.squidgrid.Measurement;
 import squidpony.squidgrid.SpatialMap;
 import squidpony.squidgrid.gui.gdx.SColor;
-import squidpony.squidgrid.gui.gdx.SquidInput;
 import squidpony.squidmath.Coord;
 
 public class MovementSys extends MyEntitySystem
@@ -59,8 +55,10 @@ public class MovementSys extends MyEntitySystem
     {
         for (Entity entity : entities)
         {
+
             EuroRogue game = getGame();
             MoveEvt moveEvt = (MoveEvt) CmpMapper.getComp(CmpType.MOVE_EVT,entity);
+
             Entity actor = game.getEntity(moveEvt.entityID);
 
             moveEvt.processed=true;

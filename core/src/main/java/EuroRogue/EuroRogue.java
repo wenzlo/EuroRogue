@@ -7,10 +7,8 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
-
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Scaling;
@@ -106,13 +104,13 @@ import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.Systems.CodexSys;
 import EuroRogue.Systems.DamageApplicationSys;
 import EuroRogue.Systems.DeathSys;
+import EuroRogue.Systems.DungeonLightingSys;
 import EuroRogue.Systems.EventCleanUpSys;
 import EuroRogue.Systems.FOVSys;
 import EuroRogue.Systems.FocusTargetSys;
 import EuroRogue.Systems.GameStateSys;
 import EuroRogue.Systems.ItemSys;
 import EuroRogue.Systems.LevelSys;
-import EuroRogue.Systems.DungeonLightingSys;
 import EuroRogue.Systems.MakeCampSys;
 import EuroRogue.Systems.MenuUpdateSys;
 import EuroRogue.Systems.MovementSys;
@@ -134,10 +132,10 @@ import EuroRogue.Systems.WinSysInventory;
 import EuroRogue.Systems.WinSysLog;
 import EuroRogue.Systems.WinSysMana;
 import EuroRogue.Systems.WinSysShrine;
+import EuroRogue.Systems.WinSysShrineUiBg;
 import EuroRogue.Systems.WinSysStart;
 import EuroRogue.Systems.WinSysStats;
 import EuroRogue.Systems.WinSysUiBg;
-import EuroRogue.Systems.WinSysShrineUiBg;
 import squidpony.StringKit;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
@@ -256,6 +254,7 @@ public class EuroRogue extends ApplicationAdapter {
         foodFactory = new FoodFactory();
         objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
         mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory, armorFactory);
+
         engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory, objectFactory));
         dungeonGen = new SectionDungeonGenerator(42, 42, new GWTRNG(rng.nextInt()));
 
@@ -463,7 +462,7 @@ public class EuroRogue extends ApplicationAdapter {
         Family items = Family.all(ItemCmp.class, PositionCmp.class).get();
         engine.addEntityListener(items, new ItemListener(this));
 
-        Family objects = Family.all(ObjectCmp.class, PositionCmp.class).get();
+        Family objects = Family.all(ObjectCmp.class).get();
         engine.addEntityListener(objects, new ObjectListener(this));
 
         Family burning = Family.one(Burning.class).get();
@@ -585,8 +584,6 @@ public class EuroRogue extends ApplicationAdapter {
         foodFactory = new FoodFactory();
         objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
         mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory, armorFactory);
-
-
 
         // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
         // if the seed is identical between two runs, any random factors will also be identical (until user input may
@@ -808,7 +805,7 @@ public class EuroRogue extends ApplicationAdapter {
                         GameStateEvt gameStateEvt = new GameStateEvt(GameState.PLAYING);
                         eventEntity.add(gameStateEvt);
                         engine.addEntity(eventEntity);
-                        getFocus().remove(AimingCmp.class);
+
                         return;
 
 
@@ -993,19 +990,6 @@ public class EuroRogue extends ApplicationAdapter {
                     }
                     break;
 
-                case 'd':
-                case 'D':
-                    levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
-                    focusLocation = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, focus)).coord;
-                    if(!levelCmp.items.positions().contains(focusLocation))
-                    {
-
-                        Integer itemID = ((InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, focus)).getItemIDs().get(0);
-                        ItemEvt itemEvt = new ItemEvt(itemID, focus.hashCode(), ItemEvtType.DROP);
-                        focus.add(itemEvt);
-
-                    }
-                    break;
 
                 case '>':
                     char[][] decoDungeon = ((LevelCmp)CmpMapper.getComp(CmpType.LEVEL, currentLevel)).decoDungeon;
@@ -1072,6 +1056,7 @@ public class EuroRogue extends ApplicationAdapter {
             }
 
             Coord newPosition = Coord.get(newX,newY);
+
             if(focusPosition.equals(newPosition)) return;
             AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI,getFocus());
             Direction direction = Direction.toGoTo(focusPosition, newPosition);
@@ -1090,8 +1075,10 @@ public class EuroRogue extends ApplicationAdapter {
 
                 if(!currentLevel.getComponent(LevelCmp.class).isOccupied(newPosition))
                 {
+
                     AISys aiSys = engine.getSystem(AISys.class);
                     double terrainCost = aiCmp.dijkstraMap.costMap[focusPosition.x][focusPosition.y];
+
                     aiSys.scheduleMoveEvt(getFocus(), direction, terrainCost);
 
 
@@ -1200,10 +1187,8 @@ public class EuroRogue extends ApplicationAdapter {
 
         /*currentLevel = new Entity();
         engine.addEntity(currentLevel);*/
-        player = mobFactory.generateRndPlayer();
-        player.add(new FocusCmp());
-        engine.addEntity(player);
 
+        generatePlayer();
         lastFrameTime = System.currentTimeMillis();
         Entity eventEntity = new Entity();
         GameStateEvt gameStateEvt =  new GameStateEvt(GameState.STARTING);
@@ -1366,7 +1351,10 @@ public class EuroRogue extends ApplicationAdapter {
     { return ticker.getComponent(TickerCmp.class).tick; }
     public Entity getFocus()
     {
-        return engine.getEntitiesFor(Family.all(FocusCmp.class).get()).get(0);
+        ImmutableArray<Entity> focusArray = engine.getEntitiesFor(Family.all(FocusCmp.class).get());
+
+        if(focusArray.size()==0) return player;
+        else return focusArray.get(0);
     }
     public Entity getFocusTarget()
     {
@@ -1391,6 +1379,73 @@ public class EuroRogue extends ApplicationAdapter {
         stageDisplay.defaultPackedBackground = bgColor;
         stage.getActors().get(0).setVisible(true);
         return stage;
+    }
+
+    public void generatePlayer()
+    {
+        if(player!=null)
+        {
+            InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, player);
+            for(Integer itemID : inventoryCmp.getAllItemIDs())
+            {
+                Entity itemEntity = getEntity(itemID);
+                engine.removeEntity(itemEntity);
+            }
+            engine.removeEntity(player);
+        }
+        player = mobFactory.generateRndPlayer();
+        engine.addEntity(player);
+
+
+
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, player);
+        CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, player);
+        if(statsCmp.getPerc() <4) {
+            Entity torch = weaponFactory.newTorch();
+            engine.addEntity(torch);
+            InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
+            inventoryCmp.put(torch.hashCode());
+        }
+        if(codexCmp.prepared.contains(Skill.DAGGER_THROW)) {
+           Entity dagger = weaponFactory.newBasicWeapon(WeaponType.DAGGER);
+            engine.addEntity(dagger);
+            InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
+            inventoryCmp.put(dagger.hashCode());
+        }
+        else  {
+            Entity rndWeapon = weaponFactory.newRndWeapon();
+            engine.addEntity(rndWeapon);
+            InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
+            inventoryCmp.put(rndWeapon.hashCode());
+        }
+
+        if(statsCmp.getDex()>statsCmp.getStr()){
+            Entity armor = armorFactory.newBasicArmor(ArmorType.LEATHER, null);
+            engine.addEntity(armor);
+            InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
+            inventoryCmp.put(armor.hashCode());
+        }
+        else if(statsCmp.getStr() > 4) {
+            Entity armor = armorFactory.newBasicArmor(ArmorType.PLATE, null);
+            engine.addEntity(armor);
+            InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
+            inventoryCmp.put(armor.hashCode());
+        }
+        else if(statsCmp.getStr()+statsCmp.getDex() > 2) {
+            Entity armor = armorFactory.newBasicArmor(ArmorType.MAIL, null);
+            engine.addEntity(armor);
+            InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
+            inventoryCmp.put(armor.hashCode());
+        }
+        else {
+            Entity armor = armorFactory.newBasicArmor(ArmorType.LEATHER, null);
+            engine.addEntity(armor);
+            InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
+            inventoryCmp.put(armor.hashCode());
+        }
+
+
+
     }
 
 

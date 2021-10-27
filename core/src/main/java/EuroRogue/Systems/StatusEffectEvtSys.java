@@ -16,7 +16,6 @@ import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
-import EuroRogue.GameState;
 import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatusEffectCmps.StatusEffect;

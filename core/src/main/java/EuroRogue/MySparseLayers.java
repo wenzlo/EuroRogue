@@ -1,11 +1,9 @@
 package EuroRogue;
 
-import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g3d.particles.ParticleShader;
 import com.badlogic.gdx.math.Frustum;
 import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -15,9 +13,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import EuroRogue.Components.ParticleEmittersCmp;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.FilterBatch;
 import squidpony.squidgrid.gui.gdx.Radiance;
@@ -337,10 +333,10 @@ public class MySparseLayers extends SubcellLayers
 
     /*public HashMap<Integer, TextCellFactory.Glyph> summonWithParticlesAndLight(float delay, int startX, int startY, int endX, int endY, char shown,
                                                                                final float startColor, final float endColor, float duration, float intensity, LightHandler lightHandler,
-                                                                               Entity performer, ParticleEmittersCmp.ParticleEffect particleType, *//* @Nullable *//* Runnable postRunnable)
+                                                                               Entity performer, ParticleEffectsCmp.ParticleEffect particleType, *//* @Nullable *//* Runnable postRunnable)
     {
         duration = Math.max(0.015f, duration);
-        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
+        ParticleEffectsCmp peCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
         final int nbActions = 2 + (0 < delay ? 1 : 0) + (postRunnable == null ? 0 : 1);
         int index = 0;
         final Action[] sequence = new Action[nbActions];

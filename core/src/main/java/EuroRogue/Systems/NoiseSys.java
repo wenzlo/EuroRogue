@@ -14,7 +14,6 @@ import EuroRogue.CmpType;
 import EuroRogue.Components.AICmp;
 import EuroRogue.Components.FactionCmp;
 import EuroRogue.Components.LevelCmp;
-import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.NoiseMapCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;

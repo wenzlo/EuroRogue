@@ -2,7 +2,6 @@ package EuroRogue;
 
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.mapping.DungeonUtility;
-import squidpony.squidmath.GreasedRegion;
 
 public class MyFOV extends FOV
 {

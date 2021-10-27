@@ -16,7 +16,6 @@ import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightingCmp;
-import EuroRogue.Components.ParticleEmittersCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.GameState;
@@ -34,7 +33,7 @@ public class WinSysDungeon extends MyEntitySystem
 
     public WinSysDungeon()
     {
-        super.priority = 8;
+        super.priority = 10;
     }
 
     /**
@@ -75,7 +74,7 @@ public class WinSysDungeon extends MyEntitySystem
 
         MySparseLayers display = (MySparseLayers) windowCmp.display;
         display.clear();
-        display.put(levelCmp.prunedDungeon, lightingCmp.fgLighting, lightingCmp.bgLighting);
+        display.put(/*levelCmp.prunedDungeon, lightingCmp.fgLighting,*/ lightingCmp.bgLighting);
 
         for (int x = Math.max(0, focusPos.x - (display.gridWidth >> 1) - 1), i = 0; x < levelCmp.decoDungeon[0].length && i < display.gridWidth + 2; x++, i++)
         {
@@ -86,7 +85,7 @@ public class WinSysDungeon extends MyEntitySystem
                     if (levelCmp.floors.contains(Coord.get(x, y)))
                         display.put(x, y, levelCmp.decoDungeon[x][y], lightingCmp.fgLighting[x][y]);
 
-                    else
+                    else if(focusFov.seen.contains(Coord.get(x,y)))
                         display.put(x, y, levelCmp.prunedDungeon[x][y], lightingCmp.fgLighting[x][y]);
 
                 }else if(focusFov.nightVision[x][y]>0){
@@ -125,15 +124,17 @@ public class WinSysDungeon extends MyEntitySystem
 
                     display.put(x, y, '!', SColor.WHITE);
                 }
-                Coord cell = Coord.get(x,y);
-                Integer potentialItemID = levelCmp.items.get(cell);
-                if(potentialItemID!=null && focusFov.visible.contains(cell))
-                {
-                    Entity item = getGame().getEntity(potentialItemID);
-                    CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, item);
-                    display.put(cell.x, cell.y, charCmp.chr, charCmp.color);
-                }
             }
+        }
+        for(Coord coord : levelCmp.items.positions())
+        {
+            if(!focusFov.visible.contains(coord)) continue;
+            Integer itemID = levelCmp.items.get(coord);
+
+            Entity itemEntity = getGame().getEntity(itemID);
+            CharCmp charCmp = (CharCmp)CmpMapper.getComp(CmpType.CHAR, itemEntity);
+            display.put(coord.x, coord.y, charCmp.chr, charCmp.color);
+
         }
 
         Stage stage = windowCmp.stage;

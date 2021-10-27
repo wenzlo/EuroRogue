@@ -11,7 +11,6 @@ import java.util.Comparator;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;

@@ -625,15 +625,13 @@ public class MenuUpdateSys extends MyEntitySystem {
         getGame().keyLookup.put(chr, menuCmp);
         getGame().globalMenuIndex++;
 
-        Entity focus = getGame().getFocus();
+        Entity player = getGame().player;
 
         primaryAction = new Runnable() {
             @Override
             public void run()
             {
-                getEngine().removeEntity(focus);
-                getGame().player = getGame().mobFactory.generateRndPlayer();
-                getEngine().addEntity(getGame().player);
+                getGame().generatePlayer();
             }
         };
         chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];

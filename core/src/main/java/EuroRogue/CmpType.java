@@ -27,7 +27,7 @@ import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.NoiseMapCmp;
 import EuroRogue.Components.ObjectCmp;
-import EuroRogue.Components.ParticleEmittersCmp;
+import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.ShrineCmp;
@@ -95,7 +95,7 @@ public enum CmpType
     NOISE_MAP(NoiseMapCmp.class),
     OBJECT(ObjectCmp.class),
     POSITION(PositionCmp.class),
-    PARTICLES(ParticleEmittersCmp.class),
+    PARTICLES(ParticleEffectsCmp.class),
     REST_EVT(RestEvt.class),
     SCROLL(ScrollCmp.class),
     SHRINE(ShrineCmp.class),

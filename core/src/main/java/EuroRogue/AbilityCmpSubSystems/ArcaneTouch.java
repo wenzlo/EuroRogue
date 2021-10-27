@@ -9,7 +9,7 @@ import java.util.List;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
-import EuroRogue.Components.ParticleEmittersCmp;
+import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
@@ -126,8 +126,8 @@ public class ArcaneTouch extends Ability
         Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));
         glyph.setName(light.hashCode() + " " + "0" + " temp");
         lightingHandler.addLight(light.hashCode(), light);
-        ParticleEmittersCmp peCmp = (ParticleEmittersCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
-        peCmp.addEffect(glyph, ParticleEmittersCmp.ParticleEffect.ARCANE_P, display);
+        ParticleEffectsCmp peCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
+        peCmp.addEffect(glyph, ParticleEffectsCmp.ParticleEffect.ARCANE_P, display);
 
 
     }

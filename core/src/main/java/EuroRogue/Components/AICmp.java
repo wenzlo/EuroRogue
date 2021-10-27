@@ -28,7 +28,10 @@ public class AICmp implements Component
 
 
 
-    //public AICmp(){}
+    public AICmp(ArrayList<TerrainType> traversable)
+    {
+        this.traversable= traversable;
+    }
 
     public AICmp (char[][] bareDungeon, char[][] decoDungeon, ArrayList<TerrainType> traversable)
     {
