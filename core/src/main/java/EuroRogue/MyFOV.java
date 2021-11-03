@@ -73,7 +73,7 @@ public class MyFOV extends FOV
             for (int j = 0, y = 0; j < height; j++, y+=3) {
                 switch (map[i][j]) {
                     case '\1':
-                    case '#':
+
                     case '+':
                     //case '§':
                         portion[x][y] = portion[x+1][y] = portion[x+2][y] =
@@ -147,6 +147,119 @@ public class MyFOV extends FOV
                             portion[x][y+1] = portion[x+1][y+1] = portion[x+2][y+1] =
                                     /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
                         break;
+
+                    case '#':
+                        if((x+y)%3==0)
+                        {
+                            portion[x][y] = /*portion[x+1][y] = */portion[x+2][y] =
+                                    /*portion[x][y+1] =*/ portion[x+1][y+1] = portion[x+2][y+1] =
+                                    portion[x][y+2] =/* portion[x+1][y+2] = */portion[x+2][y+2] =1.0;
+
+                        } else if((x+y)%3==1){
+
+                            /*portion[x][y] =*/ portion[x+1][y] = /*portion[x+2][y] =*/
+                                    portion[x][y+1] = portion[x+1][y+1] = portion[x+2][y+1] =
+                                            /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
+
+                        } else {
+
+                            portion[x][y] = /*portion[x+1][y] = */portion[x+2][y] =
+                                    portion[x][y+1] = portion[x+1][y+1] = /*portion[x+2][y+1] =*/
+                                    portion[x][y+2] =/* portion[x+1][y+2] = */portion[x+2][y+2] =1.0;
+
+                        }
+
+
+                        break;
+                }
+            }
+        }
+        return portion;
+    }
+    public static double[][] generateUIResistances3x3(char[][] map) {
+        int width = map.length;
+        int height = map[0].length;
+        double[][] portion = new double[width * 3][height * 3];
+        for (int i = 0, x = 0; i < width; i++, x+=3) {
+            for (int j = 0, y = 0; j < height; j++, y+=3) {
+                switch (map[i][j]) {
+                    case '\1':
+
+                    case '+':
+                    case'#':
+                        //case '§':
+                        portion[x][y] = portion[x+1][y] = portion[x+2][y] =
+                                portion[x][y+1] = portion[x+1][y+1] = portion[x+2][y+1] =
+                                        portion[x][y+2] = portion[x+1][y+2] = portion[x+2][y+2] = 1.0;
+                        break;
+                    case '├':
+                        /*portion[x][y] =*/ portion[x+1][y] = /*portion[x+2][y] =*/
+                            /*portion[x][y+1] =*/ portion[x+1][y+1] = portion[x+2][y+1] =
+                            /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '┤':
+                        /*portion[x][y] =*/ portion[x+1][y] = /*portion[x+2][y] =*/
+                            portion[x][y+1] = portion[x+1][y+1] = /*portion[x+2][y+1] =*/
+                                    /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '┴':
+                        /*portion[x][y] =*/ portion[x+1][y] = /*portion[x+2][y] =*/
+                            portion[x][y+1] = portion[x+1][y+1] = portion[x+2][y+1] =
+                                    /*portion[x][y+2] = portion[x+1][y+2] = portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '┬':
+                        /*portion[x][y] = portion[x+1][y] = portion[x+2][y] =*/
+                        portion[x][y+1] = portion[x+1][y+1] = portion[x+2][y+1] =
+                                /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '┌':
+                        /*portion[x][y] = portion[x+1][y] = portion[x+2][y] =*/
+                        /*portion[x][y+1] =*/ portion[x+1][y+1] = portion[x+2][y+1] =
+                            /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '┐':
+                        /*portion[x][y] = portion[x+1][y] = portion[x+2][y] =*/
+                        portion[x][y+1] = portion[x+1][y+1] = /*portion[x+2][y+1] =*/
+                                /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '└':
+                        /*portion[x][y] =*/ portion[x+1][y] = /*portion[x+2][y] =*/
+                            /*portion[x][y+1] =*/ portion[x+1][y+1] = portion[x+2][y+1] =
+                            /*portion[x][y+2] = portion[x+1][y+2] = portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '┘':
+                        /*portion[x][y] =*/ portion[x+1][y] = /*portion[x+2][y] =*/
+                            portion[x][y+1] = portion[x+1][y+1] = /*portion[x+2][y+1] =*/
+                                    /*portion[x][y+2] = portion[x+1][y+2] = portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '│':
+                        /*portion[x][y] =*/ portion[x+1][y] = /*portion[x+2][y] =*/
+                            /*portion[x][y+1] =*/ portion[x+1][y+1] = /*portion[x+2][y+1] =*/
+                            /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '─':
+                        portion[x][y+1] = portion[x+1][y+1] = portion[x+2][y+1] = 1.0;
+                        break;
+                    case '╴':
+                        portion[x][y+1] = portion[x+1][y+1] = 1.0;
+                        break;
+                    case '╵':
+                        /*portion[x][y] =*/ portion[x+1][y] = /*portion[x+2][y] =*/
+                            /*portion[x][y+1] =*/ portion[x+1][y+1] = /*portion[x+2][y+1] =*/ 1.0;
+                        break;
+                    case '╶':
+                        portion[x+1][y+1] = portion[x+2][y+1] = 1.0;
+                        break;
+                    case '╷':
+                        /*portion[x][y+1] =*/ portion[x+1][y+1] = /*portion[x+2][y+1] =*/
+                            /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
+                        break;
+                    case '┼':
+                        /*portion[x][y] =*/ portion[x+1][y] = /*portion[x+2][y] =*/
+                            portion[x][y+1] = portion[x+1][y+1] = portion[x+2][y+1] =
+                                    /*portion[x][y+2] =*/ portion[x+1][y+2] = /*portion[x+2][y+2] =*/ 1.0;
+                        break;
+
                 }
             }
         }

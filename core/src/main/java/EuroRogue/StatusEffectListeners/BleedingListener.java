@@ -30,7 +30,7 @@ public class BleedingListener implements EntityListener {
         Bleeding bleeding = (Bleeding) CmpMapper.getStatusEffectComp(StatusEffect.BLEEDING, targetEntity);
         if(bleeding!=null)
         {
-            bleeding.damagePerMove ++;
+            bleeding.damagePerMove = bleeding.damagePerMove + 2;
             bleeding.name = bleeding.name+"I";
             return;
         }

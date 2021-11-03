@@ -17,6 +17,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -37,6 +38,7 @@ import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.ItemType;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightCmp;
+import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaCmp;
 import EuroRogue.Components.ManaPoolCmp;
@@ -171,7 +173,7 @@ public class EuroRogue extends ApplicationAdapter {
     public  List<Entity> playingWindows, campingWindows, allWindows, uiBgWindows, startWindows, gameOverWindows, shrineWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "tutorial";
+    public String playerName = "Stillgar";
     public int depth = 0;
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
@@ -261,14 +263,11 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory, objectFactory));
         dungeonGen = new SectionDungeonGenerator(42, 42, new GWTRNG(rng.nextInt()));
 
-
         Entity eventEntity = new Entity();
-        LevelEvt levelEvt = new LevelEvt();
+        LevelEvt levelEvt = new LevelEvt(LevelType.START);
         eventEntity.add(levelEvt);
 
-
         engine.addEntity(eventEntity);
-
     }
     private void initializeWindows()
     {
@@ -290,7 +289,7 @@ public class EuroRogue extends ApplicationAdapter {
         uiBackgrounds = new Entity();
 
         TextCellFactory font = DefaultResources.getStretchableSquareFont();
-        Stage uiBgStage = buildStage(0,0,gridWidth/4,gridHeight/4,gridWidth/4,gridHeight/4, cellWidth*4, cellHeight*4, font, SColor.BLACK.toFloatBits());
+        Stage uiBgStage = buildStage(0,0,gridWidth/4,gridHeight/4+1,gridWidth/4,gridHeight/4+1, cellWidth*4, cellHeight*4, font, SColor.BLACK.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)uiBgStage.getActors().get(0),uiBgStage, true);
         windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*4 * 1.15f).initBySize();
         //windowCmp.display.put();
@@ -304,7 +303,7 @@ public class EuroRogue extends ApplicationAdapter {
         dungeonWindow = new Entity();
 
         font = DefaultResources.getStretchableSquareFont();
-        Stage dungeonStage = buildStage(43,22,17,17,42,42,cellWidth*4,cellHeight*4, font, SColor.BLACK.toFloatBits());
+        Stage dungeonStage = buildStage(44,23,17,17,42,42,cellWidth*4,cellHeight*4, font, SColor.BLACK.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)dungeonStage.getActors().get(0),dungeonStage, true);
         windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*3+9 * 1.15f).initBySize();
         //windowCmp.display.put();
@@ -430,9 +429,9 @@ public class EuroRogue extends ApplicationAdapter {
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, inventoryWindow)).columnIndexes = new int[]{1,32, 66};
         inventoryWindow.add(new MenuCmp());
 
-        Stage taStage = buildStage(22,93,106,8,106,8, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         targetHotBar = new Entity();
+        Stage taStage = buildStage(22,93,110,10,110,10, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         targetHotBar.add(new WindowCmp((MySparseLayers)taStage.getActors().get(0), taStage, true));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, targetHotBar)).columnIndexes = new int[]{1,28, 55,82};
@@ -616,9 +615,10 @@ public class EuroRogue extends ApplicationAdapter {
         initializeWindows();
         initializeSystems();
         initializeListeners();
+        SColor.LIMITED_PALETTE[0] = SColor.DB_LEAD;
         SColor.LIMITED_PALETTE[3] = SColor.DB_GRAPHITE;
-        SColor.LIMITED_PALETTE[23] = SColor.MIDORI;
-        SColor.LIMITED_PALETTE[24] = SColor.CW_DARK_AZURE;
+        SColor.LIMITED_PALETTE[23] = SColor.CW_DARK_AZURE;
+        SColor.LIMITED_PALETTE[24] = SColor.CW_LIGHT_AZURE;
 
 
         startInput = new SquidInput((key, alt, ctrl, shift) ->
@@ -1002,7 +1002,12 @@ public class EuroRogue extends ApplicationAdapter {
                         depth++;
                         InventoryCmp inventoryCmp = ( InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, focus);
                         Entity evtEntity = new Entity();
-                        LevelEvt levelEvt = new LevelEvt();
+                        List<LevelType> levelTypes = new ArrayList<>();
+                        Collections.addAll(levelTypes, LevelType.values());
+                        System.out.println(levelTypes);
+                        levelTypes.remove(LevelType.START);
+                        System.out.println(levelTypes);
+                        LevelEvt levelEvt = new LevelEvt(rng.getRandomElement(levelTypes));
                         CampEvt campEvt = new CampEvt(focus.hashCode(), inventoryCmp.getEquippedIDs());
                         evtEntity.add(levelEvt);
                         evtEntity.add(campEvt);
@@ -1034,7 +1039,12 @@ public class EuroRogue extends ApplicationAdapter {
                 case '{':
                     depth++;
                     Entity levelEvtEntity = new Entity();
-                    LevelEvt levelEvt = new LevelEvt();
+                    List<LevelType> levelTypes = new ArrayList<>();
+                    levelTypes.addAll(Arrays.asList(LevelType.values()));
+                    System.out.println(levelTypes);
+                    levelTypes.remove(LevelType.START);
+                    System.out.println(levelTypes);
+                    LevelEvt levelEvt = new LevelEvt(rng.getRandomElement(levelTypes));
                     levelEvtEntity.add(levelEvt);
                     engine.addEntity(levelEvtEntity);
                     break;
@@ -1054,8 +1064,9 @@ public class EuroRogue extends ApplicationAdapter {
                     break;
 
                 case 'm':
-                    aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI, focus);
-                    GreasedRegion gr = new GreasedRegion(aiCmp.dijkstraMap.costMap,1.1);
+                    LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, currentLevel);
+                    GreasedRegion gr = new GreasedRegion(lightingCmp.focusSeen3x3);
+                    System.out.println(gr);
             }
 
             Coord newPosition = Coord.get(newX,newY);

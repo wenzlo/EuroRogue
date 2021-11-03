@@ -115,12 +115,12 @@ public class DeathSys extends MyEntitySystem
 
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Coord actorPosition = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
-        System.out.println(actorPosition);
+
         BlastAOE aoe = new BlastAOE(actorPosition, 2, Radius.CIRCLE);
         aoe.setMap(levelCmp.bareDungeon);
-        System.out.println(new GreasedRegion(levelCmp.bareDungeon, '.'));
+
         ArrayList<Coord> dropLocations = new ArrayList<>();
-        System.out.println(aoe.findArea().keySet());
+
         dropLocations.addAll(aoe.findArea().keySet());
         Collections.sort(dropLocations, new SortByDistance(actorPosition));
 
@@ -229,7 +229,6 @@ public class DeathSys extends MyEntitySystem
                 {
                     if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
                     {
-                        System.out.println("Dropping "+nameCmp.name+" at "+ pos);
                         itemCmp.ownerID = null;
                         itemEntity.remove(PositionCmp.class);
                         itemEntity.add(new PositionCmp(pos));

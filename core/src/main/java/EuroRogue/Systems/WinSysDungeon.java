@@ -25,6 +25,7 @@ import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidgrid.mapping.LineKit;
 import squidpony.squidmath.Coord;
+import squidpony.squidmath.GreasedRegion;
 
 
 public class WinSysDungeon extends MyEntitySystem
@@ -69,30 +70,37 @@ public class WinSysDungeon extends MyEntitySystem
         Coord focusPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,getGame().getFocus())).coord;
         AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
         Ability aimAbility = null;
-        if(aimingCmp!=null) aimAbility = (Ability) CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
+        if(aimingCmp!=null) aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
         LineKit.pruneLines(levelCmp.lineDungeon, focusFov.seen, levelCmp.prunedDungeon);
 
-        MySparseLayers display = (MySparseLayers) windowCmp.display;
+        MySparseLayers display = windowCmp.display;
         display.clear();
         display.put(/*levelCmp.prunedDungeon, lightingCmp.fgLighting,*/ lightingCmp.bgLighting);
+
+        GreasedRegion allCaves = getGame().dungeonGen.placement.finder.allCaves.copy();
+        GreasedRegion caveWalls = allCaves.fringe8way();
 
         for (int x = Math.max(0, focusPos.x - (display.gridWidth >> 1) - 1), i = 0; x < levelCmp.decoDungeon[0].length && i < display.gridWidth + 2; x++, i++)
         {
             for (int y = Math.max(0, focusPos.y - (display.gridHeight >> 1) - 1), j = 0; y < levelCmp.decoDungeon.length  && j < windowCmp.display.gridHeight + 2; y++, j++)
             {
+                Coord coord = Coord.get(x,y);
                 if (focusFov.fov[x][y] > 0.0 && lightingCmp.fgLightLevel[x][y]>0) {
 
-                    if (levelCmp.floors.contains(Coord.get(x, y)))
+                    if (levelCmp.floors.contains(coord))
                         display.put(x, y, levelCmp.decoDungeon[x][y], lightingCmp.fgLighting[x][y]);
 
-                    else if(focusFov.seen.contains(Coord.get(x,y)))
+                    else if(focusFov.seen.contains(coord) && caveWalls.contains(coord))
+                        display.put(x, y, '#', lightingCmp.fgLighting[x][y]);
+                    else if(focusFov.seen.contains(coord))
                         display.put(x, y, levelCmp.prunedDungeon[x][y], lightingCmp.fgLighting[x][y]);
 
                 }else if(focusFov.nightVision[x][y]>0){
 
-                    if (levelCmp.floors.contains(Coord.get(x, y)))
+                    if (levelCmp.floors.contains(coord))
                         display.put(x, y, levelCmp.decoDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), SColor.GREEN_BAMBOO.toFloatBits(), (float) focusFov.nightVision[x][y]));
-
+                    else if(caveWalls.contains(coord))
+                        display.put(x, y, levelCmp.decoDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), SColor.GREEN_BAMBOO.toFloatBits(), (float) focusFov.nightVision[x][y]));
                     else
                         display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), SColor.GREEN_BAMBOO.toFloatBits(), (float)focusFov.nightVision[x][y]*1.3f));
 
@@ -100,12 +108,10 @@ public class WinSysDungeon extends MyEntitySystem
                 }else if (focusFov.seen.contains(x, y) ){
 
 
-
                         if(getGame().gameState== GameState.AIMING)
                         {
                             if(aimAbility!=null)
                             {
-                                Coord coord = Coord.get(x,y);
                                 char chr = levelCmp.decoDungeon[x][y];
                                 if(!levelCmp.floors.contains(coord)) chr = levelCmp.prunedDungeon[x][y];
                                 if(aimAbility.possibleTargets(focusPos, levelCmp.resistance).contains(x,y)) display.put(x, y, chr, SColor.GREEN_BAMBOO);
@@ -113,13 +119,18 @@ public class WinSysDungeon extends MyEntitySystem
                             }
                         }
 
+                        else if(!levelCmp.floors.contains(x,y) && caveWalls.contains(coord))
+                            display.put(x, y, '#', SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
                         else if(!levelCmp.floors.contains(x,y)) display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
-                        if(getGame().dungeonGen.stairsDown == Coord.get(x,y)  ) display.put(x, y, '>', SColor.SLATE_GRAY);
-                        if(getGame().dungeonGen.stairsUp == Coord.get(x,y)  ) display.put(x, y, '<', SColor.SLATE_GRAY);
+                        //else if(levelCmp.floors.contains(x,y)) display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
+
+                    if(getGame().dungeonGen.stairsDown == coord  ) display.put(x, y, '>', SColor.SLATE_GRAY);
+                        if(getGame().dungeonGen.stairsUp == coord  ) display.put(x, y, '<', SColor.SLATE_GRAY);
 
                 }
+
                 AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, getGame().getFocus());
-                if(aiCmp.alerts.containsValue(Coord.get(x,y)) &! focusFov.visible.contains(x,y))
+                if(aiCmp.alerts.containsValue(coord) &! focusFov.visible.contains(x,y))
                 {
 
                     display.put(x, y, '!', SColor.WHITE);

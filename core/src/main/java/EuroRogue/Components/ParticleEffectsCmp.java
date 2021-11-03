@@ -120,6 +120,12 @@ public class ParticleEffectsCmp implements Component {
 
     public void removeEffectsByGlyph(TextCellFactory.Glyph glyph, MySparseLayers display)
     {
+        if(particleEffectsMap==null)
+        {
+            System.out.println("ParticleEffectsMap = null");
+            return;
+        }
+        System.out.println(particleEffectsMap.get(glyph));
         ArrayList<ParticleEffect> effectsToRemove = new ArrayList<>();
         for(ParticleEffect effect : particleEffectsMap.get(glyph).keySet())
         {

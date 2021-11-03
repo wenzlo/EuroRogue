@@ -102,7 +102,7 @@ public class WinSysUiBg extends MyEntitySystem
                 }
             }
 
-            lightHandler.resistances = MyDungeonUtility.generateSimpleResistances3x3(uiBgLightingCmp.map);
+            lightHandler.resistances = DungeonUtility.generateSimpleResistances3x3(uiBgLightingCmp.map);
 
 
             Noise.Noise3D flicker = new WhirlingNoise();

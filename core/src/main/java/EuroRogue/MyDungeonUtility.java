@@ -165,6 +165,9 @@ public class MyDungeonUtility extends DungeonUtility
     public static double[][] generateSimpleResistances3x3(char[][] map) {
         return MyFOV.generateSimpleResistances3x3(map);
     }
+    public static double[][] generateUIResistances3x3(char[][] map) {
+        return MyFOV.generateUIResistances3x3(map);
+    }
 
     /**
      * Given a char[][] for the map, a Map of Character keys to Double values that will be used to determine costs, and

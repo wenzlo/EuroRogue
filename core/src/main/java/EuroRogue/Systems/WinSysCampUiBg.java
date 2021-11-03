@@ -33,7 +33,7 @@ public class WinSysCampUiBg extends MyEntitySystem
 
     public WinSysCampUiBg()
     {
-        super.priority=8;
+        super.priority=10;
 
     }
 

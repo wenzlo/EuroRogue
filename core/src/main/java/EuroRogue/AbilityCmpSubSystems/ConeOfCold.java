@@ -97,9 +97,9 @@ public class ConeOfCold extends Ability
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         ConeAOE coneAOE = (ConeAOE) aoe;
 
-        coneAOE.setRadius(1+statsCmp.getIntel()/2);
+        coneAOE.setRadius(statsCmp.getIntel());
         coneAOE.setOrigin(positionCmp.coord);
-        coneAOE.setMaxRange(1+statsCmp.getIntel()/2);
+        coneAOE.setMaxRange(statsCmp.getIntel());
     }
 
     @Override

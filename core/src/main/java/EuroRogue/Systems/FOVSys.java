@@ -60,9 +60,7 @@ public class FOVSys extends MyEntitySystem {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
         LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         MyFOV.reuseFOV(levelCmp.resistance, fovCmp.fov, positionCmp.coord.x, positionCmp.coord.y, 10, Radius.CIRCLE);
-        //TODO make nightVision an ability. Prepping it gives status effect, no cast necessary
         float multiplier = 1.01f-(float)lightingCmp.fgLightLevel[positionCmp.coord.x][positionCmp.coord.y];
         int nightVisionDistance = Math.round((1 + statsCmp.getPerc() / 2f) * multiplier);
         MyFOV.reuseFOV(levelCmp.resistance, fovCmp.nightVision, positionCmp.coord.x, positionCmp.coord.y, nightVisionDistance);
@@ -70,16 +68,15 @@ public class FOVSys extends MyEntitySystem {
         GreasedRegion nightVision = new GreasedRegion(fovCmp.nightVision, 0.0).not();
         GreasedRegion notLit = new GreasedRegion(lightingCmp.fgLightLevel, 0.0);
 
+
         GreasedRegion currentlySeen = new GreasedRegion(fovCmp.fov, 0.0).not();
+
         currentlySeen.andNot(notLit);
         currentlySeen.or(nightVision);
 
         fovCmp.seen.or(currentlySeen);
-        fovCmp.seen.or(nightVision);
         fovCmp.visible = currentlySeen;
 
-
-        //System.out.println(fovCmp.visible);
 
     }
 

@@ -17,6 +17,7 @@ import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MyFOV;
 import EuroRogue.MyMapUtility;
+import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.mapping.DungeonUtility;
@@ -66,7 +67,7 @@ public class WinSysShrineUiBg extends MyEntitySystem
         }
 
         if (lightHandler == null)
-            lightHandler = new LightHandler(DungeonUtility.generateSimpleResistances3x3(uiBgLightingCmp.map));
+            lightHandler = new LightHandler(FOV.generateSimpleResistances3x3(uiBgLightingCmp.map));
 
 
         lightHandler.lightList.clear();
@@ -100,7 +101,7 @@ public class WinSysShrineUiBg extends MyEntitySystem
             }
         }
 
-        lightHandler.resistances = MyDungeonUtility.generateSimpleResistances3x3(uiBgLightingCmp.map);
+        lightHandler.resistances = MyDungeonUtility.generateUIResistances3x3(uiBgLightingCmp.map);
 
 
         Noise.Noise3D flicker = new WhirlingNoise();
@@ -114,7 +115,7 @@ public class WinSysShrineUiBg extends MyEntitySystem
 
         lightHandler.draw(uiBgLightingCmp.bgLighting);
 
-        char[][] map = DungeonUtility.hashesToLines(uiBgLightingCmp.map);
+        char[][] map = MyDungeonUtility.hashesToLines(uiBgLightingCmp.map);
 
         for(Coord coord : new GreasedRegion(uiBgLightingCmp.map, '#'))
         {

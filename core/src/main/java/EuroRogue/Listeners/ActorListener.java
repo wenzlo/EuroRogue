@@ -44,16 +44,16 @@ public class ActorListener implements EntityListener {
     public void entityAdded(Entity entity)
     {
         NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
-
+        System.out.println(nameCmp.name);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow);
         if(levelCmp == null) return;
-        System.out.println(nameCmp.name+" added by listener"+entity.hashCode());
+
         Coord position = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
         levelCmp.actors.put(position, entity.hashCode(), entity.hashCode());
         LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, entity);
         CharCmp charCmp = (CharCmp)CmpMapper.getComp(CmpType.CHAR, entity);
-        GlyphsCmp glyphsCmp = new GlyphsCmp(windowCmp.display, charCmp.chr, '•','•',charCmp.color, position.x, position.y);
+        GlyphsCmp glyphsCmp = new GlyphsCmp(windowCmp.display, charCmp.chr, charCmp.lChr,charCmp.rChr,charCmp.color, position.x, position.y);
         entity.add(glyphsCmp);
 
 
@@ -90,7 +90,7 @@ public class ActorListener implements EntityListener {
     public void entityRemoved(Entity entity)
     {
         NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
-        System.out.println(nameCmp.name+" removed");
+
         LevelCmp level = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
         if(level!=null)
         {

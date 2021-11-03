@@ -19,7 +19,7 @@ public class WinSysGameOver extends MyEntitySystem
 
     public WinSysGameOver()
     {
-        super.priority=9;
+        super.priority=11;
     }
 
     @Override

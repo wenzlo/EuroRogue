@@ -27,11 +27,8 @@ public class ItemListener implements EntityListener {
 
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL,game.currentLevel);
         if(levelCmp==null) return;
-        System.out.println(nameCmp.name+" added");
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
-        System.out.println(positionCmp.coord);
         levelCmp.items.put(positionCmp.coord, entity.hashCode(), entity.hashCode());
-        System.out.println(entity.hashCode() == levelCmp.items.get(positionCmp.coord));
         LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
         LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, entity);
         if(lightCmp!=null )
@@ -46,7 +43,6 @@ public class ItemListener implements EntityListener {
     public void entityRemoved(Entity entity)
     {
         NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
-        System.out.println(nameCmp.name+" removed");
 
         LevelCmp level = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
         level.items.remove(entity.hashCode());

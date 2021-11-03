@@ -363,6 +363,7 @@ public class AnimationsSys extends MyEntitySystem
                     ye = animation.endLocation.y;
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     target = getGame().getEntity(levelCmp.actors.get((Integer) ((ActionEvt) animation.sourceEvent).targetsDmg.keySet().toArray()[0]));
+                    if(target==null) break;
                     targetPeaCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, target);
                     GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target);
 

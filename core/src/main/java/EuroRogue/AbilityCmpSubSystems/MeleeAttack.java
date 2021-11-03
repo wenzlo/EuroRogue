@@ -80,7 +80,7 @@ public class MeleeAttack extends Ability
     @Override
     public int getDamage(Entity performer)
     {
-        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS, performer)).getWeaponDamage();
+        return Math.max(1,((StatsCmp) CmpMapper.getComp(CmpType.STATS, performer)).getWeaponDamage());
     }
 
     @Override
@@ -157,7 +157,7 @@ public class MeleeAttack extends Ability
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getAttackPower();
+        return statsCmp.getWeaponDamage();
     }
 
 

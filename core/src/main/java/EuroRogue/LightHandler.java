@@ -5,8 +5,10 @@ import static squidpony.squidgrid.gui.gdx.SColor.FLOAT_WHITE;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
+import squidpony.ArrayTools;
 import squidpony.StringKit;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Radius;
@@ -74,20 +76,23 @@ public class LightHandler extends LightingHandler
     public void update() {
         Radiance radiance;
         SColor.eraseColoredLighting(colorLighting);
+
         Coord pos;
-        //System.out.println(new GreasedRegion(losResult, 0.0).not());
+
         for (Light light : lightList.values()) {
             pos = Coord.get(light.position.x, light.position.y);
             if(!noticeable.contains(pos))
             continue;
             radiance = light.radiance;
+
+
             FOV.reuseFOV(resistances, tempFOV, pos.x, pos.y, radiance.currentRange()*3);
             //SColor.colorLightingInto(tempColorLighting, tempFOV, radiance.color);
             mixColoredLighting(radiance.flare, radiance.color);
 
         }
-        //for(float[] line : colorLighting[0])
-            //System.out.println(line.toString());
+
+
     }
 
     @Override
@@ -124,6 +129,7 @@ public class LightHandler extends LightingHandler
                 }
             }
         }
+
     }
     /*{
         Radiance radiance;

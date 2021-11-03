@@ -2,7 +2,7 @@ package EuroRogue.StatusEffectCmps;
 
 public class Bleeding extends StatusEffectCmp
 {
-    public int damagePerMove = 1;
+    public int damagePerMove = 2;
 
     public Bleeding()
     {

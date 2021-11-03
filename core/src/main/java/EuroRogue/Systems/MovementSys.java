@@ -6,7 +6,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-
+import EuroRogue.MyDungeonUtility;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
@@ -143,7 +143,13 @@ public class MovementSys extends MyEntitySystem
         {
             levelCmp.decoDungeon[door.x][door.y] = '/';
             levelCmp.resistance = MyFOV.generateSimpleResistances(levelCmp.decoDungeon);
-            lightingCmp.resistance3x3 = MyFOV.generateSimpleResistances3x3(levelCmp.decoDungeon);
+            levelCmp.lineDungeon =  MyDungeonUtility.hashesToLines(levelCmp.decoDungeon);
+            for(int x=0; x<levelCmp.lineDungeon.length; x++){
+                for(int y=0; y<levelCmp.lineDungeon[0].length; y++){
+                    if(!levelCmp.floors.contains(Coord.get(x,y))&&levelCmp.caveWalls.contains(Coord.get(x,y))) levelCmp.lineDungeon[x][y]='#';
+                }
+            }
+            lightingCmp.resistance3x3 = MyFOV.generateSimpleResistances3x3(levelCmp.lineDungeon);
 
             LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
             lightHandler.resistances = lightingCmp.resistance3x3;
@@ -166,29 +172,34 @@ public class MovementSys extends MyEntitySystem
 
     public void closeDoor(Coord door, LevelCmp levelCmp, LightingCmp lightingCmp)
     {
-        if(levelCmp.doors.contains(door))
-        {
+        if(levelCmp.doors.contains(door)) {
             levelCmp.decoDungeon[door.x][door.y] = '+';
             levelCmp.resistance = MyFOV.generateSimpleResistances(levelCmp.decoDungeon);
-            lightingCmp.resistance3x3 = MyFOV.generateSimpleResistances3x3(levelCmp.decoDungeon);
+            levelCmp.lineDungeon = MyDungeonUtility.hashesToLines(levelCmp.decoDungeon);
+            for (int x = 0; x < levelCmp.lineDungeon.length; x++) {
+                for (int y = 0; y < levelCmp.lineDungeon[0].length; y++) {
+                    if (!levelCmp.floors.contains(Coord.get(x, y)) && levelCmp.caveWalls.contains(Coord.get(x, y)))
+                        levelCmp.lineDungeon[x][y] = '#';
+                }
+            }
+            lightingCmp.resistance3x3 = MyFOV.generateSimpleResistances3x3(levelCmp.lineDungeon);
 
             LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
             lightHandler.resistances = lightingCmp.resistance3x3;
 
-            for(Integer id : levelCmp.actors.identities())
-            {
+            for (Integer id : levelCmp.actors.identities()) {
                 Entity actor = getGame().getEntity(id);
                 AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
                 aiCmp.dijkstraMap.initialize(levelCmp.bareDungeon);
                 aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(levelCmp.decoDungeon));
 
                 CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, actor);
-                for(Skill skill : codexCmp.prepared)
-                {
+                for (Skill skill : codexCmp.prepared) {
                     CmpMapper.getAbilityComp(skill, actor).setMap(levelCmp.decoDungeon);
                 }
             }
         }
+
     }
 
 }
