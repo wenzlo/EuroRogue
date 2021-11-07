@@ -41,7 +41,6 @@ import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.GreasedRegion;
 
 public class DeathSys extends MyEntitySystem
 {
@@ -127,7 +126,7 @@ public class DeathSys extends MyEntitySystem
         boolean scrollDropped = false;
         for(Skill skill : entityCodexCmp.known)
         {
-            if(!playerCodexCmp.known.contains(skill) && Skill.qualify(skill, playerStats))
+            if(!playerCodexCmp.known.contains(skill) && Skill.qualify(skill, playerStats, playerCodexCmp))
             {
                 for(Coord pos : dropLocations)
                 {
@@ -173,7 +172,7 @@ public class DeathSys extends MyEntitySystem
                 break;
             }
         }
-        removelights(entity);
+        removeLights(entity);
 
         dropItems(entity, dropLocations);
         removeParticleEffects(entity, display);
@@ -242,7 +241,7 @@ public class DeathSys extends MyEntitySystem
         }
     }
 
-    private void removelights(Entity entity)
+    private void removeLights(Entity entity)
     {
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, entity);

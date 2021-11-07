@@ -86,6 +86,11 @@ public class AnimationsSys extends MyEntitySystem
                     ye = animation.endLocation.y;
                     display.slide(0f, animation.glyph, xe, ye, 0.18f, postRunnable);
                     break;
+                case CHARGE:
+                    xe = animation.endLocation.x;
+                    ye = animation.endLocation.y;
+                    display.slide(0f, animation.glyph, xe, ye, 0.10f, postRunnable);
+                    break;
 
                 case OFFSET_SLIDE:
                     xe = animation.endLocation.x;
@@ -215,7 +220,7 @@ public class AnimationsSys extends MyEntitySystem
                     delay =  0.0f;
                     blastZone = new ArrayList(coneAOE.findArea().keySet());
                     Collections.sort(blastZone, new SortByDistance(center));
-                    blastZone.remove(0);
+
                     for(Coord coord : blastZone)
                     {
                         TextCellFactory.Glyph glyph = display.glyph('*', SColor.WHITE.toFloatBits(), center.x, center.y);
@@ -247,47 +252,7 @@ public class AnimationsSys extends MyEntitySystem
                     windowCmp.lightingHandler.removeLight(light.hashCode());
                     break;
 
-                    /*actionEvt = (ActionEvt) animation.sourceEvent;
-                    actor = getGame().getEntity(actionEvt.performerID);
-                    ability = CmpMapper.getAbilityComp(actionEvt.skill,actor );
-                    ConeAOE coneAOE = (ConeAOE) ability.aoe;
-                    center = coneAOE.getOrigin();
-                    lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
 
-                    delay =  0.0f;
-                    blastZone = new ArrayList(coneAOE.findArea().keySet());
-                    Collections.shuffle(blastZone);
-                    for(Coord coord : blastZone)
-                    {
-                        ArrayList<Integer> lightList = display.summonWithLight(delay,center.x, center.y, coord.x, coord.y, '*', SColor.WHITE.toFloatBits(), SColor.BABY_BLUE.toFloatBits(), 0.2f,  lightHandler, null);
-                        delay = (float) (delay+(0.2/coneAOE.findArea().keySet().size()));
-                        postRunnable = new Runnable() {
-                            @Override
-                            public void run()
-                            {
-                                for(Integer lightID : lightList)
-                                {
-                                    lightHandler.removeLight(lightID);
-                                }
-                            }
-                        };
-                        if(actionEvt.targetsDmg.isEmpty())
-                        {
-                            TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actor)).leftGlyph;
-                            display.tint(0f, glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
-                        }
-                        for(Integer targetID : actionEvt.targetsDmg.keySet())
-                        {
-
-                            Entity targetActor = getGame().getEntity(targetID);
-                            GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
-                            display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
-                        }
-                    }
-                    light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
-                    display.removeGlyph(animation.glyph);
-                    windowCmp.lightingHandler.removeLight(light.hashCode());
-                    break;*/
 
                 case PROJ_MAGIC:
 
@@ -295,9 +260,6 @@ public class AnimationsSys extends MyEntitySystem
                     xe = animation.endLocation.x;
                     yo = animation.startLocation.y;
                     ye = animation.endLocation.y;
-                    direction = Direction.toGoTo(animation.startLocation, animation.endLocation);
-                    actionEvt = (ActionEvt) animation.sourceEvent;
-
 
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     SColor color = actionEvt.skill.school.color;
@@ -357,7 +319,11 @@ public class AnimationsSys extends MyEntitySystem
 
                     break;
                 case ICE_SHIELD:
-
+                    if(animation.endLocation==null)
+                    {
+                        System.out.println("Ice Shield Animation Bug");
+                        return;
+                    }
                     xe = animation.endLocation.x;
 
                     ye = animation.endLocation.y;
@@ -524,6 +490,7 @@ public class AnimationsSys extends MyEntitySystem
     public enum AnimationType
     {
         SLIDE,
+        CHARGE,
         OFFSET_SLIDE,
         CONE_OF_COLD,
         BUMP,

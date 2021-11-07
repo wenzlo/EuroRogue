@@ -42,7 +42,7 @@ public interface IAbilitySubSys extends Component
     OrderedMap<Coord, ArrayList<Coord>>
                 getIdealLocations(Entity actor, LevelCmp levelCmp);
     HashMap<Integer, Integer>
-                getAOEtargetsDmg(LevelCmp levelCmp, EuroRogue game);
+                getAOEtargetsDmg(Entity performerEntity, LevelCmp levelCmp, EuroRogue game);
     void        setTargetedLocation(Coord targetLocation);
     Coord       getTargetedLocation();
 

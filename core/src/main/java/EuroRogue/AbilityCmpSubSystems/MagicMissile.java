@@ -23,6 +23,7 @@ import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
@@ -84,7 +85,7 @@ public class MagicMissile extends Ability
         //TextCellFactory.Glyph glyph = display.glyph('°',getSkill().school.color, startPos.x, startPos.y);
 
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp, particleEffect);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.PROJ_MAGIC, startPos, targetCoord, eventCmp, particleEffect);
     }
 
     @Override

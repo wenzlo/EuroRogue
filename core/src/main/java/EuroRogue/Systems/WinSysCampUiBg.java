@@ -6,6 +6,8 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.math.MathUtils;
 
+import java.util.Arrays;
+
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.UiBgLightingCmp;
@@ -16,7 +18,6 @@ import EuroRogue.LightHandler;
 import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MyFOV;
-import EuroRogue.MyMapUtility;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.mapping.DungeonUtility;
@@ -79,7 +80,10 @@ public class WinSysCampUiBg extends MyEntitySystem
         rectangle(x, y, w, h, uiBgLightingCmp.map);
 
         uiBgLightingCmp.bgLighting=new float[(uiBgLightingCmp.map.length)*3][(uiBgLightingCmp.map[0].length)*3];
-        uiBgLightingCmp.fgColors = MyMapUtility.generateDefaultColorsFloat(uiBgLightingCmp.map);
+        //uiBgLightingCmp.fgColors = MyMapUtility.generateDefaultColorsFloat(uiBgLightingCmp.map);
+        uiBgLightingCmp.fgColors = new float[uiBgLightingCmp.map.length][uiBgLightingCmp.map[0].length];
+        for(float[] line : uiBgLightingCmp.fgColors)
+            Arrays.fill(line,  SColor.RED.toFloatBits());
         uiBgLightingCmp.fgResistances = MyDungeonUtility.generateSimpleResistances(uiBgLightingCmp.map);
         double[][] tempFov = new double[uiBgLightingCmp.map.length][uiBgLightingCmp.map[0].length];
         for(Light light : lightHandler.lightList.values())

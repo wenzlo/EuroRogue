@@ -15,6 +15,7 @@ import EuroRogue.Components.TickerCmp;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.CodexEvt;
+import EuroRogue.EventComponents.DayNightCycleEvt;
 import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LevelEvt;
@@ -85,7 +86,17 @@ public class TickerSys extends MyEntitySystem
         Integer nextActionTick = ticker.tick;
         if(!ticker.actionQueue.isEmpty()) nextActionTick = ticker.actionQueue.get(0).tick;
 
-        while(ticker.tick<nextActionTick && !removeStatusEffects(ticker.tick) && !addStatusEffectEvents(ticker)) ticker.tick++;
+        while(ticker.tick<nextActionTick && !removeStatusEffects(ticker.tick) && !addStatusEffectEvents(ticker))
+        {
+            ticker.tick++;
+            if(ticker.tick%250 == 0)
+            {
+
+                DayNightCycleEvt dayNightCycleEvt = new DayNightCycleEvt();
+                getGame().currentLevel.add(dayNightCycleEvt);
+
+            }
+        }
 
         ArrayList<ScheduledEvt> eventsToProc = new ArrayList();
         for(ScheduledEvt scheduledEvt :ticker.actionQueue)

@@ -6,7 +6,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import EuroRogue.MyDungeonUtility;
+
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
@@ -27,10 +27,12 @@ import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.EventComponents.MoveEvt;
 import EuroRogue.IColoredString;
 import EuroRogue.LightHandler;
+import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MyFOV;
 import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.Burning;
+import EuroRogue.StatusEffectCmps.Stalking;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.SpatialMap;
@@ -102,7 +104,11 @@ public class MovementSys extends MyEntitySystem
                 getEngine().addEntity(damageEvtEntity);
             }
 
-            if(levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y]==',' || levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y]=='~') actor.remove(Burning.class);
+            if(levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y]==',' || levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y]=='~')
+            {
+                actor.remove(Burning.class);
+                actor.remove(Stalking.class);
+            }
 
             Entity eventEntity1 = new Entity();
             AnimateGlyphEvt glyphSlide = new AnimateGlyphEvt(glyphsCmp.glyph, AnimationsSys.AnimationType.SLIDE, null, positionCmp.coord, moveEvt );

@@ -30,6 +30,7 @@ import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.ItemType;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
@@ -54,6 +55,7 @@ import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
 import EuroRogue.ScheduledEvt;
 import EuroRogue.SortByDistance;
+import EuroRogue.StatusEffectCmps.Stalking;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.DijkstraMap;
@@ -298,18 +300,23 @@ public class AISys extends MyEntitySystem
         GreasedRegion goals = new GreasedRegion();
         FactionCmp.Faction myFaction = ((FactionCmp) CmpMapper.getComp(CmpType.FACTION, entity)).faction;
         LevelCmp levelCmp = (LevelCmp)CmpMapper.getComp(CmpType.LEVEL,getGame().currentLevel);
+        LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
 
 
         for(Coord entPos:levelCmp.actors.positions())
         {
             if(entPos==ai.location) continue;
             Integer entID = levelCmp.actors.get(entPos);
-            FactionCmp.Faction otherFaction = ((FactionCmp) CmpMapper.getComp(CmpType.FACTION, getGame().getEntity(entID))).faction;
-
-            if(selfFOV.visible.contains(entPos))
+            Entity actor = getGame().getEntity(entID);
+            FOVCmp actorFOVCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, actor);
+            FactionCmp.Faction otherFaction = ((FactionCmp) CmpMapper.getComp(CmpType.FACTION, actor)).faction;
+            StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
+            if(selfFOV.visible.contains(entPos) && statsCmp.getVisibleLightLvl() <= lightingCmp.fgLightLevel[entPos.x][entPos.y]
+                        || statsCmp.getVisibleLightLvl() <= selfFOV.nightVision[entPos.x][entPos.y])
                 if(otherFaction!=myFaction)
                 {
                     ai.visibleEnemies.add(entID);
+                    actor.remove(Stalking.class);
                     goals.add(entPos);
 
                 } else ai.visibleFriendlies.add(entID);
@@ -338,7 +345,8 @@ public class AISys extends MyEntitySystem
         List<Integer> alertsToRemove = new ArrayList<>();
         for(Integer id : ai.alerts.keySet())
         {
-            if(selfFOV.visible.contains(ai.alerts.get(id)))
+            Coord alertLoc = ai.alerts.get(id);
+            if(selfFOV.nightVision[alertLoc.x][alertLoc.y]>0)
             {
 
                 alertsToRemove.add(id);

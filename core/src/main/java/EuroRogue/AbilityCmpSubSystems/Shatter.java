@@ -24,6 +24,7 @@ import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Radius;
@@ -89,7 +90,7 @@ public class Shatter extends Ability
 
         boolean canAfford = manaPoolCmp.canAfford(getSkill());
         if(scroll()) canAfford = true;
-        this.available = ( aiCmp.target!=null && canAfford && getActive() &! getAOEtargetsDmg(levelCmp, game).isEmpty());
+        this.available = ( aiCmp.target!=null && canAfford && getActive() &! getAOEtargetsDmg(performer, levelCmp, game).isEmpty());
     }
 
     @Override
@@ -106,11 +107,11 @@ public class Shatter extends Ability
     }
 
     @Override
-    public HashMap<Integer, Integer> getAOEtargetsDmg(LevelCmp levelCmp, EuroRogue game)
+    public HashMap<Integer, Integer> getAOEtargetsDmg(Entity performerEntity, LevelCmp levelCmp, EuroRogue game)
     {
         HashMap<Integer, Integer> targets = new HashMap<>();
         Integer performerID = levelCmp.actors.get(aoe.getOrigin());
-        Entity performerEntity = game.getEntity(performerID);
+        System.out.println("Shatter getDmg bug");
         for(Coord coord : aoe.findArea().keySet())
         {
             if(levelCmp.actors.positions().contains(coord))
@@ -177,7 +178,7 @@ public class Shatter extends Ability
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.SHATTER, startPos, targetCoord, eventCmp);
     }
 
     @Override

@@ -18,6 +18,7 @@ import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
@@ -71,7 +72,7 @@ public class Dodge extends Ability
     {
 
         TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer)).glyph;
-        return new AnimateGlyphEvt(glyph, skill.animationType, eventCmp);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.WIGGLE, eventCmp);
     }
 
 

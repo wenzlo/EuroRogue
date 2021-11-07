@@ -5,7 +5,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
@@ -37,7 +36,6 @@ import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.School;
-import EuroRogue.SortByDistance;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
@@ -142,9 +140,10 @@ public class ItemSys extends MyEntitySystem
             eventEntity.add(statusEffectEvt);
             getEngine().addEntity(eventEntity);
         }
-        if(weaponCmp!=null)
+        MeleeAttack meleeAttack = (MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, actorEntity);
+        if(weaponCmp!=null && meleeAttack != null)
         {
-            MeleeAttack meleeAttack = (MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, actorEntity);
+
             meleeAttack.chr = weaponCmp.weaponType.chr;
             for(StatusEffect statusEffect : weaponCmp.statusEffects.keySet())
             {

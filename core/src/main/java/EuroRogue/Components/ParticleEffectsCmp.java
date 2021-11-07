@@ -125,7 +125,12 @@ public class ParticleEffectsCmp implements Component {
             System.out.println("ParticleEffectsMap = null");
             return;
         }
-        System.out.println(particleEffectsMap.get(glyph));
+        if(particleEffectsMap.get(glyph)==null)
+        {
+            System.out.println("ParticleEffectsMap no GLyph Key");
+            return;
+        }
+
         ArrayList<ParticleEffect> effectsToRemove = new ArrayList<>();
         for(ParticleEffect effect : particleEffectsMap.get(glyph).keySet())
         {

@@ -20,7 +20,7 @@ public class SortManaBySchool implements Comparator<School>
             case ARC:
                 sch1Score+=3;
                 break;
-            case PHY:
+            case WAR:
                 sch1Score+=1;
                 break;
 
@@ -38,7 +38,7 @@ public class SortManaBySchool implements Comparator<School>
             case ARC:
                 sch2Score+=3;
                 break;
-            case PHY:
+            case WAR:
                 sch2Score+=1;
                 break;
 

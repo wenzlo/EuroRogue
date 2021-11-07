@@ -4,7 +4,8 @@ import squidpony.squidgrid.gui.gdx.SColor;
 
 public enum School
 {
-    PHY("Physical", SColor.LIGHT_YELLOW_DYE),
+    WAR("Warfare", SColor.LIGHT_YELLOW_DYE),
+    SUB("Subterfuge", SColor.HALF_PURPLE),
     ARC("Arcane", SColor.PSYCHEDELIC_PURPLE),
     FIR("Fire", SColor.SAFETY_ORANGE),
     ICE("Ice", SColor.SKY_BLUE);

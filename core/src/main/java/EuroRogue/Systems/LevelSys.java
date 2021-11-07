@@ -4,7 +4,6 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.math.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,8 +63,6 @@ import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
-import squidpony.squidgrid.mapping.DenseRoomMapGenerator;
-import squidpony.squidgrid.mapping.DungeonUtility;
 import squidpony.squidgrid.mapping.SectionDungeonGenerator;
 import squidpony.squidgrid.mapping.SerpentMapGenerator;
 import squidpony.squidgrid.mapping.styled.TilesetType;
@@ -128,7 +125,6 @@ public class LevelSys extends MyEntitySystem
 
         LevelCmp oldLevelCmp = getGame().currentLevel.remove(LevelCmp.class);
 
-
         if(oldLevelCmp!=null)
         {
 
@@ -180,7 +176,7 @@ public class LevelSys extends MyEntitySystem
         levelEvt.processed=true;
 
         Entity newLevel = null;
-        /*if(levelEvt.type== LevelType.START)
+        if(levelEvt.type== LevelType.START)
         {
 
             while(newLevel == null)
@@ -188,21 +184,24 @@ public class LevelSys extends MyEntitySystem
                 newLevel=newTutorialLevel();
 
             }
-        }*/
-        //else
+        }
+        else if(getGame().depth==2)
+        {
+            while(newLevel == null)
+            {
+                newLevel=newLevel(LevelType.CAVES);
+
+            }
+        }
+        else
         {
             while(newLevel == null)
             {
                 newLevel=newLevel(levelEvt.type);
-
             }
         }
 
-
         //LevelCmp newLevelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, newLevel);
-
-
-
 
         TickerCmp newTickerCmp = new TickerCmp();
         getGame().ticker.remove(TickerCmp.class);
@@ -210,18 +209,13 @@ public class LevelSys extends MyEntitySystem
 
         WindowCmp dungeonWindowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
-
         getGame().engine.removeEntity(getGame().currentLevel);
         getGame().currentLevel=newLevel;
         getEngine().addEntity(getGame().currentLevel);
 
-
-
         LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, newLevel);
         dungeonWindowCmp.lightingHandler = new LightHandler(lightingCmp.resistance3x3, SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
         dungeonWindowCmp.lightingHandler.lightList.clear();
-
-
 
         for(Entity entity : itemsToAdd)
         {
@@ -234,8 +228,6 @@ public class LevelSys extends MyEntitySystem
         }
         Entity player = getGame().player;
         addPlayer(player);
-
-
        /* System.out.println("Final new Levl");
         for(char[] line : newLevelCmp.decoDungeon)
         {
@@ -253,8 +245,11 @@ public class LevelSys extends MyEntitySystem
         Entity newLevel = new Entity();
 
         LevelCmp levelCmp;
+        LightingCmp lightingCmp;
         double ambientLightLvl = rng.between(0.0f, 1.0f);
-        float fowColor = SColor.lerpFloatColors(SColor.FLOAT_BLACK, SColor.LIMITED_PALETTE[0].toFloatBits(), (float) ambientLightLvl);
+        double minAmbientLight = 0f;
+        double maxAmbientLightLvl = 0.8f;
+
 
         switch (levelType)
         {
@@ -268,10 +263,13 @@ public class LevelSys extends MyEntitySystem
                 getGame().dungeonGen.addGrass(3, 20);
                 //getGame().dungeonGen.addDoors(100, true);
                 getGame().dungeonGen.generate(TilesetType.CAVES_LIMIT_CONNECTIVITY);
-                fowColor = SColor.lerpFloatColors(SColor.FLOAT_BLACK, SColor.TAN.toFloatBits(), (float) ambientLightLvl);
+
                 SColor.LIMITED_PALETTE[0] = SColor.STEAMED_CHESTNUT;
                 levelCmp  = new LevelCmp(getGame().dungeonGen);
                 SColor.LIMITED_PALETTE[0] = SColor.DB_LEAD;
+                ambientLightLvl = 0f;
+                maxAmbientLightLvl = 0;
+                minAmbientLight = 0f;
 
 
 
@@ -289,9 +287,9 @@ public class LevelSys extends MyEntitySystem
                 //getGame().dungeonGen.addGrass(3, 20);
                 getGame().dungeonGen.addDoors(100, true);
                 getGame().dungeonGen.generate(serpentMapGenerator.getDungeon(), serpentMapGenerator.getEnvironment());
-                ambientLightLvl =0.0;
-                fowColor = SColor.lerpFloatColors(SColor.FLOAT_BLACK, SColor.CW_GRAY_WHITE.toFloatBits(), (float) MathUtils.clamp(ambientLightLvl-0.3f, 0, 0.7));
                 levelCmp  = new LevelCmp(getGame().dungeonGen);
+
+
                 break;
             case LAKE_TOWN:
                 getGame().dungeonGen = new SectionDungeonGenerator(42, 42);
@@ -299,10 +297,10 @@ public class LevelSys extends MyEntitySystem
                 getGame().dungeonGen.addGrass(3, 20);
                 getGame().dungeonGen.addDoors(100, true);
                 getGame().dungeonGen.generate(TilesetType.ROOMS_AND_CORRIDORS_B);
-
-                fowColor = SColor.lerpFloatColors(SColor.FLOAT_BLACK, SColor.CW_GRAY_WHITE.toFloatBits(), (float) MathUtils.clamp(ambientLightLvl-0.3f, 0, 0.7));
                 levelCmp  = new LevelCmp(getGame().dungeonGen);
+
                 break;
+
             case MIXED:
                 getGame().dungeonGen = new SectionDungeonGenerator(42, 42);
                 serpentMapGenerator = new SerpentMapGenerator(42, 42, new GWTRNG(rng.nextInt()));
@@ -312,17 +310,15 @@ public class LevelSys extends MyEntitySystem
                 serpentMapGenerator.putCaveCarvers(2);
                 serpentMapGenerator.generate();
                 getGame().dungeonGen.generate(serpentMapGenerator.getDungeon(), serpentMapGenerator.getEnvironment());
-
-                fowColor = SColor.lerpFloatColors(SColor.FLOAT_BLACK, SColor.CW_GRAY_WHITE.toFloatBits(), (float) MathUtils.clamp(ambientLightLvl-0.3f, 0, 0.7));
-
                 levelCmp  = new LevelCmp(getGame().dungeonGen);
+
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + levelType);
         }
 
-        LightingCmp lightingCmp = new LightingCmp(levelCmp.lineDungeon, levelCmp.bgColors, ambientLightLvl, fowColor);
 
+        lightingCmp = new LightingCmp(levelCmp.lineDungeon, levelCmp.bgColors, minAmbientLight, maxAmbientLightLvl, ambientLightLvl);
         newLevel.add(levelCmp);
         newLevel.add(lightingCmp);
 
@@ -418,17 +414,17 @@ public class LevelSys extends MyEntitySystem
             actorsToAdd.add(mob);
             StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, mob);
             if(statsCmp.getPerc() <4) addTorch(mob);
-            if(codexCmp.prepared.contains(Skill.DAGGER_THROW)) addWeapon(mob, WeaponType.DAGGER);
+            if(codexCmp.prepared.contains(Skill.DAGGER_THROW) || codexCmp.prepared.contains(Skill.STALK)) addWeapon(mob, WeaponType.DAGGER);
             else  addRndWeapon(mob);
 
             if(statsCmp.getDex()>statsCmp.getStr())addArmor(mob, ArmorType.LEATHER);
-            else if(statsCmp.getStr() > 5) addArmor(mob, ArmorType.PLATE);
-            else if(statsCmp.getStr()+statsCmp.getDex() > 5) addArmor(mob, ArmorType.MAIL);
+            else if(statsCmp.getStr() > 7) addArmor(mob, ArmorType.PLATE);
+            else if(statsCmp.getStr()+statsCmp.getDex() > 7) addArmor(mob, ArmorType.MAIL);
             else addArmor(mob, ArmorType.LEATHER);
 
 
         }
-        for(int i=0;i<3;i++)
+        for(int i=0;i<2;i++)
         {
             Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
@@ -436,7 +432,7 @@ public class LevelSys extends MyEntitySystem
         }
         for(int i=0;i<4;i++)
         {
-            Coord loc = rng.getRandomElement(new GreasedRegion(levelCmp.decoDungeon, '"'));
+            Coord loc = rng.getRandomElement(new GreasedRegion(levelCmp.decoDungeon, '.'));
 
             //GreasedRegion deadZone = new GreasedRegion(fov.calculateFOV(levelCmp.resistance, loc.x, loc.y, 8, Radius.CIRCLE), 0.0).not();
 
@@ -470,11 +466,9 @@ public class LevelSys extends MyEntitySystem
         levelCmp.decoDungeon[getGame().dungeonGen.stairsUp.x][getGame().dungeonGen.stairsUp.y]='<';
         levelCmp.decoDungeon[getGame().dungeonGen.stairsDown.x][getGame().dungeonGen.stairsDown.y]='>';
 
-
         newLevel.add(levelCmp);
 
-
-        LightingCmp lightingCmp = new LightingCmp(levelCmp.lineDungeon, levelCmp.bgColors, 0.8, SColor.TAN.toFloatBits());
+        LightingCmp lightingCmp = new LightingCmp(levelCmp.lineDungeon, levelCmp.bgColors, 0f, 0.8f, 0.4f);
         newLevel.add(lightingCmp);
         WindowCmp dungeonWindowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
@@ -490,7 +484,7 @@ public class LevelSys extends MyEntitySystem
 
         for(OrderedSet<Coord> roomCenter : roomCenters)
         {
-            if(numShrines==4) break;
+            if(numShrines==5) break;
             School school = rng.getRandomElement(schools);
             schools.remove(school);
             Coord position = roomCenter.randomItem(rng);
@@ -501,7 +495,7 @@ public class LevelSys extends MyEntitySystem
         }
         for(OrderedSet<Coord> alongWall : getGame().dungeonGen.placement.getAlongStraightWalls())
         {
-            if(numShrines==4) break;
+            if(numShrines==5) break;
             School school = rng.getRandomElement(schools);
             schools.remove(school);
             Coord position = alongWall.randomItem(rng);
@@ -510,7 +504,7 @@ public class LevelSys extends MyEntitySystem
             numShrines++;
             if(numShrines==4)break;
         }
-        for(int i=numShrines; i<4; i++)
+        for(int i=numShrines; i<5; i++)
         //for(Coord caveLoc : getGame().dungeonGen.placement.finder.allCaves)
         {
             Coord caveLoc = rng.getRandomElement(new GreasedRegion(levelCmp.decoDungeon, '.'));
@@ -520,17 +514,12 @@ public class LevelSys extends MyEntitySystem
             addShrine(objectFactory.getShrine(caveLoc, school), newLevel);
             spwnCrds.remove(caveLoc);
         }
-
-
-
-
         //player.add(new FocusCmp());
 
         //spwnCrds.andNot(stairsUpFOV);
 
         for(int i=0;i<10;i++)
         {
-
            /* Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
 
@@ -553,8 +542,8 @@ public class LevelSys extends MyEntitySystem
             //engine.addEntity(weaponFactory.newTorch(itemLoc));
 
         }
-        FOV fov = new FOV();
-        for(int i=0;i<4;i++)
+        //FOV fov = new FOV();
+        for(int i=0;i<6;i++)
         {
             Coord loc = rng.getRandomElement(spwnCrds);
 
@@ -566,16 +555,14 @@ public class LevelSys extends MyEntitySystem
             actorsToAdd.add(mob);
 
         }
-        for(int i=0;i<1;i++)
+        for(int i=0;i<3;i++)
         {
             Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
             itemsToAdd.add(getGame().foodFactory.generateFoodITem(itemLoc));
         }
 
-
         return newLevel;
-
     }
 
     private void addShrine(Entity shrineEntity, Entity levelEntity)

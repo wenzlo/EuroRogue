@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import EuroRogue.LevelType;
 import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyMapUtility;
 import squidpony.squidgrid.Direction;
@@ -32,6 +31,7 @@ public class LevelCmp implements Component
     public SpatialMap<Integer, Integer> actors = new SpatialMap();
     public SpatialMap<Integer, Integer> items = new SpatialMap();
     public SpatialMap<Integer, Integer> objects = new SpatialMap();
+    public float fowColor;
 
    /* public LevelCmp(DungeonGenerator dungeonGenerator)
     {
@@ -91,16 +91,17 @@ public class LevelCmp implements Component
                         generator.placement.finder.allCaves.copy().fringe8way(2).contains(x,y)) lineDungeon[x][y] = '#';
             }
         }
-        System.out.println(new GreasedRegion(lineDungeon, '#').not());
 
         this.environment = generator.finder.environment;
         this.resistance = MyDungeonUtility.generateSimpleResistances(decoDungeon);
 
     }
 
-    public boolean isOccupied(Coord coord)
+    public boolean isBlocked(Coord coord)
     {
-        return actors.get(coord)!=null;
+        if (actors.positions().contains(coord)) return  true;
+        if (objects.positions().contains(coord)) return true;
+        return !new GreasedRegion(bareDungeon, '.').contains(coord);
     }
 
     public List<Coord> getPositions(List<Integer> actorIDs)

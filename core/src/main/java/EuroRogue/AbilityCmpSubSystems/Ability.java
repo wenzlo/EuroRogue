@@ -23,7 +23,9 @@ import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
+import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.SEParameters;
+import EuroRogue.StatusEffectCmps.Stalking;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
@@ -56,6 +58,7 @@ public class Ability extends Technique implements Component, IAbilitySubSys
         ItemEvt itemEvt = genItemEvent(performerEntity, targetEntity);
         if (animateGlyphEvt != null) performerEntity.add(animateGlyphEvt);
         if(itemEvt != null) performerEntity.add(itemEvt);
+        if(getSkill().school != School.SUB) performerEntity.remove(Stalking.class);
     }
 
     @Override
@@ -150,11 +153,9 @@ public class Ability extends Technique implements Component, IAbilitySubSys
     }
 
     @Override
-    public HashMap<Integer, Integer> getAOEtargetsDmg(LevelCmp levelCmp, EuroRogue game)
+    public HashMap<Integer, Integer> getAOEtargetsDmg(Entity performerEntity, LevelCmp levelCmp, EuroRogue game)
     {
         HashMap<Integer, Integer> targets = new HashMap<>();
-        Integer performerID = levelCmp.actors.get(aoe.getOrigin());
-        Entity performerEntity = game.getEntity(performerID);
         for(Coord coord : aoe.findArea().keySet())
         {
             if(levelCmp.actors.positions().contains(coord))
@@ -277,6 +278,9 @@ public class Ability extends Technique implements Component, IAbilitySubSys
         Ability ability;
         switch (skill)
         {
+            case BACK_STAB:
+                ability =  new BackStab();
+                break;
             case ENLIGHTEN:
                 ability = new Enlighten();
                 break;
@@ -318,6 +322,10 @@ public class Ability extends Technique implements Component, IAbilitySubSys
                 break;
             case MELEE_ATTACK:
                 ability = new MeleeAttack();
+                break;
+
+            case STALK:
+                ability = new Stalk();
                 break;
             //case OPPORTUNITY: return new Opportunity();
             default:

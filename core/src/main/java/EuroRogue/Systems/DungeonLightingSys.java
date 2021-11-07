@@ -11,6 +11,7 @@ import java.util.Iterator;
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
 import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.EquipmentSlot;
@@ -83,12 +84,11 @@ public class DungeonLightingSys extends MyEntitySystem
         if(getGame().gameState== GameState.STARTING) return;
         if(getGame().gameState== GameState.CAMPING) return;
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
-        MySparseLayers display = (MySparseLayers)windowCmp.display;
+        MySparseLayers display = windowCmp.display;
         LightHandler lightingHandler = windowCmp.lightingHandler;
         LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
 
         StatsCmp focusStatsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
-
 
         Iterator<TextCellFactory.Glyph> glyphs = display.glyphs.iterator();
         while (glyphs.hasNext())
@@ -208,8 +208,6 @@ public class DungeonLightingSys extends MyEntitySystem
         }
 
         lightingHandler.update();
-        /*display.clear();
-        lightingHandler.draw(display);*/
 
         GreasedRegion fs3x3 = new GreasedRegion(lightingHandler.losResult,0.0).not();
         GreasedRegion ambientLit = new GreasedRegion(lightingCmp.ambientBgLightLvls, 0.0).not();
@@ -221,7 +219,6 @@ public class DungeonLightingSys extends MyEntitySystem
         lightingCmp.focusSeen3x3.or(new GreasedRegion(lightingCmp.focusNightVision3x3, 0.0).not());
         Noise.Noise3D flicker = new WhirlingNoise();
 
-        //System.out.println(new GreasedRegion(lightingHandler.resistances, 0.0));
         for(int x=0; x<lightingCmp.bgLighting.length; x++){
             for(int y=0; y<lightingCmp.bgLighting[0].length; y++)
             {
@@ -232,53 +229,47 @@ public class DungeonLightingSys extends MyEntitySystem
 
                     if(chr =='~' || chr ==',')
                     {
-
                         //bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), bgColors[Math.round(x/3)][Math.round(y/3)], lightingHandler.colorLighting[0][x][y]);
                         lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(lightingCmp.ambientBgLighting[x][y], SColor.CW_DARK_AZURE.toFloatBits(), (float) (0xAAp-9f + (0xC8p-9f * 0.65 *
                                                         (1f + 0.45f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00070)))));
                     }
                     else
                     {
-
                         lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(lightingCmp.ambientBgLighting[x][y], levelCmp.bgColors[Math.round(x/3)][Math.round(y/3)], (0xAAp-9f + (0xC8p-9f * (lightingHandler.colorLighting[0][x][y]) *
                                 (1f + 0.25f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00125)))-0.15f));
                     }
 
                 }
-                //else if(lightingCmp.focusSeen3x3.contains(x,y))lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(lightingCmp.bgLighting[x][y], SColor.BLACK.toFloatBits(), (float) (1.0-lightingCmp.ambientBgLightLvls[x][y]*1.1f));
-                //else if(lightingCmp.focusNightVision3x3[x][y]>0 && levelCmp.floors.contains(x/3,y/3)) lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.bgColors[x/3][y/3], 0.2f);
-                //else lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), SColor.SLATE_GRAY.toFloatBits(), (float) lightingCmp.ambientBgLightLvls[x][y]);
             }
         }
-
 
         if(getGame().gameState==GameState.AIMING)
         {
             AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
+            if (aimingCmp != null) {
 
-            Ability aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
-            if(aimingCmp.scroll) aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getScrollForSkill(aimingCmp.skill, getGame().getFocus()));
+                Ability aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
+                System.out.println(aimAbility.name);
+                if(aimingCmp.scroll) aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getScrollForSkill(aimingCmp.skill, getGame().getFocus()));
 
-            PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getGame().getFocus());
-            for(Coord coord : aimAbility.possibleTargets(positionCmp.coord, levelCmp.resistance) )
-            {
-                if(aimAbility.aoe.findArea().keySet().contains(coord) || !levelCmp.floors.contains(coord)) continue;
-                for(int x=-0; x<3; x++){
-                    for(int y=0; y<3; y++)
-                    {
-
-                        lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y] = SColor.lerpFloatColors(lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y], SColor.GREEN_BAMBOO.toFloatBits(), 0.15f);
+                PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getGame().getFocus());
+                for(Coord coord : aimAbility.possibleTargets(positionCmp.coord, levelCmp.resistance) )
+                {
+                    if(aimAbility.aoe.findArea().keySet().contains(coord) || !levelCmp.floors.contains(coord)) continue;
+                    for(int x=-0; x<3; x++){
+                        for(int y=0; y<3; y++)
+                            lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y] = SColor.lerpFloatColors(lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y], SColor.GREEN_BAMBOO.toFloatBits(), 0.15f);
                     }
                 }
-            }
-            for(Coord coord : aimAbility.aoe.findArea().keySet())
-            {
-                //if(!levelCmp.floors.contains(coord)) continue;
-                for(int x=0; x<3; x++){
-                    for(int y=0; y<3; y++)
-                    {
+                for(Coord coord : aimAbility.aoe.findArea().keySet())
+                {
+                    //if(!levelCmp.floors.contains(coord)) continue;
+                    for(int x=0; x<3; x++){
+                        for(int y=0; y<3; y++)
+                        {
 
-                        lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y] = SColor.lerpFloatColors(lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y], aimingCmp.skill.school.color.toFloatBits(), (float) (aimAbility.aoe.findArea().get(coord)*1f));
+                            lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y] = SColor.lerpFloatColors(lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y], aimingCmp.skill.school.color.toFloatBits(), (float) (aimAbility.aoe.findArea().get(coord)*1f));
+                        }
                     }
                 }
             }
@@ -294,9 +285,6 @@ public class DungeonLightingSys extends MyEntitySystem
                     char chr = levelCmp.decoDungeon[x][y];
                     if(chr=='~' || chr==',')
                     {
-                        //Noise.Noise3D flicker = new WhirlingNoise();
-
-                        //bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), bgColors[Math.round(x/3)][Math.round(y/3)], lightingHandler.colorLighting[0][x][y]);
                         lightingCmp.fgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], (0xAAp-9f + (0xC8p-9f * 0.8f *
                                 (1f + 0.8f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00070)))));
                     }
@@ -307,36 +295,13 @@ public class DungeonLightingSys extends MyEntitySystem
                     lightingCmp.fgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], MathUtils.clamp((float)(lightingCmp.ambientFgLightLvls[x][y]),0.0f, 1f));
                 }
 
-
-
             }
         }
 
-
-
         lightingHandler.draw(lightingCmp.bgLighting);
 
-        for(int x=0; x<lightingCmp.bgLighting.length; x++)
-            for(int y=0; y<lightingCmp.bgLighting[0].length; y++)
-            {
-                if(!lightingCmp.focusSeen3x3.contains(x, y) && lightingHandler.fovResult[x][y]==0)
-                    lightingCmp.bgLighting[x][y] = lightingCmp.fow[x][y];
-                if(lightingCmp.focusSeen3x3.contains(x, y) && lightingHandler.losResult[x][y]==0
-                        || lightingCmp.focusSeen3x3.contains(x, y) && lightingHandler.colorLighting[0][x][y]==0 && lightingCmp.ambientBgLightLvls[x][y] == 0)
-                {
-                    if(lightingCmp.ambientBgLightLvls[x][y]>0)
-                    {
-                        lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), lightingCmp.ambientBgLighting[x][y], MathUtils.clamp((float) (lightingCmp.ambientBgLightLvls[x][y] -0.1f ),0.2f,0.9f));
-
-                    } else {
-
-                        lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.bgColors[x/3][y/3], MathUtils.clamp((float) (lightingCmp.ambientBgLightLvls[x][y] ),0.2f,0.9f));
-
-                    }
-
-                }
-            }
-
+        applyOutOfLOSfilter(lightingCmp, lightingHandler, levelCmp);
+        applyStalkingFilter(lightingCmp, levelCmp);
 
         glyphs = display.glyphs.iterator();
 
@@ -372,10 +337,55 @@ public class DungeonLightingSys extends MyEntitySystem
         if(CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, entity)!=null) return SColor.BABY_BLUE.toFloatBits();
         if(CmpMapper.getStatusEffectComp(StatusEffect.CHILLED, entity)!=null) return SColor.lerpFloatColors(color, SColor.BABY_BLUE.toFloatBits(), 0.3f);
         if(CmpMapper.getStatusEffectComp(StatusEffect.CALESCENT, entity)!=null) return SColor.lerpFloatColors(color, SColor.BRIGHT_GOLDEN_YELLOW.toFloatBits(), 0.3f);
-
+        if(CmpMapper.getStatusEffectComp(StatusEffect.STALKING, entity)!=null) return SColor.lerpFloatColors(color, SColor.GREEN_BAMBOO.toFloatBits(), 0.7f);
 
         return color;
     }
 
+    private void applyOutOfLOSfilter(LightingCmp lightingCmp, LightHandler lightingHandler, LevelCmp levelCmp)
+    {
+        for(int x=0; x<lightingCmp.bgLighting.length; x++)
+            for(int y=0; y<lightingCmp.bgLighting[0].length; y++)
+            {
+                if(!lightingCmp.focusSeen3x3.contains(x, y) && lightingHandler.fovResult[x][y]==0)
+                    lightingCmp.bgLighting[x][y] = lightingCmp.fow[x][y];
+                if(lightingCmp.focusSeen3x3.contains(x, y) && lightingHandler.losResult[x][y]==0
+                        || lightingCmp.focusSeen3x3.contains(x, y) && lightingHandler.colorLighting[0][x][y]==0 && lightingCmp.ambientBgLightLvls[x][y] == 0)
+                {
+                   /* if(lightingCmp.ambientBgLightLvls[x][y]>0)
+                    {
+                        lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), lightingCmp.ambientBgLighting[x][y], (float) lightingCmp.ambientBgLightLvls[x][y] );
 
+                    } else {*/
+
+                    lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.bgColors[x/3][y/3], MathUtils.clamp((float) (lightingCmp.ambientBgLightLvls[x][y]+0.2 ),0.2f,1.0f));
+
+                    //}
+
+                }
+            }
+    }
+    private void applyStalkingFilter(LightingCmp lightingCmp, LevelCmp levelCmp)
+    {
+        Entity focus = getGame().getFocus();
+        if(CmpMapper.getStatusEffectComp(StatusEffect.STALKING, focus)==null)
+            return;
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, focus);
+        StatsCmp focusStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, focus);
+        double visibilityLvl = focusStats.getVisibleLightLvl();
+        for(Integer id : aiCmp.visibleEnemies)
+        {
+            Entity enemy = getGame().getEntity(id);
+            FOVCmp enemyFOV = (FOVCmp) CmpMapper.getComp(CmpType.FOV, enemy);
+
+            for(Coord coord : enemyFOV.visible)
+            {
+                if(lightingCmp.fgLightLevel[coord.x][coord.y] >= visibilityLvl && levelCmp.floors.contains(coord)
+                    || enemyFOV.nightVision[coord.x][coord.y] > 0 && levelCmp.floors.contains(coord))
+                {
+                    lightingCmp.fgLighting[coord.x][coord.y] = SColor.lerpFloatColors(lightingCmp.fgLighting[coord.x][coord.y], SColor.RED.toFloatBits(), 0.4f);
+                }
+            }
+        }
+    }
 }

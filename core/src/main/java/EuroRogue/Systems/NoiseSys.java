@@ -157,8 +157,11 @@ public class NoiseSys extends MyEntitySystem
             Entity alertedEntity = getGame().getEntity(levelCmp.actors.get(position));
             StatsCmp alertedStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, alertedEntity);
             FactionCmp entityFactionCmp = (FactionCmp) CmpMapper.getComp(CmpType.FACTION, alertedEntity);
+
             if(alerted.get(position)>=alertedStats.getSoundDetectionLvl() && entityFactionCmp.faction!=factionCmp.faction)
             {
+                /*if(CmpMapper.getStatusEffectComp(StatusEffect.STALKING,performerEntity)!=null)
+                    System.out.println("enemy Alerted");*/
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
                 AICmp alertedAI = (AICmp) CmpMapper.getComp(CmpType.AI, alertedActor);
                 alertedAI.alerts.put(performerEntity.hashCode(), positionCmp.coord);

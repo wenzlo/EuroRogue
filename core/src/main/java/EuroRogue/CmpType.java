@@ -41,6 +41,7 @@ import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.CodexEvt;
 import EuroRogue.EventComponents.DamageEvent;
+import EuroRogue.EventComponents.DayNightCycleEvt;
 import EuroRogue.EventComponents.DeathEvt;
 import EuroRogue.EventComponents.FrozenEvt;
 import EuroRogue.EventComponents.GameStateEvt;
@@ -64,6 +65,7 @@ public enum CmpType
     CHAR(CharCmp.class),
     CODEX(CodexCmp.class),
     CODEX_EVT(CodexEvt.class),
+    DAYNIGHTCYCLE_EVT(DayNightCycleEvt.class),
     DAMAGE_EVT(DamageEvent.class),
     DEATH_EVT(DeathEvt.class),
     DODGE(Dodge.class),

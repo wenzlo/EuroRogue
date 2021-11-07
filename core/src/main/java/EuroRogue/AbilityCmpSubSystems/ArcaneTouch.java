@@ -21,6 +21,7 @@ import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.Radiance;
@@ -107,7 +108,7 @@ public class ArcaneTouch extends Ability
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.MELEE_ARCANE, startPos, targetCoord, eventCmp);
     }
 
     @Override

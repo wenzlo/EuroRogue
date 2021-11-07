@@ -5,10 +5,8 @@ import static squidpony.squidgrid.gui.gdx.SColor.FLOAT_WHITE;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
-import squidpony.ArrayTools;
 import squidpony.StringKit;
 import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Radius;

@@ -89,7 +89,7 @@ public class ShrineSys extends MyEntitySystem
 
         int charges = Collections.frequency(manaPoolCmp.attuned, shrineCmp.school);
 
-        if(shrineCmp.charges==-1)shrineCmp.charges = charges+1;
+        if(shrineCmp.charges==-1)shrineCmp.charges = charges+2;
 
 
         Entity gameStateEvtEnt = new Entity();
@@ -104,7 +104,7 @@ public class ShrineSys extends MyEntitySystem
             for(int i=0; i<Math.min(skills.size(), 2); i++)
             {
                 Skill skill = skills.get(i);
-                if(Skill.qualify(skill, statsCmp))
+                if(Skill.qualify(skill, statsCmp, codexCmp))
                     shrineCmp.skillOffer.add(skill);
             }
         }

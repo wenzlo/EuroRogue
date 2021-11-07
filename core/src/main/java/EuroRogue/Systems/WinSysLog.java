@@ -63,16 +63,14 @@ public class WinSysLog extends MyEntitySystem
             }
         }
 
-        MySparseLayers display = (MySparseLayers)((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.logWindow)).display;
+        MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.logWindow)).display;
         Stage stage = game.logWindow.getComponent(WindowCmp.class).stage;
         LogCmp logCmp = (LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow);
         Integer currentTick = ((TickerCmp) CmpMapper.getComp(CmpType.TICKER, game.ticker)).tick;
 
         display.clear();
-
-
+        display.put(1, 1, "Depth = "+game.depth, SColor.WHITE);
         display.put(1, 18, currentTick.toString(),SColor.WHITE);
-
 
         for(int i=0;i<Math.min(logCmp.logEntries.size(),16);i++)
         {
@@ -96,15 +94,14 @@ public class WinSysLog extends MyEntitySystem
     }
     public static class SortByTick implements Comparator<LogEvt> {
 
-
         public SortByTick (){
 
         }
 
         @Override
         public int compare(LogEvt entry1, LogEvt entry2) {
-            int t1 = (int) entry1.tick;
-            int t2 = (int) entry2.tick;
+            int t1 = entry1.tick;
+            int t2 = entry2.tick;
             return Double.compare(t1,t2);
         }
     }

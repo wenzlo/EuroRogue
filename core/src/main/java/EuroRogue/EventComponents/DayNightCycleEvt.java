@@ -1,15 +1,15 @@
 package EuroRogue.EventComponents;
 
-import EuroRogue.LevelType;
-
-public class LevelEvt implements IEventComponent
+public class DayNightCycleEvt implements IEventComponent
 {
     public boolean processed = false;
-    public LevelType type;
+    public int entityID;
 
-    public LevelEvt(LevelType type) { this.type = type; };
+    public DayNightCycleEvt(){}
+
     @Override
-    public boolean isProcessed() {
+    public boolean isProcessed()
+    {
         return processed;
     }
 
@@ -17,5 +17,7 @@ public class LevelEvt implements IEventComponent
     public void setProcessed(boolean bool) {
         processed = bool;
     }
+
+
 
 }

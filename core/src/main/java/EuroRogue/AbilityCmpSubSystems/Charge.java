@@ -8,7 +8,9 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AICmp;
 import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
@@ -23,12 +25,15 @@ import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
+import squidpony.squidmath.Bresenham;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
+import squidpony.squidmath.OrderedMap;
 
 public class Charge extends Ability
 {
@@ -42,6 +47,14 @@ public class Charge extends Ability
     {
         super("Charge", new PointAOE(Coord.get(-1,-1),2,2));
         statusEffects.put(StatusEffect.STAGGERED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
+    }
+    @Override
+    public OrderedMap<Coord, Double> apply(Coord user, Coord aimAt)
+    {
+        setTargetedLocation(aimAt);
+
+        return super.apply(user, aimAt);
+
     }
 
 
@@ -74,6 +87,28 @@ public class Charge extends Ability
     }
 
     @Override
+    public void setAvailable(Entity performer, EuroRogue game) {
+        super.setAvailable(performer, game);
+        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, performer);
+        LevelCmp levelCmp = (LevelCmp)CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
+        setTargetedLocation(levelCmp.actors.getPosition(aiCmp.target));
+        if(targetedLocation!=null && available)
+        {
+            Coord performerLoc = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION,performer)).coord;
+            List<Coord> line = Arrays.asList(Bresenham.line2D_(performerLoc, getTargetedLocation()));
+
+            for(Coord coord : line.subList(1, line.size()-1))
+            {
+                if(levelCmp.isBlocked(coord))
+                {
+                    available = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    @Override
     public void updateAOE(Entity performer)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
@@ -98,7 +133,7 @@ public class Charge extends Ability
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
         TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer)).glyph;
-        return new AnimateGlyphEvt(glyph, skill.animationType, eventCmp);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.CHARGE, eventCmp);
     }
 
     @Override
@@ -126,9 +161,8 @@ public class Charge extends Ability
 
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect) {
-        return 0;
+        return 15;
     }
-
     @Override
     public TargetType getTargetType()
     {
@@ -152,6 +186,6 @@ public class Charge extends Ability
 
     @Override
     public double getNoiseLvl(Entity performer) {
-        return 0;
+        return 15;
     }
 }

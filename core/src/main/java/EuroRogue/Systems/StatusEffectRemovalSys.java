@@ -13,6 +13,7 @@ import EuroRogue.StatusEffectCmps.Hungry;
 import EuroRogue.StatusEffectCmps.Starving;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
+import EuroRogue.StatusEffectCmps.WellFed;
 
 
 public class StatusEffectRemovalSys extends MyEntitySystem
@@ -29,7 +30,7 @@ public class StatusEffectRemovalSys extends MyEntitySystem
     @Override
     public void addedToEngine(Engine engine)
     {
-        entities = engine.getEntitiesFor(Family.one(Hungry.class, Starving.class).get());
+        entities = engine.getEntitiesFor(Family.one(WellFed.class, Hungry.class, Starving.class).get());
     }
 
     /**

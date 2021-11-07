@@ -13,7 +13,6 @@ import EuroRogue.Components.AICmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentSlot;
-import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FactionCmp;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.InventoryCmp;
@@ -24,7 +23,6 @@ import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
-import EuroRogue.Components.WindowCmp;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
@@ -53,7 +51,8 @@ public class MobFactory
         mob.add(new CharCmp('@', SColor.LIGHT_YELLOW_DYE));
         StatsCmp statsCmp = getRandomStats(9+ game.depth*2, true);
         mob.add(statsCmp);
-        mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
+        InventoryCmp inventoryCmp = new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4);
+        mob.add(inventoryCmp);
         AICmp aiCmp = new AICmp(new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
         mob.add(aiCmp);
         mob.add(new FactionCmp(FactionCmp.Faction.PLAYER));
@@ -91,7 +90,7 @@ public class MobFactory
         mob.add(codexCmp);
         mob.add(new PositionCmp(loc));
         mob.add(new CharCmp('ß', SColor.RED_BIRCH));
-        StatsCmp statsCmp = getRandomStats(5+(depth*2), false);
+        StatsCmp statsCmp = getRandomStats(4+(depth*2), false);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
         AICmp aiCmp = new AICmp(new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
@@ -132,7 +131,7 @@ public class MobFactory
         manaPool.spent.addAll(Arrays.asList(Skill.MELEE_ATTACK.castingCost));
         codex.known.add(Skill.MELEE_ATTACK);
         codex.prepared.add(Skill.MELEE_ATTACK);
-        manaPool.spent.add(School.PHY);
+        manaPool.spent.add(School.WAR);
         for(School mana:Skill.MELEE_ATTACK.prepCost)
         {
             manaPool.attuned.add(mana);
@@ -149,7 +148,7 @@ public class MobFactory
 
             skillPool.remove(skill);
             if(spentLimit - skill.prepCost.length-1 < 0) continue;
-            if (skill.castingCost.length < spentLimit && Skill.qualify(skill, stats) &! codex.getExcludedSchools().contains(skill.school))
+            if (skill.castingCost.length < spentLimit && Skill.qualify(skill, stats, codex) &! codex.getExcludedSchools().contains(skill.school))
             {
                 manaPool.spent.addAll(Arrays.asList(skill.prepCost));
                 manaPool.spent.addAll(Arrays.asList(skill.castingCost));
@@ -169,8 +168,6 @@ public class MobFactory
         stats.setSpirit(manaPool.unattunedMana().size());
         stats.hp= stats.getMaxHP();
     }
-
-
 
     public StatsCmp getRandomStats(int total, boolean player)
     {
@@ -212,7 +209,7 @@ public class MobFactory
         mob.add(codexCmp);
         mob.add(new PositionCmp(loc));
         mob.add(new CharCmp('r', ',', ',', SColor.BROWN_RAT_GREY));
-        StatsCmp statsCmp = new StatsCmp(0, 2, 0, 3, 0);
+        StatsCmp statsCmp = new StatsCmp(0, 1, 0, 3, 0);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
         AICmp aiCmp = new AICmp(new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));

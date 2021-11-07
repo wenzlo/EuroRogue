@@ -24,6 +24,8 @@ public enum StatusEffect
     QSTAFF_EFCT(QStaffEfct.class, "QStaff Eq", EffectType.WEAPON, DamageType.NONE, new Class[0], new Class[0], false),
     STAFF_EFCT(StaffEfct.class, "Staff Eq", EffectType.WEAPON, DamageType.NONE, new Class[0], new Class[0], false),
     STAGGERED(Staggered.class, "Staggered", EffectType.DEBUFF, DamageType.BLUDGEONING, new Class[0], new Class[0], false),
+    STALKING(Stalking.class, "Stalking", EffectType.BUFF, DamageType.NONE, new Class[]{Stalking.class}, new Class[0], false),
+
     STARVING(Starving.class, "Starving", EffectType.DEBUFF, DamageType.NONE, new Class[0], new Class[]{Hungry.class}, false),
     SWORD_EFCT(SwordEfct.class, "Sword Eq", EffectType.WEAPON, DamageType.NONE, new Class[0], new Class[0], false),
     WELL_FED(WellFed.class, "Well Fed", EffectType.BUFF, DamageType.NONE, new Class[]{Hungry.class, Starving.class}, new Class[0], false),
@@ -141,6 +143,9 @@ public enum StatusEffect
                 break;
             case WATER_WALKING:
                 statusEffectCmp = new WaterWalking();
+                break;
+            case STALKING:
+                statusEffectCmp = new Stalking();
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + effect);

@@ -80,7 +80,7 @@ public class ActionSys extends MyEntitySystem
             if(!action.targetsDmg.isEmpty() && targetType != AOE)
                 targetEntity = getGame().getEntity((Integer) action.targetsDmg.keySet().toArray()[0]);
 
-            else action.targetsDmg = abilityCmp.getAOEtargetsDmg(levelCmp,getGame());
+            else action.targetsDmg = abilityCmp.getAOEtargetsDmg(performerEntity, levelCmp, getGame());
 
 
 

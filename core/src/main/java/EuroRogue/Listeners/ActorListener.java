@@ -44,7 +44,7 @@ public class ActorListener implements EntityListener {
     public void entityAdded(Entity entity)
     {
         NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
-        System.out.println(nameCmp.name);
+
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow);
         if(levelCmp == null) return;

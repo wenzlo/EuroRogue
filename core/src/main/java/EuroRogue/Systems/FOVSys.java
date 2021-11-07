@@ -13,10 +13,10 @@ import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
-import EuroRogue.Components.WindowCmp;
 import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MyFOV;
+import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.Radius;
 import squidpony.squidmath.GreasedRegion;
 
@@ -61,12 +61,13 @@ public class FOVSys extends MyEntitySystem {
         LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         MyFOV.reuseFOV(levelCmp.resistance, fovCmp.fov, positionCmp.coord.x, positionCmp.coord.y, 10, Radius.CIRCLE);
-        float multiplier = 1.01f-(float)lightingCmp.fgLightLevel[positionCmp.coord.x][positionCmp.coord.y];
-        int nightVisionDistance = Math.round((1 + statsCmp.getPerc() / 2f) * multiplier);
-        MyFOV.reuseFOV(levelCmp.resistance, fovCmp.nightVision, positionCmp.coord.x, positionCmp.coord.y, nightVisionDistance);
+        //float multiplier = 1.01f-(float)lightingCmp.fgLightLevel[positionCmp.coord.x][positionCmp.coord.y];
+        int nightVisionDistance = Math.round((1 + statsCmp.getPerc() / 2f) /* * multiplier*/);
+        MyFOV.reuseFOV(levelCmp.resistance, fovCmp.nightVision, positionCmp.coord.x, positionCmp.coord.y, nightVisionDistance, Radius.CIRCLE,
+                        orientationToAngle(positionCmp.orientation), 1.0, 1.0, 0.75, 0.5, 0 );
 
         GreasedRegion nightVision = new GreasedRegion(fovCmp.nightVision, 0.0).not();
-        GreasedRegion notLit = new GreasedRegion(lightingCmp.fgLightLevel, 0.0);
+        GreasedRegion notLit = new GreasedRegion(lightingCmp.fgLightLevel, statsCmp.getLightDetectionLvl());
 
 
         GreasedRegion currentlySeen = new GreasedRegion(fovCmp.fov, 0.0).not();
@@ -78,6 +79,32 @@ public class FOVSys extends MyEntitySystem {
         fovCmp.visible = currentlySeen;
 
 
+    }
+
+    private double orientationToAngle(Direction orientation)
+    {
+        switch (orientation)
+        {
+
+            case UP: return  270.0;
+
+            case DOWN: return  90.0;
+
+            case LEFT: return 180.0;
+
+            case NONE:
+            case RIGHT: return 0.0;
+
+            case UP_LEFT: return  225;
+
+            case UP_RIGHT: return  315.0;
+
+            case DOWN_LEFT: return  135.0;
+
+            case DOWN_RIGHT: return  45.0;
+
+        }
+        return  0.0;
     }
 
 }

@@ -9,6 +9,7 @@ import java.util.List;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.EquipmentSlot;
+import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
@@ -17,32 +18,29 @@ import EuroRogue.DamageType;
 import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
-import EuroRogue.EventComponents.ItemEvt;
-import EuroRogue.ItemEvtType;
-import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
+import EuroRogue.StatType;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import EuroRogue.WeaponType;
-import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 
-public class DaggerThrow extends Ability
+public class BackStab extends Ability
 {
-    private Skill skill = Skill.DAGGER_THROW;
+    private Skill skill = Skill.BACK_STAB;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private TextCellFactory.Glyph glyph;
     public int itemID;
     public char chr;
     private Coord targetedLocation;
 
-    public DaggerThrow()
+    public BackStab()
     {
-        super("Dagger Throw", new PointAOE(Coord.get(-1,-1),1,1));
+        super("Back Stab", new PointAOE(Coord.get(-1,-1),1,1));
     }
 
     public Skill getSkill() {
@@ -64,7 +62,9 @@ public class DaggerThrow extends Ability
             WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
             weaponType = weaponCmp.weaponType;
         }
-        this.available = (weaponType == WeaponType.DAGGER && isAvailable());
+        this.available = (weaponType == WeaponType.DAGGER && isAvailable()
+                    && CmpMapper.getStatusEffectComp(StatusEffect.STALKING, performer)!=null);
+
         if(isAvailable())
         {
             itemID = weaponEntity.hashCode();
@@ -77,9 +77,7 @@ public class DaggerThrow extends Ability
     public void updateAOE(Entity performer)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
-        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         aoe.setOrigin(positionCmp.coord);
-        aoe.setMaxRange(1+statsCmp.getDex()/2);
     }
 
     @Override
@@ -88,24 +86,15 @@ public class DaggerThrow extends Ability
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
 
-    private AOE getAOE() {
-        return aoe;
-    }
-
-    @Override
-    public ItemEvt genItemEvent(Entity performer, Entity target)
-    {
-        ItemEvt itemEvt = new ItemEvt(itemID, performer.hashCode(), ItemEvtType.TRANSFER);
-        itemEvt.otherActorID = target.hashCode();
-        return itemEvt;
-    }
 
     @Override
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
-        Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.PROJECTILE, startPos, targetCoord, eventCmp);
+        Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
+        TextCellFactory.Glyph glyph = ((GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, performer)).rightGlyph;
+
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.BUMP, startPos, targetCoord, eventCmp);
     }
 
     @Override
@@ -113,15 +102,7 @@ public class DaggerThrow extends Ability
         return glyph;
     }
 
-    @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
-    {
-        glyph = display.glyph(chr ,getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
 
-
-        glyph.setName("0" + " " + "0" + " temp");
-
-    }
 
     @Override
     public HashMap<StatusEffect, SEParameters> getStatusEffects() {
@@ -155,7 +136,7 @@ public class DaggerThrow extends Ability
     @Override
     public int getDamage(Entity performer)
     {
-        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getWeaponDamage();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getWeaponDamage()*2;
 
     }
     @Override
@@ -170,7 +151,20 @@ public class DaggerThrow extends Ability
     }
 
     @Override
-    public double getNoiseLvl(Entity performer) {
-        return 0;
+    public double getNoiseLvl(Entity performer)
+    {
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
+        double noiseLvl = 0;
+        switch (getDmgType(performer))
+        {
+            case BLUDGEONING:
+            case SLASHING:
+                noiseLvl=15;
+                break;
+            case PIERCING:
+                noiseLvl=10;
+                break;
+        }
+        return noiseLvl * statsCmp.getStatMultiplier(StatType.MELEE_SND_LVL);
     }
 }

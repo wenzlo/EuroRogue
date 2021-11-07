@@ -45,8 +45,6 @@ public class StatusEffectListener implements EntityListener
 
     }
 
-
-
     private void setStatMultipliers(Entity entity, ArrayList<StatusEffect> currentStatusEffects)
     {
 

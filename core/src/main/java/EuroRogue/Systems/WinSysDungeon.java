@@ -17,6 +17,7 @@ import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
@@ -67,6 +68,8 @@ public class WinSysDungeon extends MyEntitySystem
         LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, levelEntity);
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         FOVCmp focusFov = ((FOVCmp) CmpMapper.getComp(CmpType.FOV,getGame().getFocus()));
+        double focusLDL = ((StatsCmp)CmpMapper.getComp(CmpType.STATS, getGame().getFocus())).getLightDetectionLvl();
+
         Coord focusPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,getGame().getFocus())).coord;
         AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
         Ability aimAbility = null;
@@ -85,7 +88,7 @@ public class WinSysDungeon extends MyEntitySystem
             for (int y = Math.max(0, focusPos.y - (display.gridHeight >> 1) - 1), j = 0; y < levelCmp.decoDungeon.length  && j < windowCmp.display.gridHeight + 2; y++, j++)
             {
                 Coord coord = Coord.get(x,y);
-                if (focusFov.fov[x][y] > 0.0 && lightingCmp.fgLightLevel[x][y]>0) {
+                if (focusFov.fov[x][y] > 0.0 && lightingCmp.fgLightLevel[x][y]>focusLDL) {
 
                     if (levelCmp.floors.contains(coord))
                         display.put(x, y, levelCmp.decoDungeon[x][y], lightingCmp.fgLighting[x][y]);
@@ -159,6 +162,17 @@ public class WinSysDungeon extends MyEntitySystem
         stage.draw();
 
     }
+    /*public void applyAOEfilter(MySparseLayers display, LevelCmp levelCmp)
+    {
+        Coord focusPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,getGame().getFocus())).coord;
+        for (int x = Math.max(0, focusPos.x - (display.gridWidth >> 1) - 1), i = 0; x < levelCmp.decoDungeon[0].length && i < display.gridWidth + 2; x++, i++)
+        {
+            for (int y = Math.max(0, focusPos.y - (display.gridHeight >> 1) - 1), j = 0; y < levelCmp.decoDungeon.length  && j < windowCmp.display.gridHeight + 2; y++, j++)
+            {
+
+            }
+        }
+    }*/
 
 
 

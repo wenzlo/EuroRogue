@@ -5,7 +5,6 @@ import com.badlogic.ashley.core.Entity;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.EquipmentSlot;
-import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.ItemType;
 import EuroRogue.Components.LightCmp;

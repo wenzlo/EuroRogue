@@ -22,6 +22,8 @@ public enum StatType
     MOVE_SND_LVL,
     MELEE_SND_LVL,
     SPELL_SND_LVL,
+    LIGHT_D_LVL,
+    VISIBLE_D_LVL,
     PIERCE_DEF;
 
 

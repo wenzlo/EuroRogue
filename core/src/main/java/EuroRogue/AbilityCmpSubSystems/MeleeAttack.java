@@ -14,12 +14,11 @@ import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
-import EuroRogue.EventComponents.ItemEvt;
-import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatType;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
@@ -38,6 +37,7 @@ public class MeleeAttack extends Ability
     public MeleeAttack()
     {
         super("Melee Attack", new PointAOE(Coord.get(-1,-1), 1, 1));
+        //super.aimable=true;
     }
 
 
@@ -113,10 +113,6 @@ public class MeleeAttack extends Ability
         return noiseLvl * statsCmp.getStatMultiplier(StatType.MELEE_SND_LVL);
     }
 
-    @Override
-    public ItemEvt genItemEvent(Entity performer, Entity target) {
-        return null;
-    }
 
     @Override
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
@@ -125,7 +121,7 @@ public class MeleeAttack extends Ability
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
         TextCellFactory.Glyph glyph = ((GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, performer)).rightGlyph;
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.BUMP, startPos, targetCoord, eventCmp);
     }
 
     @Override
@@ -133,11 +129,6 @@ public class MeleeAttack extends Ability
         return glyph;
     }
 
-    @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
-    {
-
-    }
 
     @Override
     public HashMap<StatusEffect, SEParameters> getStatusEffects() { return statusEffects; }

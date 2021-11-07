@@ -28,16 +28,12 @@ import EuroRogue.Components.AICmp;
 import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
-import EuroRogue.Components.EquipmentCmp;
-import EuroRogue.Components.EquipmentSlot;
-import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.FocusTargetCmp;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.ItemType;
 import EuroRogue.Components.LevelCmp;
-import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaCmp;
@@ -77,6 +73,7 @@ import EuroRogue.StatusEffectCmps.PlateArmorEfct;
 import EuroRogue.StatusEffectCmps.QStaffEfct;
 import EuroRogue.StatusEffectCmps.StaffEfct;
 import EuroRogue.StatusEffectCmps.Staggered;
+import EuroRogue.StatusEffectCmps.Stalking;
 import EuroRogue.StatusEffectCmps.Starving;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.StatusEffectCmps.SwordEfct;
@@ -98,6 +95,7 @@ import EuroRogue.StatusEffectListeners.PlateArmorListener;
 import EuroRogue.StatusEffectListeners.QStaffEffectListener;
 import EuroRogue.StatusEffectListeners.StaffEffectListener;
 import EuroRogue.StatusEffectListeners.StaggeredListener;
+import EuroRogue.StatusEffectListeners.StalkingListener;
 import EuroRogue.StatusEffectListeners.StarvingListener;
 import EuroRogue.StatusEffectListeners.SwordEffectListener;
 import EuroRogue.StatusEffectListeners.WaterWalkingListener;
@@ -108,6 +106,7 @@ import EuroRogue.Systems.AimSys;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.Systems.CodexSys;
 import EuroRogue.Systems.DamageApplicationSys;
+import EuroRogue.Systems.DayNightCycleSys;
 import EuroRogue.Systems.DeathSys;
 import EuroRogue.Systems.DungeonLightingSys;
 import EuroRogue.Systems.EventCleanUpSys;
@@ -155,7 +154,6 @@ import squidpony.squidgrid.mapping.Placement;
 import squidpony.squidgrid.mapping.SectionDungeonGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
-import squidpony.squidmath.GreasedRegion;
 
 public class EuroRogue extends ApplicationAdapter {
 
@@ -167,14 +165,14 @@ public class EuroRogue extends ApplicationAdapter {
     public ObjectFactory objectFactory;
     public CmpMapper cmpMapper = new CmpMapper();
     public Integer globalMenuIndex = 0;
-    public char[] globalMenuSelectionKeys = "1234567890-=qweruiop[]".toCharArray();
+    public char[] globalMenuSelectionKeys = "1234567890-=qwertuiop[]asdf".toCharArray();
     public HashMap<Character, MenuCmp> keyLookup = new HashMap<>();
     public Entity uiBackgrounds, worldMapWindow, shrineWindow, shrineWinBG, gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, campWInBg, ticker, logWindow, currentLevel;
     public  List<Entity> playingWindows, campingWindows, allWindows, uiBgWindows, startWindows, gameOverWindows, shrineWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Stillgar";
-    public int depth = 0;
+    public String playerName = "Stilgar";
+    public int depth = 1;
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
     private FilterBatch filterBatch;
@@ -485,6 +483,9 @@ public class EuroRogue extends ApplicationAdapter {
         Family enlightened = Family.one(Enlightened.class).get();
         engine.addEntityListener(enlightened, new EnlightenedListener(this));
 
+        Family stalking = Family.one(Stalking.class).get();
+        engine.addEntityListener(stalking, new StalkingListener(this));
+
         Family swordEfct = Family.one(SwordEfct.class).get();
         engine.addEntityListener(swordEfct, new SwordEffectListener(this));
 
@@ -527,6 +528,7 @@ public class EuroRogue extends ApplicationAdapter {
     }
     private void initializeSystems()
     {
+        engine.addSystem(new DayNightCycleSys());
         engine.addSystem(new AimSys());
         engine.addSystem(new FOVSys());
         engine.addSystem(new DungeonLightingSys());
@@ -619,7 +621,6 @@ public class EuroRogue extends ApplicationAdapter {
         SColor.LIMITED_PALETTE[3] = SColor.DB_GRAPHITE;
         SColor.LIMITED_PALETTE[23] = SColor.CW_DARK_AZURE;
         SColor.LIMITED_PALETTE[24] = SColor.CW_LIGHT_AZURE;
-
 
         startInput = new SquidInput((key, alt, ctrl, shift) ->
         {
@@ -826,7 +827,8 @@ public class EuroRogue extends ApplicationAdapter {
 
                 new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {}));
 
-        input = new SquidInput((key, alt, ctrl, shift) -> {
+        input = new SquidInput((key, alt, ctrl, shift) ->
+        {
             Entity focus = getFocus();
             Coord focusPosition  = focus.getComponent(PositionCmp.class).coord;
             TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, ticker);
@@ -934,11 +936,7 @@ public class EuroRogue extends ApplicationAdapter {
                     return;
                 }
 
-                case SquidInput.ESCAPE:
-                {
-                    Gdx.app.exit();
-                    return;
-                }
+
                 case 'v':
                 case 'V':
                     if(!getFocus().getComponent(AICmp.class).visibleEnemies.isEmpty())
@@ -1004,9 +1002,9 @@ public class EuroRogue extends ApplicationAdapter {
                         Entity evtEntity = new Entity();
                         List<LevelType> levelTypes = new ArrayList<>();
                         Collections.addAll(levelTypes, LevelType.values());
-                        System.out.println(levelTypes);
+
                         levelTypes.remove(LevelType.START);
-                        System.out.println(levelTypes);
+
                         LevelEvt levelEvt = new LevelEvt(rng.getRandomElement(levelTypes));
                         CampEvt campEvt = new CampEvt(focus.hashCode(), inventoryCmp.getEquippedIDs());
                         evtEntity.add(levelEvt);
@@ -1041,9 +1039,9 @@ public class EuroRogue extends ApplicationAdapter {
                     Entity levelEvtEntity = new Entity();
                     List<LevelType> levelTypes = new ArrayList<>();
                     levelTypes.addAll(Arrays.asList(LevelType.values()));
-                    System.out.println(levelTypes);
+
                     levelTypes.remove(LevelType.START);
-                    System.out.println(levelTypes);
+
                     LevelEvt levelEvt = new LevelEvt(rng.getRandomElement(levelTypes));
                     levelEvtEntity.add(levelEvt);
                     engine.addEntity(levelEvtEntity);
@@ -1051,22 +1049,31 @@ public class EuroRogue extends ApplicationAdapter {
 
                 case 'z':
                 case 'Z':
-                    getFocus().add(new Hungry());
+                    LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, currentLevel);
+                    levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
+                    lightingCmp.dayNightCycleForward(levelCmp);
                     break;
 
                 case 'x':
                 case 'X':
-                    Entity focusTarget = getFocusTarget();
-                    if(focusTarget!=null)
-                    {
-                        FOVCmp fovCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, focusTarget);
-                    }
+                    lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, currentLevel);
+                    levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
+                    lightingCmp.dayNightCycleBackward(levelCmp);
                     break;
 
                 case 'm':
-                    LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, currentLevel);
-                    GreasedRegion gr = new GreasedRegion(lightingCmp.focusSeen3x3);
-                    System.out.println(gr);
+                    /*FOVCmp fovCmp = (FOVCmp)CmpMapper.getComp(CmpType.FOV, getFocus());
+                    statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getFocus());
+                    lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, currentLevel);
+                    GreasedRegion gr = new GreasedRegion(fovCmp.visible);
+                    System.out.println(statsCmp.getLightDetectionLvl());
+                    System.out.println(lightingCmp.minAmbientLight);
+                    System.out.println(gr);*/
+
+                    statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getFocus());
+                    statsCmp.setStatMultiplier(StatType.VISIBLE_D_LVL, 101f);
+                    break;
+
             }
 
             Coord newPosition = Coord.get(newX,newY);
@@ -1087,7 +1094,7 @@ public class EuroRogue extends ApplicationAdapter {
                     && aiCmp.dijkstraMap.costMap[newX][newY]!= DijkstraMap.WALL)
             {
 
-                if(!currentLevel.getComponent(LevelCmp.class).isOccupied(newPosition))
+                if(!currentLevel.getComponent(LevelCmp.class).isBlocked(newPosition))
                 {
 
                     AISys aiSys = engine.getSystem(AISys.class);
@@ -1191,13 +1198,11 @@ public class EuroRogue extends ApplicationAdapter {
             }
         }));
 
-        input.setRepeatGap(180);
+        input.setRepeatGap(160);
         campInput.setRepeatGap(240);
         inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, input, shrineInput, startInput,  campInput, aimInput);
         campInput.setIgnoreInput(true);
         Gdx.input.setInputProcessor(inputProcessor);
-
-
 
         /*currentLevel = new Entity();
         engine.addEntity(currentLevel);*/
@@ -1394,7 +1399,6 @@ public class EuroRogue extends ApplicationAdapter {
         stage.getActors().get(0).setVisible(true);
         return stage;
     }
-
     public void generatePlayer()
     {
         if(player!=null)
@@ -1439,13 +1443,13 @@ public class EuroRogue extends ApplicationAdapter {
             InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
             inventoryCmp.put(armor.hashCode());
         }
-        else if(statsCmp.getStr() > 4) {
+        else if(statsCmp.getStr() > 6) {
             Entity armor = armorFactory.newBasicArmor(ArmorType.PLATE, null);
             engine.addEntity(armor);
             InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
             inventoryCmp.put(armor.hashCode());
         }
-        else if(statsCmp.getStr()+statsCmp.getDex() > 2) {
+        else if(statsCmp.getStr()+statsCmp.getDex() > 6) {
             Entity armor = armorFactory.newBasicArmor(ArmorType.MAIL, null);
             engine.addEntity(armor);
             InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, player);
@@ -1461,8 +1465,6 @@ public class EuroRogue extends ApplicationAdapter {
 
 
     }
-
-
     public void updateAbilities(Entity entity)
     {
         if(entity==null || gameState == GameState.AIMING) return;

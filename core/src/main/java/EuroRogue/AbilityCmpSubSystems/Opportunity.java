@@ -22,6 +22,7 @@ import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
@@ -123,7 +124,7 @@ public class Opportunity extends Ability
         TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer)).glyph;
         Coord startLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startLoc, targetCoord, actionEvt);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.BUMP, startLoc, targetCoord, actionEvt);
     }
 
     @Override

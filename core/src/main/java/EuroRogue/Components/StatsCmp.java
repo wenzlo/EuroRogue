@@ -41,7 +41,9 @@ public class StatsCmp implements Component
     private float moveSndLvlMult = 1;
     private float meleeSndLvlMult = 1;
     private float spellSndLvlMult = 1;
-    private HashMap<StatType, List<School>> statCosts = new HashMap<>();
+    private float lightDetectionLvlMult = 1;
+    private float visibleDetectionLvlMult = 1;
+    public HashMap<StatType, List<School>> statCosts = new HashMap<>();
 
     private static final List<StatType>
             spiritIncreases = Arrays.asList(StatType.ATTACK_PWR, StatType.SPELL_PWR, StatType.MAX_HP,
@@ -56,11 +58,13 @@ public class StatsCmp implements Component
     public int getCon() { return con; }
     public int getPerc() { return perc; }
     public int getIntel() { return intel; }
-    public int getSoundDetectionLvl(){return 9-perc/2;}
+    public int getSoundDetectionLvl(){return 7-perc/2;}
     public double getMoveSndLvl()
     {
         return Math.round(10 * moveSndLvlMult);
     }
+    public double getLightDetectionLvl() {return (0.5-getPerc()*0.05f)*lightDetectionLvlMult;}
+    public double getVisibleLightLvl() {return 0.01 * visibleDetectionLvlMult;}
     public StatsCmp(){}
     public StatsCmp(int str, int dex, int con, int perc, int intel)
     {
@@ -80,10 +84,6 @@ public class StatsCmp implements Component
         pool.addAll(Arrays.asList(School.values()));
         pool.addAll(Arrays.asList(School.values()));
         pool.addAll(Arrays.asList(School.values()));
-        pool.remove(School.ARC);
-        pool.remove(School.FIR);
-        pool.remove(School.ICE);
-        pool.remove(School.ARC);
 
         List<School> startingCost = new ArrayList<>();
         for(int i=0; i<3; i++)
@@ -98,7 +98,8 @@ public class StatsCmp implements Component
         List<School> cost = new ArrayList<>(startingCost);
         for(StatType statType : StatType.CORE_STATS)
         {
-            while(statCosts.values().contains(cost) || cost.size()<3 || Collections.frequency(cost, cost.get(0))>1)
+            while(statCosts.values().contains(cost) || cost.size()<3 || Collections.frequency(cost, cost.get(0))>1
+                    || Collections.frequency(cost, cost.get(1))>1 )
             {
                 pool.addAll(cost);
                 cost.clear();
@@ -114,12 +115,10 @@ public class StatsCmp implements Component
             cost.clear();
         }
     }
-
     public int getMaxHP()
     {
         return Math.round((Arrays.stream(new int[]{str, con, dex, intel, perc}).sum()*4+8 * con)*getStatMultiplier(StatType.MAX_HP));
     }
-
     public int getSpellPower()
     {
         if(getIntel() == 0) return 0;
@@ -129,7 +128,6 @@ public class StatsCmp implements Component
     {
         return  Math.round(getAttackPower()*getStatMultiplier(StatType.ATTACK_PWR));
     }
-
     public int getAttackPower()
     {
         if(getStr() ==0) return 0;
@@ -224,6 +222,13 @@ public class StatsCmp implements Component
 
             case SPELL_SND_LVL:
                 spellSndLvlMult = multiplier;
+                break;
+
+            case LIGHT_D_LVL:
+                lightDetectionLvlMult = multiplier;
+                break;
+            case VISIBLE_D_LVL:
+                visibleDetectionLvlMult = multiplier;
                 break;
         }
     }

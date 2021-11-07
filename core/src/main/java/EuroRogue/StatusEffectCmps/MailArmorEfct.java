@@ -15,7 +15,7 @@ public class MailArmorEfct extends StatusEffectCmp
         statMultipliers.put(StatType.PIERCE_DEF, 1.4f);
         statMultipliers.put(StatType.SLASH_DEF, 1.4f);
 
-        statMultipliers.put(StatType.MOVE_SND_LVL, 2.0f);
+        statMultipliers.put(StatType.MOVE_SND_LVL, 1.6f);
 
         statusEffect = StatusEffect.M_ARMOR_EFCT;
         name = statusEffect.name;

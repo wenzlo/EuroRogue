@@ -493,7 +493,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             Character charKey = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
             MenuItem menuItem = new MenuItem(abilityLabel);
             Runnable primaryAction = null;
-            if(codexCmp.getPreparedReactions().contains(skill) || codexCmp.getPreparedActions().contains(skill))
+            if(codexCmp.getPreparedReactions().contains(skill) && skill != Skill.MELEE_ATTACK || codexCmp.getPreparedActions().contains(skill) && skill != Skill.MELEE_ATTACK)
             {
                 primaryAction = new Runnable()
                 {
@@ -632,6 +632,8 @@ public class MenuUpdateSys extends MyEntitySystem {
             public void run()
             {
                 getGame().generatePlayer();
+                StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS,player);
+
             }
         };
         chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];

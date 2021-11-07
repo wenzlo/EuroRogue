@@ -291,6 +291,7 @@ public class WinSysShrine extends MyEntitySystem
 
                             manaPoolCmp.removeMana(new School[]{school, school, school}, statsCmp);
                             shrineCmp.charges--;
+                            weaponEntity.add(new ItemEvt(weaponID, getGame().getFocus().hashCode(), ItemEvtType.UNEQUIP));
                         }
                     };
                     break;
@@ -304,6 +305,7 @@ public class WinSysShrine extends MyEntitySystem
 
                             manaPoolCmp.removeMana(new School[]{school, school, school}, statsCmp);
                             shrineCmp.charges--;
+                            weaponEntity.add(new ItemEvt(weaponID, getGame().getFocus().hashCode(), ItemEvtType.UNEQUIP));
                         }
                     };
                     break;
