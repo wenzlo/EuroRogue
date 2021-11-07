@@ -9,24 +9,22 @@ EuroRogue is a WIP traditional ASCII Roguelike with some Euro board game mechani
 The current iteration focuses mainly on the combat systems and plays much like a very basic single dungeon roguelike. 
 I am still in "Systems Before Content" mode so there are only a handful of abilities, weapons and armor available.
 
-Future plans include Worker Placement/Action Selection strategy layer that will happen in between dungeons.
-Currently the "Bag Builder" (simplified deck builder) Energy/Mana management mechanic is the only "Euro" mechanic implemented.
-
-There are no defined enemy types yet, just randomly rolled characters similar to the player, but with less stat points.
+Other than rats, there are no defined enemy types yet, just randomly rolled characters similar to the player, but with less stat points.
 Random enemies total stat points increase with depth. You must sacrifice Mana/Energy to buy stat increases to keep up.
 You gain Mana/Energy by killing enemies.
 __________________________________________________________________________________________________________
 Legend-
 	
 	@ = your Character
-	E = enemy
+	B = enemy
+	r = rat
 	> = Stairs to next level of the dungeon
 	. = Stone floor tiles
 	" = Moss tiles
 	, = Shallow water tiles
 	~ = Deep Water tiles
 	: = Bridge tiles
-	§ = Shrines - Convert mana, Get New Skills
+	§ = Shrines - Convert mana, Get New Skills, Enchant Weapons
 	Box Drawing Chars = walls
 	! = Noise Alert icon. You heard a noise from this position.
 	
@@ -49,13 +47,13 @@ Controls-
 		Abilities/Scrolls  - ?) Perform Ability/Use Scroll if Available
 
 		Inventory  - ?) Equip/Unequip Item
-				   - Shift + ?) Drop Item
+			   - Shift + ?) Drop Item
 					
         g)   -> Grab or Pickup Item
-        c)   -> Make Camp(Long Rest) / Resume Playing toggle
+        c)   -> Make Camp(Long Rest, Heal) / Resume Playing toggle
         >)   -> Descend Stairs i.e. Shift + .)
-	    TAB) -> Cycle Enemy Target Selection.
-
+	
+	TAB) -> Cycle Enemy Target Selection.
 
 	Aimed Abilities - Aim Mode
 
@@ -63,7 +61,6 @@ Controls-
 	    Numpad_5 = cast spell.
 	
 	-Dev Cheats!!!-
-	p)   -> Reroll random charater stats and abilites.
 	[)   -> Generate a new random Dungeon
 	v)   -> Switch game Focus to nearest Enemy. You now control that enemy instead.
 __________________________________________________________________________________________________________
@@ -75,7 +72,7 @@ Start Menu-
 	UI HotKey to start game. 
 	
 	"1) New Game"      -> pres num_row 1 to start the game.
-	"2) New Character" -> pres num_row 2 to re-roll your Character.
+	"2) New Character" -> pres num_row 2 to re-roll your Character Stats and Starting Items.
 
 __________________________________________________________________________________________________________	
 Abilities-
@@ -117,7 +114,7 @@ Stats-
 		HP- 
 			Your remaining health / Max Health
 
-		**New** Spirit -
+		Spirit -
 		    Equal to your total mana.'
 		    Improves all stat modifiers by 1% per point.
 		    Do everything better/faster!
@@ -152,6 +149,7 @@ Stats-
 			Decreases Spell Casting delay - (ttCast)
 			Increases Night Vision range
 			Increases Noise Detection range
+			Decreases minimum detectable light level
 			Affects power/range/duration of Perception based abilites
 			
 		Intelligence-
@@ -224,7 +222,7 @@ Make Camp (Long Rest)-
 			If the Character is not Hungry or Starving, applies Well Fed status effect (+25% health).
 			
 __________________________________________________________________________________________________________
-Status Effects-
+Status Effects -
 
 	-Equipment Status Effects-
 		Equiping Weapons or Armor will apply an associated Status Effect to the Character. These can effect Speed Stats,
@@ -234,6 +232,11 @@ Status Effects-
 		Weapon specific effects. i.e. equiping a Staff increases melee range from 1 to 2
 		Effects can be applied to the target as well i.e., Daggers apply the Bleeding effect. 
 	
+	-Stalking  - From Stalk ability. Enter stealth mode. 
+		   - Decreases movement speed.
+		   - Decreases noise level.
+		   - Increases light level necessary to reveal you
+		   - Map overlay highliting in red, all cells where enemies can detect you. 
 	
 	-Enlightened 
 		   - Increases Spell Damage, ttMove, ttRest, ttMelee. 
@@ -247,6 +250,7 @@ Status Effects-
 	-Chilled   - Decreases Bludgeoning, Peircing, Slashing resistance.
 			   - Increases Fire resistance, ttMove, ttMelee, ttRest
 			   - If character is already chilled, applies Frozen status effect.
+			  
 			   
 	-Frozen    - Increases Fire resistance
 			   - Character is frozen for durration of effect or untill they take damage.
