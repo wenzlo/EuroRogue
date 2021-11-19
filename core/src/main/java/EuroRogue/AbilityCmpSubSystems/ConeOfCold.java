@@ -10,7 +10,7 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
@@ -107,7 +107,8 @@ public class ConeOfCold extends Ability
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+        AICmp aiCmp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, actor);
         HashSet<Coord> priorityTargets = new HashSet<>();
         HashSet<Coord> otherTargets = new HashSet<>();
         otherTargets.addAll(aiCmp.getEnemyLocations(levelCmp));

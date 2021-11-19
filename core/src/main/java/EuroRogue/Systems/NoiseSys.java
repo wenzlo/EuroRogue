@@ -11,7 +11,7 @@ import java.util.HashMap;
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.FactionCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.NoiseMapCmp;
@@ -82,7 +82,8 @@ public class NoiseSys extends MyEntitySystem
             if(alerted.get(position)>=alertedStats.getSoundDetectionLvl() && entityFactionCmp.faction!=factionCmp.faction)
             {
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
-                AICmp alertedAI = (AICmp) CmpMapper.getComp(CmpType.AI, alertedActor);
+                StatsCmp alertedStatsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, alertedActor);
+                AICmp alertedAI = CmpMapper.getAIComp(alertedStatsCmp.mobType.aiType, alertedActor);
                 alertedAI.alerts.put(actor.hashCode(), positionCmp.coord);
             }
         }
@@ -113,7 +114,8 @@ public class NoiseSys extends MyEntitySystem
             if(alerted.get(position)>=alertedStats.getSoundDetectionLvl() && entityFactionCmp.faction!=factionCmp.faction)
             {
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
-                AICmp alertedAI = (AICmp) CmpMapper.getComp(CmpType.AI, alertedActor);
+                StatsCmp alertedStatsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, alertedActor);
+                AICmp alertedAI = CmpMapper.getAIComp(alertedStatsCmp.mobType.aiType, alertedActor);
                 alertedAI.alerts.put(actor.hashCode(), positionCmp.coord);
             }
         }
@@ -163,7 +165,8 @@ public class NoiseSys extends MyEntitySystem
                 /*if(CmpMapper.getStatusEffectComp(StatusEffect.STALKING,performerEntity)!=null)
                     System.out.println("enemy Alerted");*/
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
-                AICmp alertedAI = (AICmp) CmpMapper.getComp(CmpType.AI, alertedActor);
+                StatsCmp alertedStatsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, alertedActor);
+                AICmp alertedAI = CmpMapper.getAIComp(alertedStatsCmp.mobType.aiType, alertedActor);
                 alertedAI.alerts.put(performerEntity.hashCode(), positionCmp.coord);
 
 

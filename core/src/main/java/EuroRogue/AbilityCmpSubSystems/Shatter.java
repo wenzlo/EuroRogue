@@ -8,7 +8,7 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ManaPoolCmp;
@@ -77,14 +77,15 @@ public class Shatter extends Ability
     }
 
     public List<Skill> getReactions() {
-        return Arrays.asList();
+        return Arrays.asList(Skill.BLINK);
     }
 
     @Override
     public void setAvailable(Entity performer, EuroRogue game)
     {
         //super.setAvailable(performer, game);
-        AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI,performer);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, performer);
+        AICmp aiCmp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, performer);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL,performer);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
 

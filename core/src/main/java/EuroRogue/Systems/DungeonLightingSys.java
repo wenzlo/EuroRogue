@@ -11,7 +11,7 @@ import java.util.Iterator;
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.EquipmentSlot;
@@ -109,9 +109,10 @@ public class DungeonLightingSys extends MyEntitySystem
                     InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, owner);
                     if(owner==getGame().getFocus())
                     {
-
-                        lightingHandler.calculateFOV(lightMapPos.x, lightMapPos.y);
-                        MyFOV.reuseFOV(lightingCmp.resistance3x3, lightingCmp.focusNightVision3x3, lightMapPos.x, lightMapPos.y, focusStatsCmp.getPerc()*3);
+                        GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, getGame().getFocus());
+                        Coord fovPos = Coord.get(lightingHandler.lightMapX(glyphsCmp.glyph), lightingHandler.lightMapY(glyphsCmp.glyph));
+                        lightingHandler.calculateFOV(fovPos.x, fovPos.y);
+                        MyFOV.reuseFOV(lightingCmp.resistance3x3, lightingCmp.focusNightVision3x3, fovPos.x, fovPos.y, focusStatsCmp.getPerc()*3);
                     }
                     if("actor".equals(type))
                     {
@@ -199,12 +200,23 @@ public class DungeonLightingSys extends MyEntitySystem
         }
         lightingCmp.fgLighting=new float[(levelCmp.decoDungeon.length)][levelCmp.decoDungeon[0].length];
 
-        double[][] tempFov = new double[levelCmp.decoDungeon[0].length][levelCmp.decoDungeon.length];
+        double[][] tempFov = new double[lightingCmp.bgLighting[0].length][lightingCmp.bgLighting.length];
+        double[][] tempFgLightLvl3x3 = new double[lightingCmp.bgLighting[0].length][lightingCmp.bgLighting.length];
+
         for(Light light : lightingHandler.lightList.values())
         {
             Radiance radiance = light.radiance;
             Coord location = light.position;
-            MyFOV.addFOVsInto(lightingCmp.fgLightLevel, MyFOV.reuseFOV(levelCmp.resistance, tempFov, location.x/3, location.y/3, radiance.currentRange()));
+            MyFOV.addFOVsInto(tempFgLightLvl3x3, MyFOV.reuseFOV(lightingCmp.resistance3x3, tempFov, location.x, location.y, radiance.currentRange()*3));
+        }
+        MyFOV.addFOVsInto(tempFgLightLvl3x3, lightingCmp.ambientBgLightLvls);
+
+        for(int x=0; x<lightingCmp.fgLightLevel.length; x++) {
+            for (int y = 0; y < lightingCmp.fgLightLevel[0].length; y++)
+            {
+                lightingCmp.fgLightLevel[x][y] = tempFgLightLvl3x3[1+x*3][1+y*3];
+
+            }
         }
 
         lightingHandler.update();
@@ -238,7 +250,6 @@ public class DungeonLightingSys extends MyEntitySystem
                         lightingCmp.bgLighting[x][y] = SColor.lerpFloatColors(lightingCmp.ambientBgLighting[x][y], levelCmp.bgColors[Math.round(x/3)][Math.round(y/3)], (0xAAp-9f + (0xC8p-9f * (lightingHandler.colorLighting[0][x][y]) *
                                 (1f + 0.25f * (float) flicker.getNoise(x * 0.3, y * 0.3, (System.currentTimeMillis() & 0xffffffL) * 0.00125)))-0.15f));
                     }
-
                 }
             }
         }
@@ -249,7 +260,6 @@ public class DungeonLightingSys extends MyEntitySystem
             if (aimingCmp != null) {
 
                 Ability aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
-                System.out.println(aimAbility.name);
                 if(aimingCmp.scroll) aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getScrollForSkill(aimingCmp.skill, getGame().getFocus()));
 
                 PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getGame().getFocus());
@@ -301,10 +311,9 @@ public class DungeonLightingSys extends MyEntitySystem
         lightingHandler.draw(lightingCmp.bgLighting);
 
         applyOutOfLOSfilter(lightingCmp, lightingHandler, levelCmp);
-        applyStalkingFilter(lightingCmp, levelCmp);
 
         glyphs = display.glyphs.iterator();
-
+        AICmp aiCmp = CmpMapper.getAIComp(focusStatsCmp.mobType.aiType, getGame().getFocus());
         while (glyphs.hasNext()) {
             TextCellFactory.Glyph glyph = glyphs.next();
 
@@ -319,8 +328,14 @@ public class DungeonLightingSys extends MyEntitySystem
                     PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, owner);
                     if(positionCmp==null) continue;
                     GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, owner);
-                    if (fovCmp.visible.contains(positionCmp.coord)) glyphsCmp.setVisibility(true);
+                    if(aiCmp.visibleEnemies.contains(ownerID) || aiCmp.visibleFriendlies.contains(ownerID)
+                        || aiCmp.visibleNeutrals.contains(ownerID) || owner==getGame().getFocus())
+                    {
+                        glyphsCmp.setVisibility(true);
+                    }
+
                     else glyphsCmp.setVisibility(false);
+
                 }
             }
         }
@@ -365,27 +380,5 @@ public class DungeonLightingSys extends MyEntitySystem
                 }
             }
     }
-    private void applyStalkingFilter(LightingCmp lightingCmp, LevelCmp levelCmp)
-    {
-        Entity focus = getGame().getFocus();
-        if(CmpMapper.getStatusEffectComp(StatusEffect.STALKING, focus)==null)
-            return;
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, focus);
-        StatsCmp focusStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, focus);
-        double visibilityLvl = focusStats.getVisibleLightLvl();
-        for(Integer id : aiCmp.visibleEnemies)
-        {
-            Entity enemy = getGame().getEntity(id);
-            FOVCmp enemyFOV = (FOVCmp) CmpMapper.getComp(CmpType.FOV, enemy);
 
-            for(Coord coord : enemyFOV.visible)
-            {
-                if(lightingCmp.fgLightLevel[coord.x][coord.y] >= visibilityLvl && levelCmp.floors.contains(coord)
-                    || enemyFOV.nightVision[coord.x][coord.y] > 0 && levelCmp.floors.contains(coord))
-                {
-                    lightingCmp.fgLighting[coord.x][coord.y] = SColor.lerpFloatColors(lightingCmp.fgLighting[coord.x][coord.y], SColor.RED.toFloatBits(), 0.4f);
-                }
-            }
-        }
-    }
 }

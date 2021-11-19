@@ -1,4 +1,4 @@
-package EuroRogue.Systems;
+package EuroRogue.Systems.Win;
 
 
 import com.badlogic.ashley.core.Engine;

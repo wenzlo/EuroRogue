@@ -46,7 +46,7 @@ public class MeleeAttack extends Ability
     }
 
     public List<Skill> getReactions() {
-        return Arrays.asList(Skill.DODGE, Skill.ICE_SHIELD);
+        return Arrays.asList(Skill.DODGE, Skill.ICE_SHIELD, Skill.BLINK);
     }
 
     @Override
@@ -110,7 +110,7 @@ public class MeleeAttack extends Ability
                 noiseLvl=10;
                 break;
         }
-        return noiseLvl * statsCmp.getStatMultiplier(StatType.MELEE_SND_LVL);
+        return Math.round((noiseLvl * statsCmp.getStatMultiplier(StatType.MELEE_SND_LVL)*100))/100d;
     }
 
 

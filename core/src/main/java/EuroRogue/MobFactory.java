@@ -9,11 +9,14 @@ import java.util.List;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
+import EuroRogue.Components.AI.AIRatCmp;
+import EuroRogue.Components.AI.AISnakeCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.FactionCmp;
+import EuroRogue.Components.FactionCmp.Faction;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LevelCmp;
@@ -49,7 +52,7 @@ public class MobFactory
         mob.add(codexCmp);
 
         mob.add(new CharCmp('@', SColor.LIGHT_YELLOW_DYE));
-        StatsCmp statsCmp = getRandomStats(9+ game.depth*2, true);
+        StatsCmp statsCmp = getRandomStats(9+ game.depth*2, MobType.PLAYER);
         mob.add(statsCmp);
         InventoryCmp inventoryCmp = new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4);
         mob.add(inventoryCmp);
@@ -61,26 +64,11 @@ public class MobFactory
         mob.add(new FocusCmp());
         mob.add(new ParticleEffectsCmp());
 
-        setRandomSkillSet(mob, true);
+        setRandomSkillSet(mob, MobType.PLAYER);
 
         return mob;
     }
-    public Entity generateSkillessPlayer()
-    {
-        Entity mob = new Entity();
-        mob.add(new NameCmp(game.playerName));
-        mob.add(new CodexCmp());
 
-        mob.add(new CharCmp('@', SColor.LIGHT_YELLOW_DYE));
-        StatsCmp statsCmp =getRandomStats(12, true);
-        mob.add(statsCmp);
-        mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
-
-        mob.add(new FactionCmp(FactionCmp.Faction.PLAYER));
-        mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
-        mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
-        return mob;
-    }
     public Entity generateRndMob(Coord loc, String name, int depth)
     {
 
@@ -90,15 +78,15 @@ public class MobFactory
         mob.add(codexCmp);
         mob.add(new PositionCmp(loc));
         mob.add(new CharCmp('ß', SColor.RED_BIRCH));
-        StatsCmp statsCmp = getRandomStats(4+(depth*2), false);
+        StatsCmp statsCmp = getRandomStats(4+(depth*2), MobType.DEFAULT);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
         AICmp aiCmp = new AICmp(new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
         mob.add(aiCmp);
-        mob.add(new FactionCmp(FactionCmp.Faction.MONSTER));
+        mob.add(new FactionCmp(Faction.MONSTER));
         mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
-        setRandomSkillSet(mob, false);
+        setRandomSkillSet(mob, MobType.DEFAULT);
 
         mob.add(new ParticleEffectsCmp());
 
@@ -110,6 +98,10 @@ public class MobFactory
     {
         switch (mobType)
         {
+            case DEFAULT:
+                break;
+            case SNAKE:
+                return generateSnake(loc);
             case RAT:
                 return generateRat(loc, levelCmp, depth);
 
@@ -118,7 +110,7 @@ public class MobFactory
 
     }
 
-    public void setRandomSkillSet(Entity mob, boolean player)
+    public void setRandomSkillSet(Entity mob, MobType mobType)
     {
         StatsCmp stats = (StatsCmp)CmpMapper.getComp(CmpType.STATS, mob);
         ManaPoolCmp manaPool = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, mob);
@@ -137,7 +129,7 @@ public class MobFactory
             manaPool.attuned.add(mana);
             manaPool.spent.remove(mana);
         }
-        Ability newAbility = Ability.newAbilityCmp(Skill.MELEE_ATTACK, player);
+        Ability newAbility = Ability.newAbilityCmp(Skill.MELEE_ATTACK, mobType==MobType.PLAYER);
         mob.add(newAbility);
         spentLimit = spentLimit - Skill.MELEE_ATTACK.prepCost.length;
 
@@ -160,7 +152,7 @@ public class MobFactory
                     manaPool.attuned.add(mana);
                     manaPool.spent.remove(mana);
                 }
-                mob.add(Ability.newAbilityCmp(skill, player));
+                mob.add(Ability.newAbilityCmp(skill, mobType==MobType.PLAYER));
                 spentLimit = spentLimit - skill.prepCost.length;
             }
         }
@@ -169,7 +161,7 @@ public class MobFactory
         stats.hp= stats.getMaxHP();
     }
 
-    public StatsCmp getRandomStats(int total, boolean player)
+    public StatsCmp getRandomStats(int total, MobType mobType)
     {
         HashMap<StatType, Integer> stats = new HashMap<>();
         stats.put(StatType.STR, 1);
@@ -188,7 +180,7 @@ public class MobFactory
             stats.put(stat, stats.get(stat)+1);
         }
         StatsCmp statsCmp;
-        if(!player) statsCmp = new StatsCmp();
+        if(mobType!=MobType.PLAYER) statsCmp = new StatsCmp();
         else statsCmp = new StatsCmp(rng);
         statsCmp.setStr(stats.get(StatType.STR));
         statsCmp.setDex(stats.get(StatType.DEX));
@@ -196,6 +188,7 @@ public class MobFactory
         statsCmp.setPerc(stats.get(StatType.PERC));
         statsCmp.setIntel(stats.get(StatType.INTEL));
         statsCmp.hp=statsCmp.getMaxHP();
+        statsCmp.mobType=MobType.DEFAULT;
 
         return statsCmp;
 
@@ -209,15 +202,65 @@ public class MobFactory
         mob.add(codexCmp);
         mob.add(new PositionCmp(loc));
         mob.add(new CharCmp('r', ',', ',', SColor.BROWN_RAT_GREY));
-        StatsCmp statsCmp = new StatsCmp(0, 1, 0, 3, 0);
+        StatsCmp statsCmp = new StatsCmp(0, 0, 0, 3, 0, MobType.RAT);
         mob.add(statsCmp);
-        mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
-        AICmp aiCmp = new AICmp(new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
+        mob.add(new InventoryCmp(new EquipmentSlot[0], 1));
+        AIRatCmp aiCmp = new AIRatCmp();
         mob.add(aiCmp);
-        mob.add(new FactionCmp(FactionCmp.Faction.MONSTER));
+        mob.add(new FactionCmp(Faction.RAT));
         mob.add(new ManaPoolCmp(statsCmp.getNumAttunedSlots()));
         mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
-        setRandomSkillSet(mob, false);
+        setRandomSkillSet(mob, MobType.RAT);
+
+        mob.add(new ParticleEffectsCmp());
+
+
+
+        return mob;
+    }
+
+    private Entity generateSnake(Coord loc)
+    {
+        Entity mob = new Entity();
+        mob.add(new NameCmp("Snake"));
+        CodexCmp codex = new CodexCmp();
+        mob.add(codex);
+        mob.add(new PositionCmp(loc));
+        mob.add(new CharCmp('s', ' ', ',', SColor.AURORA_GARTER_SNAKE));
+        StatsCmp statsCmp = new StatsCmp(1, 2, 0, 4, 0, MobType.SNAKE);
+        mob.add(statsCmp);
+        mob.add(new InventoryCmp(new EquipmentSlot[0], 1));
+        AISnakeCmp aiCmp = new AISnakeCmp();
+        mob.add(aiCmp);
+        mob.add(new FactionCmp(Faction.SNAKE));
+        ManaPoolCmp manaPool = new ManaPoolCmp(statsCmp.getNumAttunedSlots());
+        mob.add(manaPool);
+        mob.add(new LightCmp(0, SColor.COSMIC_LATTE.toFloatBits()));
+
+        manaPool.spent.addAll(Arrays.asList(Skill.STALK.prepCost));
+        manaPool.spent.addAll(Arrays.asList(Skill.STALK.castingCost));
+        codex.known.add(Skill.STALK);
+        codex.prepared.add(Skill.STALK);
+        for(School mana:Skill.STALK.prepCost)
+        {
+            manaPool.attuned.add(mana);
+            manaPool.spent.remove(mana);
+        }
+        Ability newAbility = Ability.newAbilityCmp(Skill.STALK, statsCmp.mobType==MobType.PLAYER);
+        mob.add(newAbility);
+
+        manaPool.spent.addAll(Arrays.asList(Skill.QUICK_STRIKE.prepCost));
+        manaPool.spent.addAll(Arrays.asList(Skill.QUICK_STRIKE.castingCost));
+
+        codex.known.add(Skill.QUICK_STRIKE);
+        codex.prepared.add(Skill.QUICK_STRIKE);
+        for(School mana:Skill.QUICK_STRIKE.prepCost)
+        {
+            manaPool.attuned.add(mana);
+            manaPool.spent.remove(mana);
+        }
+        newAbility = Ability.newAbilityCmp(Skill.QUICK_STRIKE, statsCmp.mobType==MobType.PLAYER);
+        mob.add(newAbility);
 
         mob.add(new ParticleEffectsCmp());
 

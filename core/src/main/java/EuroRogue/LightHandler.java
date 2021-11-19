@@ -221,11 +221,11 @@ public class LightHandler extends LightingHandler
         return calculateFOV(lightMapX(viewer), lightMapY(viewer));
     }
 
-    @Override
+   /* @Override
     public double[][] calculateFOV(Coord viewer)
     {
         return calculateFOV(viewer.x*3, viewer.y*3);
-    }
+    }*/
 
     @Override
     public double[][] calculateFOV(int viewerX, int viewerY) {
@@ -293,6 +293,8 @@ public class LightHandler extends LightingHandler
         int id = Integer.parseInt(StringKit.split(glyph.getName()," ")[0]);
         return lightList.remove(id);
     }
+
+
 
 
 

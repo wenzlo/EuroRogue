@@ -12,13 +12,13 @@ import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.FrozenEvt;
@@ -95,7 +95,8 @@ public class RestIdleCampSys extends MyEntitySystem
                     actor.remove(statusEffect.cls);
                 }
             }
-            if(((AICmp)CmpMapper.getComp(CmpType.AI, getGame().getFocus())).visibleEnemies.contains(actor.hashCode()))
+            StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
+            if((CmpMapper.getAIComp(statsCmp.mobType.aiType, getGame().getFocus())).visibleEnemies.contains(actor.hashCode()))
             {
                 ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(genLogEvent(actor).entry);
             }

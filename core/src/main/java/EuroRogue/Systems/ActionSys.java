@@ -101,6 +101,7 @@ public class ActionSys extends MyEntitySystem
                 {
                     WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
                     ParticleEffectsCmp peaCmp = (ParticleEffectsCmp)CmpMapper.getComp(CmpType.PARTICLES, performerEntity);
+
                     peaCmp.removeEffectsByGlyph(glyph, windowCmp.display);
                     windowCmp.lightingHandler.removeLightByGlyph(glyph);
                     windowCmp.display.glyphs.remove(abilityCmp.getGlyph());

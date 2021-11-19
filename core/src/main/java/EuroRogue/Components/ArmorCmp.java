@@ -10,6 +10,7 @@ public class ArmorCmp implements Component
 {
     public ArmorType armorType;
 
+    public ArmorCmp(){}
     public ArmorCmp(ArmorType armorType)
     {
         this.armorType=armorType;

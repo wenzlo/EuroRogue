@@ -10,6 +10,7 @@ import java.util.List;
 
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.School;
+import EuroRogue.SortManaBySchool;
 import squidpony.panel.IColoredString;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.GWTRNG;
@@ -22,6 +23,7 @@ public class ManaPoolCmp implements Component
     public int numAttunedSlots;
     private final GWTRNG rng = new GWTRNG();
 
+    public ManaPoolCmp(){}
     public ManaPoolCmp(int numAttunedSlots)
     {
         this.numAttunedSlots = numAttunedSlots;
@@ -60,6 +62,7 @@ public class ManaPoolCmp implements Component
     public IColoredString.Impl<SColor> activeToIColoredString()
     {
         IColoredString.Impl<SColor> iColoredString = new IColoredString.Impl<>();
+        Collections.sort(active, new SortManaBySchool());
         for(School mana:active)
         {
             SColor color = mana.color;
@@ -72,6 +75,7 @@ public class ManaPoolCmp implements Component
     {
         IColoredString.Impl<SColor> iColoredString = new IColoredString.Impl<>();
         List<IColoredString<SColor>> spentPool = new ArrayList<>();
+        Collections.sort(spent, new SortManaBySchool());
         for(School mana:spent)
         {
             SColor color = mana.color;
@@ -90,7 +94,7 @@ public class ManaPoolCmp implements Component
     {
         IColoredString.Impl<SColor> iColoredString = new IColoredString.Impl<>();
         List<IColoredString<SColor>> attunedPool = new ArrayList<>();
-
+        Collections.sort(attuned, new SortManaBySchool());
         for(School mana:attuned) {
             SColor color = mana.color;
             iColoredString.append('■', color);

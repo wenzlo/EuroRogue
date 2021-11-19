@@ -119,6 +119,7 @@ public class ItemSys extends MyEntitySystem
     {
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         EquipmentCmp equipmentCmp = (EquipmentCmp)CmpMapper.getComp(CmpType.EQUIPMENT, itemEntity);
+
         LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, itemEntity);
         StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actorEntity);
         GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actorEntity);
@@ -136,6 +137,7 @@ public class ItemSys extends MyEntitySystem
         for(StatusEffect statusEffect : equipmentCmp.statusEffects.keySet())
         {
             Entity eventEntity = new Entity();
+            System.out.println("Adding Status Effect Event "+ statusEffect);
             StatusEffectEvt statusEffectEvt = new StatusEffectEvt(getGame().getGameTick(), null, statusEffect, null, null, actorEntity.hashCode(), SERemovalType.OTHER );
             eventEntity.add(statusEffectEvt);
             getEngine().addEntity(eventEntity);
@@ -162,7 +164,7 @@ public class ItemSys extends MyEntitySystem
 
         }
 
-
+        System.out.println(lightCmp);
         if(equipmentCmp.lightLevel > 0) lightCmp.level = equipmentCmp.lightLevel; lightCmp.color = equipmentCmp.lightColor;
         if(itemCmp.type== ItemType.TORCH) {
             peCmp.addEffect(glyphsCmp.leftGlyph, ParticleEffectsCmp.ParticleEffect.TORCH_P, windowCmp.display);

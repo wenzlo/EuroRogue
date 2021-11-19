@@ -8,7 +8,7 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
@@ -83,13 +83,14 @@ public class Charge extends Ability
     }
     @Override
     public List<Skill> getReactions()  {
-        return Arrays.asList(Skill.DODGE, Skill.ICE_SHIELD);
+        return Arrays.asList(Skill.DODGE, Skill.ICE_SHIELD, Skill.BLINK);
     }
 
     @Override
     public void setAvailable(Entity performer, EuroRogue game) {
         super.setAvailable(performer, game);
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, performer);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, performer);
+        AICmp aiCmp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, performer);
         LevelCmp levelCmp = (LevelCmp)CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
         setTargetedLocation(levelCmp.actors.getPosition(aiCmp.target));
         if(targetedLocation!=null && available)

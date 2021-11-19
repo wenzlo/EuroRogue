@@ -18,7 +18,7 @@ public class EquipmentCmp implements Component
     public HashMap<StatType, Integer> statReqs = new HashMap<>();
     public int lightLevel;
     public float lightColor;
-
+    public EquipmentCmp (){}
     public EquipmentCmp(EquipmentSlot[] slots)
     {
         this.slotsOccupied=slots;

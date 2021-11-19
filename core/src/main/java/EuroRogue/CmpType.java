@@ -3,11 +3,11 @@ package EuroRogue;
 import EuroRogue.AbilityCmpSubSystems.Dodge;
 import EuroRogue.AbilityCmpSubSystems.MagicMissile;
 import EuroRogue.AbilityCmpSubSystems.MeleeAttack;
-import EuroRogue.Components.AICmp;
 import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.ArmorCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
+import EuroRogue.Components.DetectedCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FactionCmp;
@@ -53,13 +53,13 @@ import EuroRogue.EventComponents.RestEvt;
 import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.EventComponents.StatEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
+import EuroRogue.EventComponents.StorageEvt;
 
 public enum CmpType
 {
     ACTION_EVT(ActionEvt.class),
     AIMING(AimingCmp.class),
     ANIM_GLYPH_EVT(AnimateGlyphEvt.class),
-    AI(AICmp.class),
     ARMOR(ArmorCmp.class),
     CAMP_EVT(CampEvt.class),
     CHAR(CharCmp.class),
@@ -68,6 +68,7 @@ public enum CmpType
     DAYNIGHTCYCLE_EVT(DayNightCycleEvt.class),
     DAMAGE_EVT(DamageEvent.class),
     DEATH_EVT(DeathEvt.class),
+    DETECTED(DetectedCmp.class),
     DODGE(Dodge.class),
     EQUIPMENT(EquipmentCmp.class),
     INVENTORY(InventoryCmp.class),
@@ -105,6 +106,7 @@ public enum CmpType
     STATS(StatsCmp.class),
     STAT_EVT(StatEvt.class),
     STATUS_EFFECT_EVT(StatusEffectEvt.class),
+    STORAGE_EVT(StorageEvt.class),
     TICKER(TickerCmp.class),
     UIBG_LIGHTING(UiBgLightingCmp.class),
     WEAPON(WeaponCmp.class),

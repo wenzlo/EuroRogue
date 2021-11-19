@@ -1,4 +1,4 @@
-package EuroRogue.Systems;
+package EuroRogue.Systems.Win;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -6,10 +6,12 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
+import java.util.List;
+
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.FOVCmp;
@@ -19,9 +21,9 @@ import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
+import EuroRogue.StatusEffectCmps.StatusEffect;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidgrid.mapping.LineKit;
@@ -60,6 +62,7 @@ public class WinSysDungeon extends MyEntitySystem
         if(!windowCmp.display.isVisible()) return;
         putMap(getGame().currentLevel);
 
+
     }
 
     private void putMap(Entity levelEntity)
@@ -68,7 +71,7 @@ public class WinSysDungeon extends MyEntitySystem
         LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, levelEntity);
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         FOVCmp focusFov = ((FOVCmp) CmpMapper.getComp(CmpType.FOV,getGame().getFocus()));
-        double focusLDL = ((StatsCmp)CmpMapper.getComp(CmpType.STATS, getGame().getFocus())).getLightDetectionLvl();
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
 
         Coord focusPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION,getGame().getFocus())).coord;
         AimingCmp aimingCmp = (AimingCmp) CmpMapper.getComp(CmpType.AIMING, getGame().getFocus());
@@ -88,51 +91,47 @@ public class WinSysDungeon extends MyEntitySystem
             for (int y = Math.max(0, focusPos.y - (display.gridHeight >> 1) - 1), j = 0; y < levelCmp.decoDungeon.length  && j < windowCmp.display.gridHeight + 2; y++, j++)
             {
                 Coord coord = Coord.get(x,y);
-                if (focusFov.fov[x][y] > 0.0 && lightingCmp.fgLightLevel[x][y]>focusLDL) {
+                if (focusFov.fov[x][y] > 0.0 && focusFov.visible.contains(coord) ) {
 
                     if (levelCmp.floors.contains(coord))
                         display.put(x, y, levelCmp.decoDungeon[x][y], lightingCmp.fgLighting[x][y]);
 
-                    else if(focusFov.seen.contains(coord) && caveWalls.contains(coord))
+                    else if (focusFov.seen.contains(coord) && caveWalls.contains(coord))
                         display.put(x, y, '#', lightingCmp.fgLighting[x][y]);
-                    else if(focusFov.seen.contains(coord))
+                    else if (focusFov.seen.contains(coord))
                         display.put(x, y, levelCmp.prunedDungeon[x][y], lightingCmp.fgLighting[x][y]);
 
-                }else if(focusFov.nightVision[x][y]>0){
+                    if (focusFov.nightVision[x][y] > 0 && lightingCmp.fgLightLevel[x][y] < statsCmp.getLightDetectionLvl()) {
 
-                    if (levelCmp.floors.contains(coord))
-                        display.put(x, y, levelCmp.decoDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), SColor.GREEN_BAMBOO.toFloatBits(), (float) focusFov.nightVision[x][y]));
-                    else if(caveWalls.contains(coord))
-                        display.put(x, y, levelCmp.decoDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), SColor.GREEN_BAMBOO.toFloatBits(), (float) focusFov.nightVision[x][y]));
-                    else
-                        display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), SColor.GREEN_BAMBOO.toFloatBits(), (float)focusFov.nightVision[x][y]*1.3f));
+                        if (levelCmp.floors.contains(coord))
+                            display.put(x, y, levelCmp.decoDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), SColor.GREEN_BAMBOO.toFloatBits(), (float) Math.min(1, focusFov.nightVision[x][y] + 0.1f)));
 
-
-                }else if (focusFov.seen.contains(x, y) ){
-
-
-                        if(getGame().gameState== GameState.AIMING)
-                        {
-                            if(aimAbility!=null)
-                            {
-                                char chr = levelCmp.decoDungeon[x][y];
-                                if(!levelCmp.floors.contains(coord)) chr = levelCmp.prunedDungeon[x][y];
-                                if(aimAbility.possibleTargets(focusPos, levelCmp.resistance).contains(x,y)) display.put(x, y, chr, SColor.GREEN_BAMBOO);
-                                if(aimAbility.aoe.findArea().keySet().contains(coord)) display.put(x, y, chr, SColor.SAFETY_ORANGE);
-                            }
-                        }
-
-                        else if(!levelCmp.floors.contains(x,y) && caveWalls.contains(coord))
+                        else if (!levelCmp.floors.contains(x, y) && caveWalls.contains(coord))
                             display.put(x, y, '#', SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
-                        else if(!levelCmp.floors.contains(x,y)) display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
-                        //else if(levelCmp.floors.contains(x,y)) display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
 
-                    if(getGame().dungeonGen.stairsDown == coord  ) display.put(x, y, '>', SColor.SLATE_GRAY);
-                        if(getGame().dungeonGen.stairsUp == coord  ) display.put(x, y, '<', SColor.SLATE_GRAY);
+                        else if (!levelCmp.floors.contains(x, y))
+                            display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
 
+                    }
+
+                } else if(focusFov.seen.contains(coord)) {
+
+
+                    if (!levelCmp.floors.contains(x, y) && caveWalls.contains(coord))
+                        display.put(x, y, '#', SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
+
+                    else if (!levelCmp.floors.contains(x, y))
+                        display.put(x, y, levelCmp.prunedDungeon[x][y], SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), levelCmp.colors[x][y], 0.30f));
                 }
 
-                AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, getGame().getFocus());
+
+
+                if(getGame().dungeonGen.stairsDown == coord  ) display.put(x, y, '>', SColor.SLATE_GRAY);
+                if(getGame().dungeonGen.stairsUp == coord  ) display.put(x, y, '<', SColor.SLATE_GRAY);
+
+
+
+                AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, getGame().getFocus());
                 if(aiCmp.alerts.containsValue(coord) &! focusFov.visible.contains(x,y))
                 {
 
@@ -150,6 +149,9 @@ public class WinSysDungeon extends MyEntitySystem
             display.put(coord.x, coord.y, charCmp.chr, charCmp.color);
 
         }
+        //applyTargetPathFilter(display);
+        applyStalkingFilter(lightingCmp, levelCmp);
+
 
         Stage stage = windowCmp.stage;
 
@@ -161,6 +163,53 @@ public class WinSysDungeon extends MyEntitySystem
         stage.getViewport().apply(false);
         stage.draw();
 
+    }
+
+    public void applyTargetPathFilter(MySparseLayers display)
+    {
+        Entity focusTarget = getGame().getFocusTarget();
+        if(focusTarget!=null)
+        {
+            StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, focusTarget);
+            AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, focusTarget);
+            List<Coord> path = aiCmp.pathToFollow;
+            if(!path.isEmpty())
+                for(Coord coord : path)
+                    display.put(coord.x, coord.y, '.', SColor.WHITE);
+        }
+    }
+
+    private void applyStalkingFilter(LightingCmp lightingCmp, LevelCmp levelCmp)
+    {
+        Entity focus = getGame().getFocus();
+        if(CmpMapper.getStatusEffectComp(StatusEffect.STALKING, focus)==null)
+            return;
+
+        StatsCmp focusStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, focus);
+        AICmp aiCmp = CmpMapper.getAIComp(focusStats.mobType.aiType, focus);
+
+        double visibilityLvl = focusStats.getVisibleLightLvl();
+        GreasedRegion exposed = new GreasedRegion(lightingCmp.fgLightLevel, visibilityLvl).not();
+
+        for(Integer id : aiCmp.visibleEnemies)
+        {
+            Entity enemy = getGame().getEntity(id);
+            if(enemy==null) continue;
+
+            FOVCmp enemyFOV = (FOVCmp) CmpMapper.getComp(CmpType.FOV, enemy);
+            exposed.or(new GreasedRegion(enemyFOV.nightVision, 0.0).not());
+
+
+        }
+        MySparseLayers display = ((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
+        FOVCmp fovCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, focus);
+        for(Coord coord : exposed)
+        {
+            if( levelCmp.floors.contains(coord) &! levelCmp.isBlocked(coord) && fovCmp.visible.contains(coord))
+            {
+                display.put(coord.x, coord.y, '.', SColor.BENI_DYE);
+            }
+        }
     }
     /*public void applyAOEfilter(MySparseLayers display, LevelCmp levelCmp)
     {

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.DamageType;
+import EuroRogue.MobType;
 import EuroRogue.School;
 import EuroRogue.SortManaBySchool;
 import EuroRogue.StatType;
@@ -18,13 +19,15 @@ import squidpony.squidmath.GWTRNG;
 
 public class StatsCmp implements Component
 {
+    public int hp;
+    public MobType mobType;
     private int str = 0;
     private int dex = 0;
     private int con = 0;
     private int perc = 0;
     private int intel = 0;
     private int spirit = 0;
-    public int hp;
+
     private float maxHPMult = 1;
     private float ttMoveMult = 1;
     private float ttMeleeMult = 1;
@@ -41,6 +44,8 @@ public class StatsCmp implements Component
     private float moveSndLvlMult = 1;
     private float meleeSndLvlMult = 1;
     private float spellSndLvlMult = 1;
+    private float soundDetectionLvlMult = 1;
+    private float nightVisionRadMult = 1;
     private float lightDetectionLvlMult = 1;
     private float visibleDetectionLvlMult = 1;
     public HashMap<StatType, List<School>> statCosts = new HashMap<>();
@@ -58,21 +63,26 @@ public class StatsCmp implements Component
     public int getCon() { return con; }
     public int getPerc() { return perc; }
     public int getIntel() { return intel; }
-    public int getSoundDetectionLvl(){return 7-perc/2;}
+    public int getSoundDetectionLvl()
+    {
+
+        return Math.round(7-perc/2f * soundDetectionLvlMult);
+    }
     public double getMoveSndLvl()
     {
         return Math.round(10 * moveSndLvlMult);
     }
-    public double getLightDetectionLvl() {return (0.5-getPerc()*0.05f)*lightDetectionLvlMult;}
-    public double getVisibleLightLvl() {return 0.01 * visibleDetectionLvlMult;}
+    public double getLightDetectionLvl() {return Math.round((0.5-getPerc()*0.05f)*lightDetectionLvlMult*100)/100.0;}
+    public double getVisibleLightLvl() {return Math.round(visibleDetectionLvlMult)/100.0;}
     public StatsCmp(){}
-    public StatsCmp(int str, int dex, int con, int perc, int intel)
+    public StatsCmp(int str, int dex, int con, int perc, int intel, MobType mobType)
     {
         this.str = str;
         this.dex = dex;
         this.con = con;
         this.perc = perc;
         this.intel = intel;
+        this.mobType = mobType;
         this.hp = getMaxHP();
     }
     public StatsCmp(GWTRNG rng)
@@ -159,6 +169,10 @@ public class StatsCmp implements Component
         if(getCon() ==0) return 10;
         return Math.round((10-(getCon() /2f+1))*getStatMultiplier(StatType.TT_REST));
     }
+    public int getNVRadius()
+    {
+        return Math.round((1 + getPerc() / 2f)  * nightVisionRadMult);
+    }
     public void setStr(int str) { this.str = str; }
     public void setDex(int dex) { this.dex = dex; }
     public void setCon(int con) { this.con = con; }
@@ -220,6 +234,10 @@ public class StatsCmp implements Component
                 meleeSndLvlMult = multiplier;
                 break;
 
+            case SND_D_LVL:
+                soundDetectionLvlMult = multiplier;
+                break;
+
             case SPELL_SND_LVL:
                 spellSndLvlMult = multiplier;
                 break;
@@ -229,6 +247,9 @@ public class StatsCmp implements Component
                 break;
             case VISIBLE_D_LVL:
                 visibleDetectionLvlMult = multiplier;
+                break;
+            case NV_RADIUS:
+                nightVisionRadMult = multiplier;
                 break;
         }
     }

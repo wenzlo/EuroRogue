@@ -45,6 +45,7 @@ import EuroRogue.SortAbilityBySkillType;
 import EuroRogue.StatType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
+import EuroRogue.Systems.AI.AISys;
 import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
@@ -87,7 +88,15 @@ public class MenuUpdateSys extends MyEntitySystem {
                 if(getGame().getFocusTarget()!=null) updateTargetHotBar(entity);
             if(entity == getGame().inventoryWindow) updateInventory(entity);
             if(entity == getGame().campWindow) updateCampMenu(entity);
-            if(entity == getGame().startWindow) updateStartMenu(entity);
+            if(entity == getGame().startWindow)
+            {
+                Entity focus = getGame().getFocus();
+                StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, focus);
+                CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focus);
+                ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, focus);
+                if(manaPoolCmp!=null && statsCmp != null && codexCmp != null)
+                    updateStartMenu(entity);
+            }
         }
 
     }
@@ -105,6 +114,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         for (Skill skill : codexCmp.getPreparedActions())
         {
             Ability ability = CmpMapper.getAbilityComp(skill, focusEntity);
+
             if (ability != null)
                 preparedAbilities.add(CmpMapper.getAbilityComp(skill, focusEntity));
         }
@@ -648,11 +658,14 @@ public class MenuUpdateSys extends MyEntitySystem {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
         menuCmp.menuMap.put(Coord.get(1,5), null, new MenuItem(new IColoredString.Impl("Stat Increase Costs", SColor.WHITE)));
         int x=1;int y=7;
+
         for (StatType statType : StatType.CORE_STATS)
         {
             Coord coord = Coord.get(x, y);
             float statColor = SColor.WHITE.toFloatBits();
             IColoredString.Impl statLabel = new IColoredString.Impl(statType.name()+" ",  SColor.colorFromFloat(statColor));
+
+
             for(School mana : statsCmp.getStatCost(statType)) statLabel.append('■', mana.color);
 
             menuItem = new MenuItem(statLabel);
@@ -680,7 +693,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         for (School mana : skill.castingCost) {
             coloredString.append('■', mana.color);
         }
-        coloredString.append(" " + ((Technique) abilityCmp).aoe.getMaxRange() + " " + abilityCmp.getDamage(performer));
+        coloredString.append(" " + (abilityCmp).aoe.getMaxRange() + " " + abilityCmp.getDamage(performer));
         return coloredString;
     }
     private IColoredString.Impl getScrollLabel(Entity scrollEntity, Ability abilityCmp, Character selectionKey, int totalLength)

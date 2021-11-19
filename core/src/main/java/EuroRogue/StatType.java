@@ -18,13 +18,16 @@ public enum StatType
     ICE_DEF,
     BLUDG_DEF,
     SLASH_DEF,
+    PIERCE_DEF,
     MAX_HP,
     MOVE_SND_LVL,
     MELEE_SND_LVL,
+    SND_D_LVL,
     SPELL_SND_LVL,
     LIGHT_D_LVL,
     VISIBLE_D_LVL,
-    PIERCE_DEF;
+    NV_RADIUS
+    ;
 
 
     StatType () { }

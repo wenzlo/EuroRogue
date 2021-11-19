@@ -13,7 +13,7 @@ import EuroRogue.ArmorFactory;
 import EuroRogue.ArmorType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
@@ -163,12 +163,7 @@ public class LevelSys extends MyEntitySystem
             {
                 getEngine().removeEntity(getGame().getEntity(id));
             }
-            if(display.getStage().getActors().size>1)
-            {
-                System.out.println(display.getStage().getActors().size);
-                System.out.println(display.getStage().getActors().removeIndex(1));
-                System.out.println("post removal "+display.getStage().getActors().size);
-            }
+
 
         }
 
@@ -259,7 +254,7 @@ public class LevelSys extends MyEntitySystem
             case CAVES:
                 ambientLightLvl = 0.0;
                 getGame().dungeonGen = new SectionDungeonGenerator(42, 42);
-                getGame().dungeonGen.addLake(15);
+                getGame().dungeonGen.addWater(3,20);
                 getGame().dungeonGen.addGrass(3, 20);
                 //getGame().dungeonGen.addDoors(100, true);
                 getGame().dungeonGen.generate(TilesetType.CAVES_LIMIT_CONNECTIVITY);
@@ -268,7 +263,7 @@ public class LevelSys extends MyEntitySystem
                 levelCmp  = new LevelCmp(getGame().dungeonGen);
                 SColor.LIMITED_PALETTE[0] = SColor.DB_LEAD;
                 ambientLightLvl = 0f;
-                maxAmbientLightLvl = 0;
+                maxAmbientLightLvl = 0f;
                 minAmbientLight = 0f;
 
 
@@ -371,7 +366,7 @@ public class LevelSys extends MyEntitySystem
 
 
 
-        for(int i=0;i<10;i++)
+        for(int i=0;i<3;i++)
         {
 
            /* Coord itemLoc = rng.getRandomElement(spwnCrds);
@@ -442,6 +437,18 @@ public class LevelSys extends MyEntitySystem
             actorsToAdd.add(mob);
 
         }
+        for(int i=0;i<4;i++)
+        {
+            Coord loc = rng.getRandomElement(new GreasedRegion(levelCmp.decoDungeon, '"'));
+
+            //GreasedRegion deadZone = new GreasedRegion(fov.calculateFOV(levelCmp.resistance, loc.x, loc.y, 8, Radius.CIRCLE), 0.0).not();
+
+            //spwnCrds.andNot(deadZone);
+            if(loc==null) break;
+            Entity mob = mobFactory.generateMob(MobType.SNAKE, loc, levelCmp, getGame().depth);
+            actorsToAdd.add(mob);
+
+        }
 
         return newLevel;
 
@@ -452,13 +459,15 @@ public class LevelSys extends MyEntitySystem
         Entity newLevel = new Entity();
 
         SerpentMapGenerator serpentMapGenerator = new SerpentMapGenerator(24, 24, new GWTRNG(rng.nextInt()));
-        serpentMapGenerator.putWalledBoxRoomCarvers(4);
+        serpentMapGenerator.putWalledBoxRoomCarvers(1);
+        serpentMapGenerator.putCaveCarvers(1);
 
         serpentMapGenerator.generate();
 
         getGame().dungeonGen.addDoors(100, true);
         getGame().dungeonGen.addGrass(3, 25);
-        getGame().dungeonGen.addTraps(3,1);
+        getGame().dungeonGen.addWater(3, 25);
+        //getGame().dungeonGen.addTraps(3,1);
         getGame().dungeonGen.generate(serpentMapGenerator.getDungeon(), serpentMapGenerator.getEnvironment());
 
         LevelCmp levelCmp  = new LevelCmp(getGame().dungeonGen);
@@ -467,12 +476,12 @@ public class LevelSys extends MyEntitySystem
         levelCmp.decoDungeon[getGame().dungeonGen.stairsDown.x][getGame().dungeonGen.stairsDown.y]='>';
 
         newLevel.add(levelCmp);
-
-        LightingCmp lightingCmp = new LightingCmp(levelCmp.lineDungeon, levelCmp.bgColors, 0f, 0.8f, 0.4f);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
+        LightingCmp lightingCmp = new LightingCmp(levelCmp.lineDungeon, levelCmp.bgColors, 0.0, 0.8, statsCmp.getLightDetectionLvl());
         newLevel.add(lightingCmp);
         WindowCmp dungeonWindowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
-        dungeonWindowCmp.lightingHandler = new LightHandler(MyDungeonUtility.generateSimpleResistances3x3(levelCmp.decoDungeon), SColor.BLACK, Radius.CIRCLE, 0, (MySparseLayers)dungeonWindowCmp.display);
+        dungeonWindowCmp.lightingHandler = new LightHandler(MyDungeonUtility.generateSimpleResistances3x3(levelCmp.decoDungeon), SColor.BLACK, Radius.CIRCLE, 0, dungeonWindowCmp.display);
         dungeonWindowCmp.lightingHandler.lightList.clear();
 
         GreasedRegion spwnCrds = new GreasedRegion();
@@ -552,6 +561,18 @@ public class LevelSys extends MyEntitySystem
             //spwnCrds.andNot(deadZone);
 
             Entity mob = mobFactory.generateMob(MobType.RAT, loc, levelCmp, getGame().depth);
+            actorsToAdd.add(mob);
+
+        }
+        for(int i=0;i<2;i++)
+        {
+            Coord loc = rng.getRandomElement(spwnCrds);
+
+            //GreasedRegion deadZone = new GreasedRegion(fov.calculateFOV(levelCmp.resistance, loc.x, loc.y, 8, Radius.CIRCLE), 0.0).not();
+
+            //spwnCrds.andNot(deadZone);
+
+            Entity mob = mobFactory.generateMob(MobType.SNAKE, loc, levelCmp, getGame().depth);
             actorsToAdd.add(mob);
 
         }
@@ -663,9 +684,11 @@ public class LevelSys extends MyEntitySystem
 
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
 
-        AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI, player);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, player);
+        AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, player);
         aiCmp.dijkstraMap = new DijkstraMap(levelCmp.bareDungeon, Measurement.EUCLIDEAN);
         aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(levelCmp.decoDungeon));
+        aiCmp.movementCosts = aiCmp.getTerrainCosts(levelCmp.decoDungeon);
 
         levelCmp.actors.put(position, player.hashCode(), player.hashCode());
 

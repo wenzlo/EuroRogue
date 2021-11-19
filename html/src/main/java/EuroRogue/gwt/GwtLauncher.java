@@ -10,6 +10,7 @@ public class GwtLauncher extends GwtApplication {
     @Override
     public GwtApplicationConfiguration getConfig() {
         GwtApplicationConfiguration configuration = new GwtApplicationConfiguration(180 * 9, 114 * 9);
+        configuration.disableAudio = true;
         return configuration;
     }
 

@@ -16,6 +16,7 @@ public class WeaponCmp implements Component
     public boolean throwable = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
 
+    public WeaponCmp(){}
     public WeaponCmp (WeaponType weaponType)
     {
         this.weaponType = weaponType;

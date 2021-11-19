@@ -21,10 +21,12 @@ public enum Skill
     DODGE(                       "Dodge", Dodge.class,            SkillType.REACTION,  School.SUB, new School[]{School.SUB},      new School[]{School.SUB}, null,   null,   null,  0, 3, 0, 0, 0),
     STALK(               "Stalk", Stalk.class,         SkillType.BUFF,  School.SUB, new School[]{School.SUB, School.SUB},      new School[]{School.SUB, School.SUB}, null,    null,      StatusEffect.STALKING,  0, 2, 0, 2, 0),
     BACK_STAB(       "Back Stab", BackStab.class,   SkillType.ACTION,  School.SUB, new School[]{School.SUB}, new School[]{School.SUB}, WeaponType.DAGGER, STALK, null,  0, 2, 0, 2, 0),
+    QUICK_STRIKE(       "Quick Strike", QuickStrike.class,   SkillType.ACTION,  School.SUB, new School[]{School.SUB}, new School[]{School.SUB}, null, null, null,  0, 3, 0, 1, 0),
 
     ENLIGHTEN(               "Enlighten", Enlighten.class,         SkillType.BUFF,  School.ARC, new School[]{School.ARC},      new School[]{School.ARC}, null,   null,       StatusEffect.ENLIGHTENED,  0, 0, 0, 0, 5),
     MAGIC_MISSILE(       "Magic Missile", MagicMissile.class,    SkillType.ACTION,  School.ARC, new School[]{School.ARC, School.ARC}, new School[]{School.ARC, School.ARC}, null, null, null,  0, 0, 0, 0, 4),
     ARCANE_TOUCH(         "Arcane Touch", ArcaneTouch.class,      SkillType.ACTION,  School.ARC, new School[]{School.ARC},      new School[]{School.ARC}, null, null,    null,  0, 0, 0, 0, 2),
+    BLINK(                       "Blink", Blink.class,            SkillType.REACTION,  School.ARC, new School[]{School.ARC, School.ARC},      new School[]{School.ARC}, null,   null,   null,  0, 0, 0, 0, 3),
 
     ICE_SHIELD(               "Ice Shield", IceShield.class,         SkillType.REACTION,  School.ICE, new School[]{School.ICE, School.WAR},      new School[]{School.ICE}, null,   null,        StatusEffect.CHILLED,  0, 0, 1, 2, 1),
     CHILL(            "Chill", Chill.class,  SkillType.ACTION,  School.ICE, new School[]{School.ICE},      new School[]{School.ICE}, null,     null,         StatusEffect.CHILLED,  0, 0, 0, 0, 2),

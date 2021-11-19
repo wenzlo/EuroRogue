@@ -1,4 +1,4 @@
-package EuroRogue.Systems;
+package EuroRogue.Systems.Win;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -93,6 +93,7 @@ public class WinSysShrineUiBg extends MyEntitySystem
             Coord location = light.position;
             MyFOV.addFOVsInto(uiBgLightingCmp.fgLightLevel, MyFOV.reuseFOV(uiBgLightingCmp.fgResistances, tempFov, location.x/3, location.y/3, radiance.range/3));
         }
+
         uiBgWindowCmp.display.fillBackground(SColor.SLATE_GRAY);
         for(int x0 = 0; x0< uiBgLightingCmp.fgColors.length; x0++) {
             for (int y0 = 0; y0 < uiBgLightingCmp.fgColors[0].length; y0++) {

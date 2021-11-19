@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import java.util.ArrayList;
 
 import squidpony.squidgrid.Direction;
+import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.FilterBatch;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -114,6 +115,46 @@ public class MySparseLayers extends SubcellLayers
         }
 
         glyph.addAction(Actions.sequence(sequence));
+    }
+
+    public void reverseBurst(float delay, int x, int y, int distance, Radius measurement, char shown,
+                      float startColor, float endColor, float duration, /* @Nullable */ Runnable postRunnable)
+    {
+        Direction d;
+        switch (measurement)
+        {
+            case SQUARE:
+            case CUBE:
+                for (int i = 0; i < 7; i++) {
+                    d = Direction.CLOCKWISE[i];
+                    summon(delay,  x - d.deltaX * distance, y + d.deltaY * distance, x, y,
+                            shown, startColor, endColor, duration, null);
+                }
+                d = Direction.CLOCKWISE[7];
+                summon(delay, x - d.deltaX * distance, y + d.deltaY * distance, x, y,
+                        shown, startColor, endColor, duration, postRunnable);
+                break;
+            case CIRCLE:
+            case SPHERE:
+                float xf = worldX(x), yf = worldY(y);
+                for (int i = 0; i < 4; i++) {
+                    d = Direction.DIAGONALS[i];
+                    summon(delay,  xf - d.deltaX * font.actualCellWidth * distance * 0.7071067811865475f, // the constant is 1.0 / Math.sqrt(2.0)
+                            yf + d.deltaY * font.actualCellHeight * distance * 0.7071067811865475f, xf, yf,
+                            shown, startColor, endColor, duration, null);
+                }
+                // break intentionally absent
+            default:
+                for (int i = 0; i < 3; i++) {
+                    d = Direction.CARDINALS_CLOCKWISE[i];
+                    summon(delay,  x - d.deltaX * distance, y + d.deltaY * distance, x, y,
+                            shown, startColor, endColor, duration, null);
+                }
+                d = Direction.CARDINALS_CLOCKWISE[3];
+                summon(delay, x - d.deltaX * distance, y + d.deltaY * distance, x, y,
+                        shown, startColor, endColor, duration, postRunnable);
+                break;
+        }
     }
 
 

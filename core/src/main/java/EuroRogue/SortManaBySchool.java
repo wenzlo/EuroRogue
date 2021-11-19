@@ -15,10 +15,13 @@ public class SortManaBySchool implements Comparator<School>
                 sch1Score+=4;
                 break;
             case ICE:
-                sch1Score+=2;
+                sch1Score+=3;
+                break;
+            case SUB:
+                sch1Score+=5;
                 break;
             case ARC:
-                sch1Score+=3;
+                sch1Score+=2;
                 break;
             case WAR:
                 sch1Score+=1;
@@ -33,10 +36,13 @@ public class SortManaBySchool implements Comparator<School>
                 sch2Score+=4;
                 break;
             case ICE:
-                sch2Score+=2;
+                sch2Score+=3;
+                break;
+            case SUB:
+                sch2Score+=5;
                 break;
             case ARC:
-                sch2Score+=3;
+                sch2Score+=2;
                 break;
             case WAR:
                 sch2Score+=1;

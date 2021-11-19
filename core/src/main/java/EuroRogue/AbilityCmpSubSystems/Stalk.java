@@ -9,10 +9,10 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ManaPoolCmp;
+import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
@@ -58,21 +58,12 @@ public class Stalk extends Ability
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL,performer);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
+        NameCmp performerName = (NameCmp) CmpMapper.getComp(CmpType.NAME,performer);
 
         boolean canAfford = manaPoolCmp.canAfford(getSkill());
         if(scroll()) canAfford = true;
-        boolean detected = false;
-        for (Integer id : levelCmp.actors)
-        {
-            if(id==game.getFocus().hashCode()) continue;
-            Entity actor = game.getEntity(id);
-            FOVCmp actorFOV = (FOVCmp) CmpMapper.getComp(CmpType.FOV, actor);
-            if( actorFOV.visible.contains(positionCmp.coord))
-            {
-                detected = true;
-                break;
-            }
-        }
+
+        boolean detected = CmpMapper.detected(performer);
 
         this.available = canAfford && !detected && CmpMapper.getStatusEffectComp(StatusEffect.STALKING, performer) == null;
 

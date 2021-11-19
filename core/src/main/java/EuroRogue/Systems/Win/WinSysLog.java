@@ -1,4 +1,4 @@
-package EuroRogue.Systems;
+package EuroRogue.Systems.Win;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -10,8 +10,10 @@ import java.util.Comparator;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
+import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.LogCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EuroRogue;
@@ -52,7 +54,8 @@ public class WinSysLog extends MyEntitySystem
     {
         EuroRogue game = getGame();
         if(!((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().logWindow)).display.isVisible()) return;
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, game.getFocus());
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
+        AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, getGame().getFocus());
 
         for(Entity actor : entities)
         {
@@ -69,7 +72,12 @@ public class WinSysLog extends MyEntitySystem
         Integer currentTick = ((TickerCmp) CmpMapper.getComp(CmpType.TICKER, game.ticker)).tick;
 
         display.clear();
-        display.put(1, 1, "Depth = "+game.depth, SColor.WHITE);
+        display.put(1, 0, "Depth = "+game.depth, SColor.WHITE);
+
+        LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
+
+        display.put(12, 0, "Ambient light = "+lightingCmp.ambientLightLvl, SColor.WHITE);
+        display.put(34, 0, "Visible Level = " + statsCmp.getLightDetectionLvl(), SColor.WHITE);
         display.put(1, 18, currentTick.toString(),SColor.WHITE);
 
         for(int i=0;i<Math.min(logCmp.logEntries.size(),16);i++)

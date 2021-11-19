@@ -50,7 +50,7 @@ public class DaggerThrow extends Ability
     }
 
     public List<Skill> getReactions() {
-        return Arrays.asList();
+        return Arrays.asList(Skill.BLINK);
     }
 
     @Override

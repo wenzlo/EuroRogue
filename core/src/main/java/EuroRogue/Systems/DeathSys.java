@@ -13,7 +13,8 @@ import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
+import EuroRogue.Components.AI.AIType;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.FocusTargetCmp;
@@ -41,6 +42,7 @@ import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
+import squidpony.squidmath.GreasedRegion;
 
 public class DeathSys extends MyEntitySystem
 {
@@ -92,8 +94,8 @@ public class DeathSys extends MyEntitySystem
         interupt( entity);
         game.currentLevel.getComponent(LevelCmp.class).actors.remove(entity.hashCode());
 
-        AICmp playerAI = ((AICmp) CmpMapper.getComp(CmpType.AI, game.player));
         StatsCmp playerStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, game.player);
+        AICmp playerAI = CmpMapper.getAIComp(AIType.DEFAULT_AI, game.player);
         MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW,getGame().dungeonWindow)).display;
         if(playerAI.target!=null)
         {
@@ -121,6 +123,11 @@ public class DeathSys extends MyEntitySystem
         ArrayList<Coord> dropLocations = new ArrayList<>();
 
         dropLocations.addAll(aoe.findArea().keySet());
+
+        dropLocations.removeAll(new GreasedRegion(levelCmp.decoDungeon, '~'));
+        dropLocations.removeAll(new GreasedRegion(levelCmp.decoDungeon, '§'));
+        dropLocations.removeAll(levelCmp.doors);
+
         Collections.sort(dropLocations, new SortByDistance(actorPosition));
 
         boolean scrollDropped = false;

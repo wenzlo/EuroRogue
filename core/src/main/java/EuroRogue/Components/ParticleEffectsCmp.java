@@ -118,17 +118,17 @@ public class ParticleEffectsCmp implements Component {
 
     }
 
-    public void removeEffectsByGlyph(TextCellFactory.Glyph glyph, MySparseLayers display)
+    public boolean removeEffectsByGlyph(TextCellFactory.Glyph glyph, MySparseLayers display)
     {
         if(particleEffectsMap==null)
         {
-            System.out.println("ParticleEffectsMap = null");
-            return;
+
+            return false;
         }
         if(particleEffectsMap.get(glyph)==null)
         {
-            System.out.println("ParticleEffectsMap no GLyph Key");
-            return;
+
+            return false;
         }
 
         ArrayList<ParticleEffect> effectsToRemove = new ArrayList<>();
@@ -138,9 +138,13 @@ public class ParticleEffectsCmp implements Component {
         }
         for(ParticleEffect effect : effectsToRemove)
         {
+
             this.removeEffect(glyph, effect, display);
         }
+
         particleEffectsMap.remove(glyph);
+        if(effectsToRemove.isEmpty()) return false;
+        return true;
     }
 
 }

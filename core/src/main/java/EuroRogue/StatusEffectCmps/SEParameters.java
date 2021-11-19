@@ -7,6 +7,7 @@ public class SEParameters
     public TargetType targetType;
     public SERemovalType seRemovalType;
 
+    public SEParameters(){}
     public SEParameters(TargetType targetType, SERemovalType seRemovalType)
     {
         this.targetType = targetType;

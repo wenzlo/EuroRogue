@@ -35,7 +35,7 @@ public class Dodge extends Ability
 
     public Dodge()
     {
-        super("Dodge", new PointAOE(Coord.get(-1,-1),0,2));
+        super("Dodge", new PointAOE(Coord.get(-1,-1),0,10));
     }
 
 

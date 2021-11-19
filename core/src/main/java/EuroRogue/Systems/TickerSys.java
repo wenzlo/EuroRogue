@@ -89,7 +89,9 @@ public class TickerSys extends MyEntitySystem
         while(ticker.tick<nextActionTick && !removeStatusEffects(ticker.tick) && !addStatusEffectEvents(ticker))
         {
             ticker.tick++;
-            if(ticker.tick%250 == 0)
+            int interval = 250;
+            if(getGame().depth==1) interval = 50;
+            if(ticker.tick%interval == 0)
             {
 
                 DayNightCycleEvt dayNightCycleEvt = new DayNightCycleEvt();

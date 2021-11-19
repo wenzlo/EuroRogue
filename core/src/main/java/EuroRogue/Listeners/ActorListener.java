@@ -6,7 +6,7 @@ import com.badlogic.ashley.core.EntityListener;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.FOVCmp;
@@ -16,6 +16,7 @@ import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.NoiseMapCmp;
 import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.Light;
@@ -45,6 +46,8 @@ public class ActorListener implements EntityListener {
     {
         NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
 
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, entity);
+
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow);
         if(levelCmp == null) return;
@@ -72,9 +75,11 @@ public class ActorListener implements EntityListener {
 
         entity.add(new FOVCmp(levelCmp.bareDungeon.length, levelCmp.bareDungeon[0].length));
         game.engine.getSystem(FOVSys.class).updateFOV(entity);
-        AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI,entity);
+        AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, entity);
+
         aiCmp.dijkstraMap = new DijkstraMap(levelCmp.bareDungeon, Measurement.EUCLIDEAN);
         aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(levelCmp.decoDungeon));
+        aiCmp.movementCosts = aiCmp.getTerrainCosts(levelCmp.decoDungeon);
 
         entity.remove(NoiseMapCmp.class);
         entity.add(new NoiseMapCmp(levelCmp.bareDungeon));

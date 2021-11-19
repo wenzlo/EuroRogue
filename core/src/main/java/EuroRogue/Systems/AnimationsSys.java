@@ -12,10 +12,12 @@ import java.util.HashMap;
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ParticleEffectsCmp;
+import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
@@ -23,6 +25,7 @@ import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
+import EuroRogue.School;
 import EuroRogue.SortByDistance;
 import squidpony.StringKit;
 import squidpony.squidai.BlastAOE;
@@ -53,7 +56,7 @@ public class AnimationsSys extends MyEntitySystem
     public void update(float deltaTime)
     {
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
-        MySparseLayers display = (MySparseLayers) windowCmp.display;
+        MySparseLayers display = windowCmp.display;
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
 
         for(Entity entity:entities)
@@ -80,11 +83,40 @@ public class AnimationsSys extends MyEntitySystem
                     Direction direction = Direction.toGoTo(animation.startLocation, animation.endLocation);
                     display.bump(0, animation.glyph, direction, 0.12f, postRunnable);
                     break;
+                case BLINK:
 
+                    xe = animation.endLocation.x;
+                    ye = animation.endLocation.y;
+                    xo = animation.startLocation.x;
+                    yo = animation.startLocation.y;
+                    ActionEvt  actionEvt = (ActionEvt) animation.sourceEvent;
+                    Entity performer  = getGame().getEntity(actionEvt.performerID);
+                    GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, performer);
+                    PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
+
+                    GlyphsCmp finalGlyphsCmp = glyphsCmp;
+                    postRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+
+
+                            finalGlyphsCmp.glyph.setPosition(display.worldX(xe), display.worldY(ye));
+                            finalGlyphsCmp.leftGlyph.setPosition(finalGlyphsCmp.getLeftGlyphPositionX(display, positionCmp), finalGlyphsCmp.getLeftGlyphPositionY(display, positionCmp));
+                            finalGlyphsCmp.rightGlyph.setPosition(finalGlyphsCmp.getRightGlyphPositionX(display, positionCmp), finalGlyphsCmp.getRightGlyphPositionY(display, positionCmp));
+
+                            display.reverseBurst(0f, xe, ye, 2, Radius.CIRCLE, '•', School.ARC.color.toFloatBits(), School.ARC.color.toFloatBits(), 0.18f, null);
+
+                        }
+                    };
+
+                    display.burst(0.0f, xo, yo, 2, Radius.CIRCLE, '•', School.ARC.color.toFloatBits(), School.ARC.color.toFloatBits(), 0.18f, postRunnable);
+
+                    break;
                 case SLIDE:
                     xe = animation.endLocation.x;
                     ye = animation.endLocation.y;
                     display.slide(0f, animation.glyph, xe, ye, 0.18f, postRunnable);
+
                     break;
                 case CHARGE:
                     xe = animation.endLocation.x;
@@ -99,11 +131,15 @@ public class AnimationsSys extends MyEntitySystem
                     break;
 
                 case BURST:
+                    if(!animation.glyph.isVisible()) return;
+                    xo = animation.startLocation.x;
+                    yo = animation.startLocation.y;
+                    display.burst(xo, yo, 2, Radius.CIRCLE, '•', School.SUB.color.toFloatBits(), School.SUB.color.toFloatBits(), 0.18f);
 
                 case TINT:
                     break;
                 case BLAST:
-                    ActionEvt actionEvt = (ActionEvt) animation.sourceEvent;
+                    actionEvt = (ActionEvt) animation.sourceEvent;
                     Entity actor = getGame().getEntity(actionEvt.performerID);
                     Entity scroll = getGame().getEntity(actionEvt.scrollID);
                     Ability ability = CmpMapper.getAbilityComp(actionEvt.skill,actor );
@@ -153,7 +189,7 @@ public class AnimationsSys extends MyEntitySystem
                         {
 
                             Entity targetActor = getGame().getEntity(targetID);
-                            GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
+                            glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
                             display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
                         }
                     }
@@ -162,11 +198,21 @@ public class AnimationsSys extends MyEntitySystem
                     windowCmp.lightingHandler.removeLight(light.hashCode());
                     break;
                 case SHATTER:
+                    //TODO
+                    /*Exception in thread "main" java.lang.NullPointerException
+                    at EuroRogue.Systems.AnimationsSys.update(AnimationsSys.java:169)
+                    at com.badlogic.ashley.core.Engine.update(Engine.java:240)
+                    at EuroRogue.EuroRogue.render(EuroRogue.java:1241)
+                    at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Window.update(Lwjgl3Window.java:403)
+                    at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application.loop(Lwjgl3Application.java:143)
+                    at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application.<init>(Lwjgl3Application.java:116)
+                    at EuroRogue.lwjgl3.Lwjgl3Launcher.createApplication(Lwjgl3Launcher.java:14)
+                    at EuroRogue.lwjgl3.Lwjgl3Launcher.main(Lwjgl3Launcher.java:10)*/
 
                     actionEvt = (ActionEvt) animation.sourceEvent;
                     actor = getGame().getEntity(actionEvt.performerID);
                     ability = CmpMapper.getAbilityComp(actionEvt.skill,actor );
-                    blastAOE = (BlastAOE) ability.aoe;
+                    blastAOE = (BlastAOE) ability.aoe;//todo line
                     lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
 
                     delay =  0.0f;
@@ -198,7 +244,7 @@ public class AnimationsSys extends MyEntitySystem
                         {
 
                             Entity targetActor = getGame().getEntity(targetID);
-                            GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
+                            glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
                             display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
                         }
                     }
@@ -265,7 +311,8 @@ public class AnimationsSys extends MyEntitySystem
                     SColor color = actionEvt.skill.school.color;
                     light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
                     actor = getGame().getEntity(actionEvt.performerID);
-                    AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI, actor);
+                    StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+                    AICmp aiCmp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, actor);
                     Entity target = getGame().getEntity(aiCmp.target);
                     TextCellFactory.Glyph targetGlyph = null;
                     if(target!=null) targetGlyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target)).glyph;
@@ -331,12 +378,13 @@ public class AnimationsSys extends MyEntitySystem
                     target = getGame().getEntity(levelCmp.actors.get((Integer) ((ActionEvt) animation.sourceEvent).targetsDmg.keySet().toArray()[0]));
                     if(target==null) break;
                     targetPeaCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, target);
-                    GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target);
+                    glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, target);
 
+                    GlyphsCmp finalGlyphsCmp1 = glyphsCmp;
                     postRunnable = new Runnable() {
                         @Override
                         public void run() {
-                            targetPeaCmp.addEffect(glyphsCmp.glyph, ParticleEffectsCmp.ParticleEffect.ICE_DMG, display);
+                            targetPeaCmp.addEffect(finalGlyphsCmp1.glyph, ParticleEffectsCmp.ParticleEffect.ICE_DMG, display);
 
                             windowCmp.lightingHandler.removeLightByGlyph(animation.glyph);
 
@@ -495,6 +543,7 @@ public class AnimationsSys extends MyEntitySystem
         CONE_OF_COLD,
         BUMP,
         BURST,
+        BLINK,
         BLAST,
         SHATTER,
         SELF_BUFF,

@@ -44,8 +44,6 @@ public class CodexSys extends MyEntitySystem
     {
         for(Entity entity:entities)
         {
-
-
             CodexEvt codexEvt = (CodexEvt) CmpMapper.getComp(CmpType.CODEX_EVT, entity);
             Entity actorEntity = getGame().getEntity(codexEvt.actorID);
             CodexCmp codex = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, actorEntity);

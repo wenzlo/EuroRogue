@@ -1,4 +1,4 @@
-package EuroRogue.Systems;
+package EuroRogue.Systems.Win;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -6,8 +6,11 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.math.MathUtils;
 
+import java.util.Arrays;
+
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.UiBgLightingCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.GameStateEvt;
@@ -16,7 +19,6 @@ import EuroRogue.LightHandler;
 import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MyFOV;
-import EuroRogue.MyMapUtility;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.mapping.DungeonUtility;
@@ -59,7 +61,10 @@ public class WinSysUiBg extends MyEntitySystem
         if (lightHandler == null)
             lightHandler = new LightHandler(DungeonUtility.generateSimpleResistances3x3(uiBgLightingCmp.map));
 
-        if (entities.size() > 0){
+
+
+        if (entities.size() > 0)
+        {
             GameStateEvt gameStateEvt = (GameStateEvt)CmpMapper.getComp(CmpType.GAMESTATE_EVT, entities.get(0));
             if(gameStateEvt!=null)
                 if(!gameStateEvt.processed) return;
@@ -87,7 +92,7 @@ public class WinSysUiBg extends MyEntitySystem
                 rectangle(x, y, w, h, uiBgLightingCmp.map);
             }
             uiBgLightingCmp.bgLighting=new float[(uiBgLightingCmp.map.length)*3][(uiBgLightingCmp.map[0].length)*3];
-            uiBgLightingCmp.fgColors = MyMapUtility.generateDefaultColorsFloat(uiBgLightingCmp.map);
+
             uiBgLightingCmp.fgResistances = MyDungeonUtility.generateSimpleResistances(uiBgLightingCmp.map);
             double[][] tempFov = new double[uiBgLightingCmp.map.length][uiBgLightingCmp.map[0].length];
             for(Light light : lightHandler.lightList.values())
@@ -96,11 +101,7 @@ public class WinSysUiBg extends MyEntitySystem
                 Coord location = light.position;
                 MyFOV.addFOVsInto(uiBgLightingCmp.fgLightLevel, MyFOV.reuseFOV(uiBgLightingCmp.fgResistances, tempFov, location.x/3, location.y/3, radiance.range/3));
             }
-            for(int x = 0; x< uiBgLightingCmp.fgColors.length; x++) {
-                for (int y = 0; y < uiBgLightingCmp.fgColors[0].length; y++) {
-                    uiBgLightingCmp.fgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), uiBgLightingCmp.fgColors[x][y], MathUtils.clamp((float) (uiBgLightingCmp.fgLightLevel[x][y]), 0.4f, 0.9f));
-                }
-            }
+
 
             lightHandler.resistances = DungeonUtility.generateSimpleResistances3x3(uiBgLightingCmp.map);
 
@@ -114,15 +115,27 @@ public class WinSysUiBg extends MyEntitySystem
 
             lightHandler.draw(uiBgLightingCmp.bgLighting);
 
-            char[][] map = DungeonUtility.hashesToLines(uiBgLightingCmp.map);
 
-            for(Coord coord : new GreasedRegion(uiBgLightingCmp.map, '#'))
-            {
-                uiBgWindowCmp.display.put(coord.x, coord.y, map[coord.x][coord.y], uiBgLightingCmp.fgLighting[coord.x][coord.y]);
-            }
-            uiBgWindowCmp.display.put(uiBgLightingCmp.bgLighting);
 
         }
+        char[][] map = DungeonUtility.hashesToLines(uiBgLightingCmp.map);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
+        float healthColor = SColor.lerpFloatColors(SColor.RED.toFloatBits(), SColor.LIMITED_PALETTE[2].toFloatBits(), statsCmp.hp/(float)statsCmp.getMaxHP());
+
+        for(float[] line : uiBgLightingCmp.fgColors)
+            Arrays.fill(line,  healthColor);
+
+        for(int x = 0; x< uiBgLightingCmp.fgColors.length; x++) {
+            for (int y = 0; y < uiBgLightingCmp.fgColors[0].length; y++) {
+                uiBgLightingCmp.fgLighting[x][y] = SColor.lerpFloatColors(SColor.BLACK.toFloatBits(), uiBgLightingCmp.fgColors[x][y], MathUtils.clamp((float) (uiBgLightingCmp.fgLightLevel[x][y]), 0.4f, 0.9f));
+            }
+        }
+
+        for(Coord coord : new GreasedRegion(uiBgLightingCmp.map, '#'))
+        {
+            uiBgWindowCmp.display.put(coord.x, coord.y, map[coord.x][coord.y], uiBgLightingCmp.fgLighting[coord.x][coord.y]);
+        }
+        uiBgWindowCmp.display.put(uiBgLightingCmp.bgLighting);
         uiBgWindowCmp.stage.act();
         uiBgWindowCmp.stage.getViewport().apply(false);
         uiBgWindowCmp.stage.draw();

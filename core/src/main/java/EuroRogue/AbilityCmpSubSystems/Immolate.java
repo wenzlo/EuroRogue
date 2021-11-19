@@ -24,7 +24,6 @@ import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
-import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -65,9 +64,6 @@ public class Immolate extends Ability
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
 
-    private AOE getAOE() {
-        return aoe;
-    }
 
     @Override
     public float getDmgReduction(StatsCmp statsCmp) {

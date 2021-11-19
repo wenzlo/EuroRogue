@@ -10,13 +10,14 @@ import com.badlogic.gdx.Input;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.DamageType;
@@ -163,7 +164,8 @@ public class MovementSys extends MyEntitySystem
             for(Integer id : levelCmp.actors.identities())
             {
                 Entity actor = getGame().getEntity(id);
-                AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+                StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+                AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, actor);
                 aiCmp.dijkstraMap.initialize(levelCmp.bareDungeon);
                 aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(levelCmp.decoDungeon));
 
@@ -195,7 +197,8 @@ public class MovementSys extends MyEntitySystem
 
             for (Integer id : levelCmp.actors.identities()) {
                 Entity actor = getGame().getEntity(id);
-                AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+                StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+                AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, actor);
                 aiCmp.dijkstraMap.initialize(levelCmp.bareDungeon);
                 aiCmp.dijkstraMap.initializeCost(aiCmp.getTerrainCosts(levelCmp.decoDungeon));
 

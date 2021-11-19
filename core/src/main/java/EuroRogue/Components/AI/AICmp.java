@@ -1,4 +1,4 @@
-package EuroRogue.Components;
+package EuroRogue.Components.AI;
 
 import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.Components.LevelCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.TerrainType;
 import squidpony.squidai.DijkstraMap;
@@ -16,6 +17,7 @@ import squidpony.squidmath.Coord;
 public class AICmp implements Component
 {
     public List<Integer> visibleEnemies = new ArrayList();
+    public List<Integer> visibleNeutrals = new ArrayList();
     public List<Integer> visibleFriendlies = new ArrayList();
     public List<Integer> visibleItems = new ArrayList();
     public Coord location = Coord.get(-1,-1);
@@ -23,6 +25,7 @@ public class AICmp implements Component
     public List<Coord> pathToFollow = new ArrayList();
     public Integer target;
     public DijkstraMap dijkstraMap;
+    public double[][] movementCosts;
     public ArrayList<TerrainType> traversable =  new ArrayList<>();
 
 
@@ -39,7 +42,9 @@ public class AICmp implements Component
         this.dijkstraMap = new DijkstraMap(bareDungeon, Measurement.EUCLIDEAN);
         this.traversable= traversable;
         this.dijkstraMap.initializeCost(getTerrainCosts(decoDungeon));
+        this.movementCosts = getTerrainCosts(decoDungeon);
     }
+
 
     public double[][] getTerrainCosts(char[][] map)
     {
@@ -120,33 +125,33 @@ public class AICmp implements Component
         }
         if(index<visibleEnemies.size()) visibleEnemies.remove(index);
     }
-    public ArrayList<Coord> getEnemyLocations(LevelCmp levelCmp)
+    public List<Coord> getEnemyLocations(LevelCmp levelCmp)
     {
         ArrayList<Coord> enemyLocations = new ArrayList<>();
         for(Integer enemyID : visibleEnemies)
         {
             Coord coord = levelCmp.actors.getPosition(enemyID);
-            if(enemyLocations!=null) enemyLocations.add(coord);
+            if(coord!=null) enemyLocations.add(coord);
         }
         return enemyLocations;
     }
-    public ArrayList<Coord> getFriendLocations(LevelCmp levelCmp)
+    public List<Coord> getFriendLocations(LevelCmp levelCmp)
     {
         ArrayList<Coord> friendLocations = new ArrayList<>();
         for(Integer friendID : visibleFriendlies)
         {
             Coord coord = levelCmp.actors.getPosition(friendID);
-            if(friendLocations!=null) friendLocations.add(coord);
+            if(coord!=null) friendLocations.add(coord);
         }
         return friendLocations;
     }
-    public ArrayList<Coord> getItemLocations(LevelCmp levelCmp)
+    public List<Coord> getItemLocations(LevelCmp levelCmp)
     {
         ArrayList<Coord> itemLocations = new ArrayList<>();
         for(Integer friendID : visibleItems)
         {
             Coord coord = levelCmp.items.getPosition(friendID);
-            if(itemLocations!=null) itemLocations.add(coord);
+            if(coord!=null) itemLocations.add(coord);
         }
         return itemLocations;
     }

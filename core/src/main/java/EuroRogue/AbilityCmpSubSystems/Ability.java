@@ -9,7 +9,7 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.PositionCmp;
@@ -53,11 +53,12 @@ public class Ability extends Technique implements Component, IAbilitySubSys
         LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
         Entity performerEntity = game.getEntity(action.performerID);
         if(action.skill.skillType== Skill.SkillType.REACTION) spawnGlyph(display, lightHandler, performerEntity);
-        AnimateGlyphEvt animateGlyphEvt = genAnimateGlyphEvt(performerEntity, getTargetedLocation(), action, display);
 
+        AnimateGlyphEvt animateGlyphEvt = genAnimateGlyphEvt(performerEntity, getTargetedLocation(), action, display);
         ItemEvt itemEvt = genItemEvent(performerEntity, targetEntity);
         if (animateGlyphEvt != null) performerEntity.add(animateGlyphEvt);
         if(itemEvt != null) performerEntity.add(itemEvt);
+
         if(getSkill().school != School.SUB) performerEntity.remove(Stalking.class);
     }
 
@@ -100,7 +101,9 @@ public class Ability extends Technique implements Component, IAbilitySubSys
     @Override
     public void setAvailable(Entity performer, EuroRogue game)
     {
-        AICmp aiCmp = (AICmp)CmpMapper.getComp(CmpType.AI,performer);
+        if(performer==null) return;
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, performer);
+        AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType,performer);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL,performer);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
 
@@ -109,8 +112,15 @@ public class Ability extends Technique implements Component, IAbilitySubSys
 
         if(getSkill().skillType!=Skill.SkillType.REACTION && getSkill().skillType!=Skill.SkillType.BUFF &! aimed)
         {
-            this.available = ( aiCmp.target!=null && canAfford && getActive() &&
-                    getIdealLocations(performer, levelCmp).containsKey(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, game.getEntity(aiCmp.target))).coord));
+            Entity targetEntity = game.getEntity(aiCmp.target);
+            if(targetEntity==null)
+                this.available = false;
+            else
+            {
+                this.available = ( aiCmp.target!=null && canAfford && getActive() &&
+                        getIdealLocations(performer, levelCmp).containsKey(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, targetEntity)).coord));
+            }
+
         }
         else  if(getSkill().skillType==Skill.SkillType.REACTION || getSkill().skillType==Skill.SkillType.BUFF )
         {
@@ -146,8 +156,8 @@ public class Ability extends Technique implements Component, IAbilitySubSys
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
 
-
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+        AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, actor);
 
         return idealLocations(positionCmp.coord, aiCmp.getEnemyLocations(levelCmp), aiCmp.getFriendLocations(levelCmp));
     }
@@ -281,6 +291,9 @@ public class Ability extends Technique implements Component, IAbilitySubSys
             case BACK_STAB:
                 ability =  new BackStab();
                 break;
+            case QUICK_STRIKE:
+                ability =  new QuickStrike();
+                break;
             case ENLIGHTEN:
                 ability = new Enlighten();
                 break;
@@ -289,6 +302,9 @@ public class Ability extends Technique implements Component, IAbilitySubSys
                 break;
             case MAGIC_MISSILE:
                 ability = new MagicMissile();
+                break;
+            case BLINK:
+                ability =  new Blink();
                 break;
             case ERUPTION:
                 ability = new Eruption();
@@ -323,7 +339,6 @@ public class Ability extends Technique implements Component, IAbilitySubSys
             case MELEE_ATTACK:
                 ability = new MeleeAttack();
                 break;
-
             case STALK:
                 ability = new Stalk();
                 break;

@@ -61,8 +61,7 @@ public class WeaponFactory
     }
 
     public  Entity newBasicWeapon(WeaponType weaponType) {return newBasicWeapon(weaponType, null);}
-    public void addOnHitSERnd (Entity weaponEntity,  TargetType targetType)
-    {
+    public void addOnHitSERnd (Entity weaponEntity,  TargetType targetType){
         addOnHitSE(weaponEntity, rng.getRandomElement(onHitEffectsPool), targetType);
     }
     public static void addOnHitSE (Entity weaponEntity, StatusEffect statusEffect, TargetType targetType)

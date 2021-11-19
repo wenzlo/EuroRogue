@@ -7,17 +7,21 @@ import com.badlogic.ashley.utils.ImmutableArray;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.FOVCmp;
+import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.Components.WindowCmp;
 import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MyFOV;
+import EuroRogue.StatusEffectCmps.StatusEffect;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.Radius;
+import squidpony.squidmath.Coord;
 import squidpony.squidmath.GreasedRegion;
 
 
@@ -37,7 +41,7 @@ public class FOVSys extends MyEntitySystem {
      */
     @Override
     public void addedToEngine(Engine engine) {
-        entities = engine.getEntitiesFor(Family.one(AICmp.class).get());
+        entities = engine.getEntitiesFor(Family.one(FOVCmp.class).get());
     }
 
     /**
@@ -49,25 +53,41 @@ public class FOVSys extends MyEntitySystem {
     public void update(float deltaTime)
     {
         if(getGame().gameState!= GameState.PLAYING) return;
-        for (int i = 0; i < entities.size(); ++i) {
+        for (int i = 0; i < entities.size(); ++i)
+        {
             updateFOV(entities.get(i));
         }
     }
 
-    public void updateFOV(Entity entity) {
+    public void updateFOV(Entity entity)
+    {
         FOVCmp fovCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, entity);
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
         LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        MyFOV.reuseFOV(levelCmp.resistance, fovCmp.fov, positionCmp.coord.x, positionCmp.coord.y, 10, Radius.CIRCLE);
-        //float multiplier = 1.01f-(float)lightingCmp.fgLightLevel[positionCmp.coord.x][positionCmp.coord.y];
-        int nightVisionDistance = Math.round((1 + statsCmp.getPerc() / 2f) /* * multiplier*/);
-        MyFOV.reuseFOV(levelCmp.resistance, fovCmp.nightVision, positionCmp.coord.x, positionCmp.coord.y, nightVisionDistance, Radius.CIRCLE,
-                        orientationToAngle(positionCmp.orientation), 1.0, 1.0, 0.75, 0.5, 0 );
+        WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
+
+        Coord origin = Coord.get(positionCmp.coord.x,positionCmp.coord.y);
+        if(entity == getGame().getFocus())
+        {
+            GlyphsCmp glyphsCmp = (GlyphsCmp)CmpMapper.getComp(CmpType.GLYPH, getGame().getFocus());
+            int x = windowCmp.display.gridX(glyphsCmp.glyph.getX());
+            int y = windowCmp.display.gridY(glyphsCmp.glyph.getY());
+            origin =  Coord.get(x,y);
+        }
+
+        MyFOV.reuseFOV(levelCmp.resistance, fovCmp.fov, origin.x, origin.y, 10, Radius.CIRCLE);
+
+        boolean stalking = CmpMapper.getStatusEffectComp(StatusEffect.STALKING, entity)!=null;
+        boolean brightLight = lightingCmp.fgLightLevel[positionCmp.coord.x][positionCmp.coord.y] >0.6;
+        double radiusMultiplier = brightLight ? 0.5 : 1;
+        MyFOV.reuseFOV(levelCmp.resistance, fovCmp.nightVision, origin.x, origin.y, statsCmp.getNVRadius(), Radius.CIRCLE,
+                        orientationToAngle(positionCmp.orientation), radiusMultiplier, radiusMultiplier, 1.01*radiusMultiplier,
+                        0.75*radiusMultiplier, stalking ? 0.75*radiusMultiplier : 0 );
 
         GreasedRegion nightVision = new GreasedRegion(fovCmp.nightVision, 0.0).not();
-        GreasedRegion notLit = new GreasedRegion(lightingCmp.fgLightLevel, statsCmp.getLightDetectionLvl());
+        GreasedRegion notLit = new GreasedRegion(lightingCmp.fgLightLevel, statsCmp.getLightDetectionLvl()-0.001);
 
 
         GreasedRegion currentlySeen = new GreasedRegion(fovCmp.fov, 0.0).not();
@@ -77,7 +97,8 @@ public class FOVSys extends MyEntitySystem {
 
         fovCmp.seen.or(currentlySeen);
         fovCmp.visible = currentlySeen;
-
+        if(stalking)
+                applyStalkingCostMap(entity);
 
     }
 
@@ -105,6 +126,43 @@ public class FOVSys extends MyEntitySystem {
 
         }
         return  0.0;
+    }
+
+    private void applyStalkingCostMap(Entity entity)
+    {
+
+
+        LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+
+        StatsCmp stats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
+        AICmp aiCmp = CmpMapper.getAIComp(stats.mobType.aiType, entity);
+
+        double visibilityLvl = stats.getVisibleLightLvl();
+        GreasedRegion exposed = new GreasedRegion(lightingCmp.fgLightLevel, visibilityLvl).not();
+
+        for(Integer id : aiCmp.visibleEnemies)
+        {
+            Entity enemy = getGame().getEntity(id);
+            if(enemy==null)
+            {
+
+                continue;
+            }
+            FOVCmp enemyFOV = (FOVCmp) CmpMapper.getComp(CmpType.FOV, enemy);
+            exposed.or(new GreasedRegion(enemyFOV.nightVision, 0.0).not());
+
+
+        }
+
+
+        double[][] costMap = aiCmp.getTerrainCosts(levelCmp.decoDungeon);
+        for(Coord coord : exposed)
+        {
+            costMap[coord.x][coord.y] = 10.0;
+        }
+        aiCmp.dijkstraMap.initializeCost(costMap);
+
     }
 
 }

@@ -29,18 +29,18 @@ import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 
-public class BackStab extends Ability
+public class QuickStrike extends Ability
 {
-    private Skill skill = Skill.BACK_STAB;
+    private Skill skill = Skill.QUICK_STRIKE;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private TextCellFactory.Glyph glyph;
     public int itemID;
     public char chr;
     private Coord targetedLocation;
 
-    public BackStab()
+    public QuickStrike()
     {
-        super("Back Stab", new PointAOE(Coord.get(-1,-1),1,1));
+        super("Quick Strike", new PointAOE(Coord.get(-1,-1),1,1));
     }
 
     public Skill getSkill() {
@@ -48,7 +48,7 @@ public class BackStab extends Ability
     }
 
     public List<Skill> getReactions() {
-        return Arrays.asList(Skill.BLINK, Skill.ICE_SHIELD);
+        return Arrays.asList();
     }
 
     @Override
@@ -62,10 +62,8 @@ public class BackStab extends Ability
             WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
             weaponType = weaponCmp.weaponType;
         }
-        this.available = (weaponType == WeaponType.DAGGER && isAvailable()
-                    && CmpMapper.getStatusEffectComp(StatusEffect.STALKING, performer)!=null);
 
-        if(isAvailable())
+        if(isAvailable() && weaponType!=null)
         {
             itemID = weaponEntity.hashCode();
             chr = weaponType.chr;
@@ -123,7 +121,7 @@ public class BackStab extends Ability
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getAttackPower()*3;
+        return statsCmp.getAttackPower();
     }
     @Override
     public float getDmgReduction(StatsCmp statsCmp) {
@@ -136,18 +134,20 @@ public class BackStab extends Ability
     @Override
     public int getDamage(Entity performer)
     {
-        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getWeaponDamage()*2;
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getWeaponDamage()/2;
 
     }
     @Override
     public DamageType getDmgType(Entity performer)
     {
+        Ability meleeAttack = CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, performer);
+        if(meleeAttack!=null) return meleeAttack.getDmgType(performer);
         return DamageType.PIERCING;
     }
     @Override
     public int getTTPerform(Entity performer)
     {
-        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTMelee();
+        return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTMelee()/2;
     }
 
     @Override

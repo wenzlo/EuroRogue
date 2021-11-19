@@ -1,4 +1,4 @@
-package EuroRogue.Systems;
+package EuroRogue.Systems.AI;
 
 import static EuroRogue.TargetType.AOE;
 import static EuroRogue.TargetType.ENEMY;
@@ -18,8 +18,10 @@ import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
+import EuroRogue.Components.AI.AICmp;
+import EuroRogue.Components.AI.AIType;
 import EuroRogue.Components.CodexCmp;
+import EuroRogue.Components.DetectedCmp;
 import EuroRogue.Components.EquipmentCmp;
 import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.FOVCmp;
@@ -57,25 +59,25 @@ import EuroRogue.ScheduledEvt;
 import EuroRogue.SortByDistance;
 import EuroRogue.StatusEffectCmps.Stalking;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.MakeCampSys;
 import EuroRogue.TargetType;
 import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.GWTRNG;
 import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.OrderedMap;
 
 
 public class AISys extends MyEntitySystem
 {
-    private ImmutableArray<Entity> entities;
-    private final GWTRNG rng = new GWTRNG();
-    private int  previousTick = 0;
+    public ImmutableArray<Entity> entities;
+    public AIType aiType;
 
     public AISys()
     {
         super.priority = 8;
+        this.aiType = AIType.DEFAULT_AI;
     }
 
     /**
@@ -86,7 +88,7 @@ public class AISys extends MyEntitySystem
     @Override
     public void addedToEngine(Engine engine)
     {
-        entities = engine.getEntitiesFor(Family.one(AICmp.class).get());
+        entities = engine.getEntitiesFor(Family.one(aiType.cls).get());
     }
 
     /**
@@ -102,7 +104,6 @@ public class AISys extends MyEntitySystem
         EuroRogue game = getGame();
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, game.ticker);
         LevelCmp level = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
-        int currentTick = ((TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker)).tick;
 
         for (Entity entity: entities)
         {
@@ -111,15 +112,15 @@ public class AISys extends MyEntitySystem
             observe(entity);
             getGame().updateAbilities(entity);
 
-            previousTick=currentTick;
 
-            MySparseLayers display = (MySparseLayers) ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
+            MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
             ArrayList<StatusEffect> focusStatusEffects = getGame().getStatusEffects(getGame().getFocus());
             if(focusStatusEffects.contains(StatusEffect.FROZEN) || focusStatusEffects.contains(StatusEffect.BURNING))
                 if(display.hasActiveAnimations()) continue;
 
             PositionCmp position = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
-            AICmp ai = (AICmp) CmpMapper.getComp(CmpType.AI, entity);
+            StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, entity);
+            AICmp aiComp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, entity);
             ManaPoolCmp manaPool = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, entity);
             CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
             InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
@@ -135,13 +136,13 @@ public class AISys extends MyEntitySystem
                 int newX = position.coord.x + rndDir.deltaX;
                 int newY = position.coord.y + rndDir.deltaY;
 
-                while (ai.dijkstraMap.costMap[newX][newY]== DijkstraMap.WALL)
+                while (aiComp.dijkstraMap.costMap[newX][newY]== DijkstraMap.WALL)
                 {
                     rndDir = game.rng.getRandomElement(Direction.CLOCKWISE);
                     newX = position.coord.x + rndDir.deltaX;
                     newY = position.coord.y + rndDir.deltaY;
                 }
-                scheduleMoveEvt(entity, rndDir, ai.dijkstraMap.costMap[newX][newY]);
+                scheduleMoveEvt(entity, rndDir, aiComp.movementCosts[newX][newY]);
                 continue;
             }
 
@@ -194,7 +195,7 @@ public class AISys extends MyEntitySystem
             if(itemEventScheduled) continue;
 
             ArrayList<Ability> availableAbilities = getAvailableActions(entity);
-            if(!availableAbilities.isEmpty() &! ai.visibleEnemies.isEmpty())
+            if(!availableAbilities.isEmpty() &! aiComp.visibleEnemies.isEmpty())
             {
                 Collections.shuffle(availableAbilities);
                 for(Ability ability : availableAbilities)
@@ -202,7 +203,7 @@ public class AISys extends MyEntitySystem
                     if(!ability.getIdealLocations(entity, level).isEmpty())
                     {
                         scheduleActionEvt(entity, ability);
-                        return;
+                        continue;
                     }
 
                 }
@@ -217,16 +218,16 @@ public class AISys extends MyEntitySystem
                scheduleRestEvt(entity);
 
             }
-            else if(!ai.visibleEnemies.isEmpty())
+            else if(!aiComp.visibleEnemies.isEmpty())
             {
-                setTarget(entity, getGame().getEntity(ai.visibleEnemies.get(0)));
-                Coord targetLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, ai.getTargetEntity(getGame()))).coord;
-                ai.pathToFollow = ai.dijkstraMap.findPath(15, level.getPositions(ai.visibleFriendlies), null, position.coord, targetLoc);
-                if(ai.pathToFollow.size()>0)
+                setTarget(entity, getGame().getEntity(aiComp.visibleEnemies.get(0)));
+                Coord targetLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, aiComp.getTargetEntity(getGame()))).coord;
+                aiComp.pathToFollow = aiComp.dijkstraMap.findPath(15, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
+                if(aiComp.pathToFollow.size()>0)
                 {
-                    Coord step = ai.pathToFollow.remove(0);
-                    double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
-                    GreasedRegion debugDikj = new GreasedRegion(ai.dijkstraMap.costMap, 2.0);
+                    Coord step = aiComp.pathToFollow.remove(0);
+                    double terrainCost = aiComp.movementCosts[step.x][step.y];
+                    GreasedRegion debugDikj = new GreasedRegion(aiComp.dijkstraMap.costMap, 2.0);
                     //debugDikj[position.coord.x][position.coord.y] ='@';
                     //put.println(debugDikj);
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
@@ -235,117 +236,123 @@ public class AISys extends MyEntitySystem
 
             }
 
-            else if(!ai.alerts.isEmpty())
+            else if(!aiComp.alerts.isEmpty())
             {
-                ArrayList<Coord> alerts = new ArrayList<>(ai.alerts.values());
-                Collections.sort(alerts, new SortByDistance(ai.location));
+                ArrayList<Coord> alerts = new ArrayList<>(aiComp.alerts.values());
+                Collections.sort(alerts, new SortByDistance(aiComp.location));
                 Coord targetLoc = alerts.get(0);
-                ai.pathToFollow = ai.dijkstraMap.findPath(15,null, null, position.coord, targetLoc);
-                if(ai.pathToFollow.size()>0)
+                aiComp.pathToFollow = aiComp.dijkstraMap.findPath(15,null, null, position.coord, targetLoc);
+                if(aiComp.pathToFollow.size()>0)
                 {
-                    Coord step = ai.pathToFollow.remove(0);
-                    double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
+                    Coord step = aiComp.pathToFollow.remove(0);
+                    double terrainCost = aiComp.movementCosts[step.x][step.y];
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                 }
             }
-            else if(ai.pathToFollow.size()>0)
+            else if(aiComp.pathToFollow.size()>0)
             {
-                Coord step = ai.pathToFollow.remove(0);
-                double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
+                Coord step = aiComp.pathToFollow.remove(0);
+                double terrainCost = aiComp.movementCosts[step.x][step.y];
                 scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                 continue;
             }
-            else if(ai.visibleFriendlies.size()>1)
+            else if(aiComp.visibleFriendlies.size()>1)
             {
                 ArrayList<Coord> buffer = new ArrayList<>();
-                ai.pathToFollow = ai.dijkstraMap.findFleePath(buffer,20, 20, (double) 1.2,buffer, buffer, position.coord, ai.getFriendLocations(level).get(0), ai.getFriendLocations(level).get(1));
+                aiComp.pathToFollow = aiComp.dijkstraMap.findFleePath(buffer,20, 20, (double) 1.2,buffer, buffer, position.coord, aiComp.getFriendLocations(level).get(0), aiComp.getFriendLocations(level).get(1));
 
-                if(ai.pathToFollow.size()>0)
+                if(aiComp.pathToFollow.size()>0)
                 {
-                    Coord step = ai.pathToFollow.remove(0);
-                    double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
+                    Coord step = aiComp.pathToFollow.remove(0);
+                    double terrainCost = aiComp.movementCosts[step.x][step.y];
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
                     continue;
                 }
             }
-            /*else if(!ai.visibleItems.isEmpty() &! inventoryCmp.isFull() && inventoryCmp.getEquippedIDs().size()<3)
-            {
-
-                Coord targetLoc = ai.getItemLocations(level).get(0);
-                if(targetLoc == ai.location)
-                {
-                    scheduleItemEvt(entity, level.items.getIdentity(targetLoc), ItemEvtType.PICKUP);
-                }
-                ai.pathToFollow = ai.dijkstraMap.findPath(10, level.getPositions(ai.visibleItems), null, position.coord, targetLoc);
-                if(ai.pathToFollow.size()>0)
-                {
-                    Coord step = ai.pathToFollow.remove(0);
-                    double terrainCost = ai.dijkstraMap.costMap[step.x][step.y];
-                    scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
-                    continue;
-                }
-            }*/
 
             else if(!manaPool.spent.isEmpty())scheduleRestEvt(entity);
         }
     }
+
+
     public void observe(Entity entity)
     {
-        AICmp ai = (AICmp) CmpMapper.getComp(CmpType.AI, entity);
-        ai.location=((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
+        StatsCmp observerStats = (StatsCmp)CmpMapper.getComp(CmpType.STATS, entity);
+        AICmp aiComp = CmpMapper.getAIComp(observerStats.mobType.aiType, entity);
+
+        aiComp.location=((PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity)).coord;
         FOVCmp selfFOV = (FOVCmp) CmpMapper.getComp(CmpType.FOV, entity);
-        ai.visibleEnemies.clear();
-        ai.visibleFriendlies.clear();
-        ai.visibleItems.clear();
+
+        aiComp.visibleEnemies.clear();
+        aiComp.visibleFriendlies.clear();
+        aiComp.visibleNeutrals.clear();
+        aiComp.visibleItems.clear();
         GreasedRegion goals = new GreasedRegion();
-        FactionCmp.Faction myFaction = ((FactionCmp) CmpMapper.getComp(CmpType.FACTION, entity)).faction;
+        FactionCmp myFaction = (FactionCmp) CmpMapper.getComp(CmpType.FACTION, entity);
         LevelCmp levelCmp = (LevelCmp)CmpMapper.getComp(CmpType.LEVEL,getGame().currentLevel);
         LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
 
+        if(!detected(entity)) entity.remove(DetectedCmp.class);
 
         for(Coord entPos:levelCmp.actors.positions())
         {
-            if(entPos==ai.location) continue;
+            if(entPos==aiComp.location)
+            {
+                continue;
+            }
+
             Integer entID = levelCmp.actors.get(entPos);
             Entity actor = getGame().getEntity(entID);
-            FOVCmp actorFOVCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, actor);
+
             FactionCmp.Faction otherFaction = ((FactionCmp) CmpMapper.getComp(CmpType.FACTION, actor)).faction;
-            StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
-            if(selfFOV.visible.contains(entPos) && statsCmp.getVisibleLightLvl() <= lightingCmp.fgLightLevel[entPos.x][entPos.y]
-                        || statsCmp.getVisibleLightLvl() <= selfFOV.nightVision[entPos.x][entPos.y])
-                if(otherFaction!=myFaction)
+            StatsCmp enemyStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
+            if(selfFOV.visible.contains(entPos) && lightingCmp.fgLightLevel[entPos.x][entPos.y] >= enemyStats.getVisibleLightLvl()
+                        ||  selfFOV.nightVision[entPos.x][entPos.y] > 0)
+            {
+                if(myFaction.enemy.contains(otherFaction))
                 {
-                    ai.visibleEnemies.add(entID);
+                    aiComp.visibleEnemies.add(entID);
                     actor.remove(Stalking.class);
+                    actor.add(new DetectedCmp());
                     goals.add(entPos);
 
-                } else ai.visibleFriendlies.add(entID);
+                } else if(myFaction.allied.contains(otherFaction))
+                    aiComp.visibleFriendlies.add(entID);
+                else
+                    aiComp.visibleNeutrals.add(entID);
+            }
+
         }
+
         for(Coord entPos:levelCmp.items.positions())
         {
             Integer entID = levelCmp.items.get(entPos);
             if(selfFOV.visible.contains(entPos))
             {
-                ai.visibleItems.add(entID);
+                aiComp.visibleItems.add(entID);
                 goals.add(entPos);
             }
         }
 
-        if(!ai.visibleEnemies.contains(ai.target))
+        if(aiComp.target!=null)
         {
-            clearTarget(entity);
-
+            if(!aiComp.visibleEnemies.contains(aiComp.target) && !aiComp.visibleNeutrals.contains(aiComp.target) && !aiComp.visibleFriendlies.contains(aiComp.target))
+            {
+                clearTarget(entity);
+            }
         }
-        if(ai.target==null &! ai.visibleEnemies.isEmpty())
+
+
+        if(aiComp.target==null &! aiComp.visibleEnemies.isEmpty())
         {
-            Entity possibleTarget = getGame().getEntity(ai.visibleEnemies.get(0));
+            Entity possibleTarget = getGame().getEntity(aiComp.visibleEnemies.get(0));
             if(possibleTarget!=null) setTarget(entity, possibleTarget);
         }
 
         List<Integer> alertsToRemove = new ArrayList<>();
-        for(Integer id : ai.alerts.keySet())
+        for(Integer id : aiComp.alerts.keySet())
         {
-            Coord alertLoc = ai.alerts.get(id);
+            Coord alertLoc = aiComp.alerts.get(id);
             if(selfFOV.nightVision[alertLoc.x][alertLoc.y]>0)
             {
 
@@ -353,18 +360,19 @@ public class AISys extends MyEntitySystem
             }
 
         }
-        for(Integer id : alertsToRemove) ai.alerts.remove(id);
-        goals.addAll(ai.alerts.values());
+        for(Integer id : alertsToRemove) aiComp.alerts.remove(id);
+        goals.addAll(aiComp.alerts.values());
 
 
-        ai.dijkstraMap.clearGoals();
-        ai.dijkstraMap.setGoals(goals);
-        ai.dijkstraMap.scan();
-        //System.out.println(ai.visibleEnemies);
+        aiComp.dijkstraMap.clearGoals();
+        aiComp.dijkstraMap.setGoals(goals);
+        aiComp.dijkstraMap.scan();
+        //System.out.println(aiComp.visibleEnemies);
 
 
 
     }
+
     public ArrayList<Ability> getAvailableActions(Entity entity)
     {
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, entity);
@@ -393,9 +401,9 @@ public class AISys extends MyEntitySystem
         }
         return availableAbilities;
     }
+
     public int scheduleMoveEvt(Entity entity, Direction direction, double terrainCost)
     {
-
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity);
         int gameTick = ticker.tick;
@@ -407,6 +415,7 @@ public class AISys extends MyEntitySystem
 
         return scheduledTick;
     }
+
     public int scheduleActionEvt (Entity entity, Ability ability)
     {
         TargetType targetType = ability.getTargetType();
@@ -415,7 +424,8 @@ public class AISys extends MyEntitySystem
         int gameTick = ticker.tick;
         int scheduledTick = gameTick + ability.getTTPerform(entity);
 
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, entity);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, entity);
+        AICmp aiCmp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, entity);
         Integer targetID;
         if(targetType==SELF) targetID=entity.hashCode();
         else targetID = aiCmp.target;
@@ -430,7 +440,8 @@ public class AISys extends MyEntitySystem
 
         WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
         ability.spawnGlyph(windowCmp.display, windowCmp.lightingHandler, entity);
-        if(ability.getTargetType()==ENEMY && ability.getSkill()!=Skill.CHARGE) rotate(entity, getGame().getEntity(targetID));
+        if(ability.getTargetType()==ENEMY && ability.getSkill()!=Skill.CHARGE)
+            rotate(entity, getGame().getEntity(targetID));
         if(ability.getTargetType()==AOE && getGame().gameState!=GameState.AIMING)
         {
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
@@ -442,6 +453,7 @@ public class AISys extends MyEntitySystem
 
         return scheduledTick;
     }
+
     public int scheduleRestEvt (Entity entity)
     {
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
@@ -456,6 +468,7 @@ public class AISys extends MyEntitySystem
 
         return scheduledTick;
     }
+
     public int scheduleFrozenEvt (Entity entity)
     {
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
@@ -470,13 +483,13 @@ public class AISys extends MyEntitySystem
 
         return scheduledTick;
     }
+
     public int scheduleCampEvt (Entity entity)
     {
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
 
-
-        int scheduledTick = ticker.tick + 100;
+        int scheduledTick = ticker.tick + 200;
 
         CampEvt campEvt = new CampEvt(entity.hashCode(), inventoryCmp.getEquippedIDs());
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
@@ -497,7 +510,8 @@ public class AISys extends MyEntitySystem
             if(alerted.get(position)>=alertedStats.getSoundDetectionLvl())
             {
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
-                AICmp alertedAI = (AICmp) CmpMapper.getComp(CmpType.AI, alertedActor);
+                StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, alertedActor);
+                AICmp alertedAI = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, alertedActor);
                 alertedAI.alerts.put(entity.hashCode(),positionCmp.coord);
 
 
@@ -510,6 +524,7 @@ public class AISys extends MyEntitySystem
 
         return scheduledTick;
     }
+
     public int scheduleItemEvt (Entity entity, Integer itemID, ItemEvtType itemEvtType)
     {
         Entity itemEntity = getGame().getEntity(itemID);
@@ -545,15 +560,17 @@ public class AISys extends MyEntitySystem
 
         return scheduledTick;
     }
+
     public void setTarget(Entity actor, Entity target)
     {
-        AICmp aiCmp=(AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+        AICmp aiCmp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, actor);
         if(actor==getGame().getFocus())
         {
             ImmutableArray<Entity> focusTargetInArray = getEngine().getEntitiesFor(Family.all(FocusTargetCmp.class).get());
             if(focusTargetInArray.size()>0)
             {
-                FocusTargetCmp focusTargetCmp = (FocusTargetCmp) getGame().getFocusTarget().remove(FocusTargetCmp.class);
+                FocusTargetCmp focusTargetCmp = getGame().getFocusTarget().remove(FocusTargetCmp.class);
                 if(focusTargetCmp!=null)
                 {
                     target.add(focusTargetCmp);
@@ -569,9 +586,12 @@ public class AISys extends MyEntitySystem
         }
         aiCmp.target = target.hashCode();
     }
+
     public void clearTarget(Entity actor)
     {
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+        AICmp aiCmp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, actor);
         if(aiCmp.target!=null)
         {
             Entity targetEntity = getGame().getEntity(aiCmp.target);
@@ -586,19 +606,42 @@ public class AISys extends MyEntitySystem
         }
         aiCmp.target=null;
     }
-    private void rotate(Entity actor, Entity target)
+
+    public void rotate(Entity actor, Entity target)
     {
-        if(target == null || actor == null) return;
+        if(target == null) return;
+        Coord targetPosition = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, target)).coord;
+        rotate(actor, targetPosition);
+        }
+
+
+    public void rotate(Entity actor, Coord target)
+    {
+        if(actor == null) return;
         GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH,actor);
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        Coord targetPosition = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, target)).coord;
-        positionCmp.orientation = Direction.toGoTo(positionCmp.coord,targetPosition);
+
+        positionCmp.orientation = Direction.toGoTo(positionCmp.coord,target);
         WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
 
         if(glyphsCmp.leftGlyph!=null)
             (windowCmp.display).slide(0f,glyphsCmp.leftGlyph, glyphsCmp.getLeftGlyphPositionX( windowCmp.display, positionCmp), glyphsCmp.getLeftGlyphPositionY(windowCmp.display, positionCmp), 0.1f, null);
         if(glyphsCmp.rightGlyph!=null)
             (windowCmp.display).slide(0f,glyphsCmp.rightGlyph, glyphsCmp.getRightGlyphPositionX( windowCmp.display, positionCmp), glyphsCmp.getRightGlyphPositionY(windowCmp.display, positionCmp), 0.1f, null);
+    }
+
+    public boolean detected(Entity actor)
+    {
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+        for(Integer id : levelCmp.actors.identities())
+        {
+            Entity entity = getGame().getEntity(id);
+            StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, entity);
+            AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, entity);
+            if(aiCmp.visibleEnemies.contains(levelCmp.actors.get(actor.hashCode())))
+                return true;
+        }
+        return false;
     }
 
 }
