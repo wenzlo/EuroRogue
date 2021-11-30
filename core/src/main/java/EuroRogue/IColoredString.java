@@ -1,13 +1,13 @@
 package EuroRogue;
 
-import regexodus.Pattern;
-import squidpony.panel.IMarkup;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+
+import regexodus.Pattern;
+import squidpony.panel.IMarkup;
 
 /**
  * A {@link String} divided in chunks of different colors. Use the

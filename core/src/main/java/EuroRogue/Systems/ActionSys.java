@@ -8,40 +8,35 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import EuroRogue.AbilityCmpSubSystems.Ability;
+import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
-import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.CmpMapper;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.ActionEvt;
-import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.DamageEvent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.IColoredString;
-
 import EuroRogue.ItemEvtType;
-import EuroRogue.LightHandler;
 import EuroRogue.MyEntitySystem;
-import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.Bleeding;
+import EuroRogue.StatusEffectCmps.Exhausted;
+import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.CmpType;
 import EuroRogue.TargetType;
-import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
-import squidpony.squidmath.Coord;
 
 public class ActionSys extends MyEntitySystem
 {
@@ -74,11 +69,25 @@ public class ActionSys extends MyEntitySystem
         for(Entity entity:entities)
         {
             ActionEvt action = (ActionEvt) CmpMapper.getComp(CmpType.ACTION_EVT, entity);
+            LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL,getGame().currentLevel);
+
 
             if(action.isProcessed()) return;
             action.processed=true;
 
             Entity performerEntity = getGame().getEntity(action.performerID);
+            StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS,performerEntity);
+            if(CmpMapper.getStatusEffectComp(StatusEffect.EXHAUSTED, performerEntity) == null)
+            {
+                statsCmp.rl --;
+                if(statsCmp.getRestLvl() <= 0)
+                {
+                    Exhausted exhausted = new Exhausted();
+                    exhausted.seRemovalType = SERemovalType.LONG_REST;
+                    performerEntity.add(new Exhausted());
+                }
+            }
+
             Ability abilityCmp = CmpMapper.getAbilityComp(action.skill, performerEntity);
             if(action.scrollID!=null) abilityCmp = getGame().getScrollAbilityCmp(action.skill, performerEntity);
             TargetType targetType = abilityCmp.getTargetType();
@@ -86,18 +95,7 @@ public class ActionSys extends MyEntitySystem
             if(!action.targetsDmg.isEmpty() && targetType != AOE)
                 targetEntity = getGame().getEntity((Integer) action.targetsDmg.keySet().toArray()[0]);
 
-            else
-            {
-                ArrayList<Integer> aoeTargets = getAOEtargets(abilityCmp);
-                for(Integer targetId : aoeTargets)
-                {
-                    Entity aoeTarEnt = getGame().getEntity(targetId);
-                    PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, aoeTarEnt);
-                    int dmg = (int) (abilityCmp.aoe.findArea().get(positionCmp.coord)*abilityCmp.getDamage(performerEntity));
-                    action.targetsDmg.put(targetId, dmg);
-                }
-
-            }
+            else action.targetsDmg = abilityCmp.getAOEtargetsDmg(performerEntity, levelCmp, getGame());
 
 
 
@@ -107,7 +105,7 @@ public class ActionSys extends MyEntitySystem
             }
 
             if(targetType!=AOE) getGame().updateAbility(abilityCmp, performerEntity);
-            if(abilityCmp==null) System.out.println("Ability comp = Null");
+
             if(!abilityCmp.isAvailable() && abilityCmp.getSkill().skillType != Skill.SkillType.REACTION || performerEntity==null)
             {
                 LogEvt logEvt = generateCancelLogEvt(action, performerEntity);
@@ -117,8 +115,12 @@ public class ActionSys extends MyEntitySystem
                 if(glyph!=null)
                 {
                     WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow);
+                    ParticleEffectsCmp peaCmp = (ParticleEffectsCmp)CmpMapper.getComp(CmpType.PARTICLES, performerEntity);
+
+                    peaCmp.removeEffectsByGlyph(glyph, windowCmp.display);
                     windowCmp.lightingHandler.removeLightByGlyph(glyph);
                     windowCmp.display.glyphs.remove(abilityCmp.getGlyph());
+
                 }
 
 
@@ -135,13 +137,9 @@ public class ActionSys extends MyEntitySystem
                     getEngine().addEntity(eventEntity);
                 }
                 //((LogCmp) CmpMapper.getComp(LOG, getGame().logWindow)).logEntries.add(generateActionLogEvt(action, performerEntity).entry);
-                MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).display;
-                LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, getGame().dungeonWindow)).lightingHandler;
-                if(action.skill.skillType== Skill.SkillType.REACTION) abilityCmp.spawnGlyph(display, lightHandler);
-                AnimateGlyphEvt animateGlyphEvt = abilityCmp.genAnimateGlyphEvt(performerEntity, abilityCmp.getTargetedLocation(), action, display);
-                ItemEvt itemEvt = abilityCmp.genItemEvent(performerEntity, targetEntity);
-                if (animateGlyphEvt != null) performerEntity.add(animateGlyphEvt);
-                if(itemEvt != null) performerEntity.add(itemEvt);
+
+                abilityCmp.perform(targetEntity, action, getGame());
+
                 Bleeding bleeding = (Bleeding) CmpMapper.getStatusEffectComp(StatusEffect.BLEEDING, performerEntity);
                 if(bleeding!=null)
                 {
@@ -149,7 +147,6 @@ public class ActionSys extends MyEntitySystem
                     damageEvtEntity.add(new DamageEvent(performerEntity.hashCode(), bleeding.damagePerMove, DamageType.NONE, StatusEffect.BLEEDING));
                     getEngine().addEntity(damageEvtEntity);
                 }
-                generateActionLogEvt(action, performerEntity);
 
             }
         }
@@ -165,6 +162,7 @@ public class ActionSys extends MyEntitySystem
         coloredEvtText.append(" "+name, SColor.BROWN);
         coloredEvtText.append(" performs", SColor.WHITE);
         coloredEvtText.append(" "+actionEvt.skill.name, actionEvt.skill.school.color);
+
         return new LogEvt(tick, coloredEvtText);
     }
     private LogEvt generateCancelLogEvt (ActionEvt actionEvt, Entity entity)
@@ -181,16 +179,7 @@ public class ActionSys extends MyEntitySystem
 
         return new LogEvt(tick, coloredEvtText);
     }
-    private ArrayList<Integer> getAOEtargets(Technique ability)
-    {
-        ArrayList<Integer> targets = new ArrayList<>();
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        for(Coord coord : ability.aoe.findArea().keySet())
-        {
-            if(levelCmp.actors.positions().contains(coord)) targets.add(levelCmp.actors.get(coord));
-        }
-        return targets;
-    }
+
 
 
 

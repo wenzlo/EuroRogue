@@ -1,16 +1,22 @@
 package EuroRogue;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.Frustum;
 import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.actions.TemporalAction;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.ArrayList;
 
-import squidpony.StringKit;
 import squidpony.squidgrid.Direction;
+import squidpony.squidgrid.Radius;
+import squidpony.squidgrid.gui.gdx.FilterBatch;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.SubcellLayers;
@@ -25,6 +31,12 @@ public class MySparseLayers extends SubcellLayers
     }
     public MySparseLayers(int gridWidth, int gridHeight, float cellWidth, float cellHeight, TextCellFactory font) {
         super(gridWidth, gridHeight, cellWidth, cellHeight, font, 0f, 0f);
+    }
+
+    public TextCellFactory.Glyph glyph(char shown, float color, float x, float y) {
+        TextCellFactory.Glyph g = this.font.glyph(shown, color, x, y);
+        super.glyphs.add(g);
+        return g;
     }
 
     public int getBigWidth()
@@ -103,6 +115,112 @@ public class MySparseLayers extends SubcellLayers
         }
 
         glyph.addAction(Actions.sequence(sequence));
+    }
+
+    public void reverseBurst(float delay, int x, int y, int distance, Radius measurement, char shown,
+                      float startColor, float endColor, float duration, /* @Nullable */ Runnable postRunnable)
+    {
+        Direction d;
+        switch (measurement)
+        {
+            case SQUARE:
+            case CUBE:
+                for (int i = 0; i < 7; i++) {
+                    d = Direction.CLOCKWISE[i];
+                    summon(delay,  x - d.deltaX * distance, y + d.deltaY * distance, x, y,
+                            shown, startColor, endColor, duration, null);
+                }
+                d = Direction.CLOCKWISE[7];
+                summon(delay, x - d.deltaX * distance, y + d.deltaY * distance, x, y,
+                        shown, startColor, endColor, duration, postRunnable);
+                break;
+            case CIRCLE:
+            case SPHERE:
+                float xf = worldX(x), yf = worldY(y);
+                for (int i = 0; i < 4; i++) {
+                    d = Direction.DIAGONALS[i];
+                    summon(delay,  xf - d.deltaX * font.actualCellWidth * distance * 0.7071067811865475f, // the constant is 1.0 / Math.sqrt(2.0)
+                            yf + d.deltaY * font.actualCellHeight * distance * 0.7071067811865475f, xf, yf,
+                            shown, startColor, endColor, duration, null);
+                }
+                // break intentionally absent
+            default:
+                for (int i = 0; i < 3; i++) {
+                    d = Direction.CARDINALS_CLOCKWISE[i];
+                    summon(delay,  x - d.deltaX * distance, y + d.deltaY * distance, x, y,
+                            shown, startColor, endColor, duration, null);
+                }
+                d = Direction.CARDINALS_CLOCKWISE[3];
+                summon(delay, x - d.deltaX * distance, y + d.deltaY * distance, x, y,
+                        shown, startColor, endColor, duration, postRunnable);
+                break;
+        }
+    }
+
+
+    /**
+     * Draws the SubcellLayers and all glyphs it tracks. {@link Batch#begin()} must have already been called on the
+     * batch, and {@link Batch#end()} should be called after this returns and before the rendering code finishes for the
+     * frame.
+     * <br>
+     * This will set the shader of {@code batch} if using a distance field or MSDF font and the shader is currently not
+     * configured for such a font; it does not reset the shader to the default so that multiple Actors can all use the
+     * same shader and so specific extra glyphs or other items can be rendered after calling draw(). If you need to draw
+     * both a distance field font and full-color art, you should set the shader on the Batch to null when you want to
+     * draw full-color art, and end the Batch between drawing this object and the other art.
+     *
+     * @param batch a Batch such as a {@link FilterBatch} that must be between a begin() and end() call; usually done by Stage
+     * @param parentAlpha currently ignored
+     */
+    @Override
+    public void draw(Batch batch, float parentAlpha) {
+        float xo = getX(), yo = getY(), yOff = (yo + 1f + gridHeight * font.actualCellHeight)-2, gxo, gyo;
+        font.draw(batch, backgrounds, xo, yo, 3, 3);
+        int len = layers.size();
+        Frustum frustum = null;
+        Stage stage = getStage();
+        if(stage != null) {
+            Viewport viewport = stage.getViewport();
+            if(viewport != null)
+            {
+                Camera camera = viewport.getCamera();
+                if(camera != null)
+                {
+                    if(
+                            camera.frustum != null &&
+                                    (!camera.frustum.boundsInFrustum(xo, yOff - font.actualCellHeight - 1f, 0f, font.actualCellWidth, font.actualCellHeight, 0f) ||
+                                            !camera.frustum.boundsInFrustum(xo-1 + font.actualCellWidth * (gridWidth-1), yo, 0f, font.actualCellWidth, font.actualCellHeight, 0f))
+                    )
+                        frustum = camera.frustum;
+                }
+            }
+        }
+        font.configureShader(batch);
+        if(frustum == null) {
+            for (int i = 0; i < len; i++) {
+                layers.get(i).draw(batch, font, xo+1, yOff);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < len; i++) {
+                layers.get(i).draw(batch, font, frustum, xo+1, yOff);
+            }
+        }
+
+        int x, y;
+        for (int i = 0; i < glyphs.size(); i++) {
+            TextCellFactory.Glyph glyph = glyphs.get(i);
+            if(glyph == null)
+                continue;
+            glyph.act(Gdx.graphics.getDeltaTime());
+            if(!glyph.isVisible() ||
+                    (x = Math.round((gxo = glyph.getX() - xo) / font.actualCellWidth)) < 0 || x >= gridWidth ||
+                    (y = Math.round((gyo = glyph.getY() - yo)  / -font.actualCellHeight + gridHeight)) < 0 || y >= gridHeight ||
+                    backgrounds[x * 3 + 1][y * 3 + 1] == 0f || (frustum != null && !frustum.boundsInFrustum(gxo, gyo, 0f, font.actualCellWidth, font.actualCellHeight, 0f)))
+                continue;
+            glyph.draw(batch, 1f);
+        }
     }
 
     @Override
@@ -253,4 +371,54 @@ public class MySparseLayers extends SubcellLayers
         glyph.addAction(Actions.sequence(sequence));
         return lightIDs;
     }
+
+    /*public HashMap<Integer, TextCellFactory.Glyph> summonWithParticlesAndLight(float delay, int startX, int startY, int endX, int endY, char shown,
+                                                                               final float startColor, final float endColor, float duration, float intensity, LightHandler lightHandler,
+                                                                               Entity performer, ParticleEffectsCmp.ParticleEffect particleType, *//* @Nullable *//* Runnable postRunnable)
+    {
+        duration = Math.max(0.015f, duration);
+        ParticleEffectsCmp peCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
+        final int nbActions = 2 + (0 < delay ? 1 : 0) + (postRunnable == null ? 0 : 1);
+        int index = 0;
+        final Action[] sequence = new Action[nbActions];
+        if (0 < delay)
+            sequence[index++] = Actions.delay(delay);
+        final TextCellFactory.Glyph glyph = glyph(shown, startColor, startX, startY);
+        ArrayList<Integer> lightIDs = new ArrayList<>();
+        MySparseLayers display = this;
+        HashMap<Integer, TextCellFactory.Glyph> killList = new HashMap<>();
+        sequence[index++] = Actions.parallel(
+                new TemporalAction(duration) {
+                    @Override
+                    protected void update(float percent) {
+                        glyph.setPackedColor(SColor.lerpFloatColors(startColor, endColor, percent * 0.95f));
+                        int radius = (int) (Coord.get(startX, startY).distance(Coord.get(endX,endY))+1);
+                        Light light = new Light(Coord.get(startX*3, startY*3), new Radiance(Math.round(radius*intensity), SColor.lerpFloatColors(glyph.getColor().toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f),0.8f));
+                        glyph.setName(light.hashCode() + " " + "0" + " temp");
+                        lightHandler.addLight(light.hashCode(), light);
+                        killList.put(light.hashCode(), glyph);
+                        glyphs.add(glyph);
+                        peCmp.addEffect(glyph, particleType, display);
+                        peCmp.particleEffectsMap.get(glyph).setScale(intensity*2.5f);
+
+
+
+                    }
+                },
+                Actions.moveTo(worldX(endX), worldY(endY), duration));
+        if(postRunnable != null)
+        {
+            sequence[index++] = Actions.run(postRunnable);
+        }
+        *//* Do this one last, so that hasActiveAnimations() returns true during 'postRunnables' *//*
+        sequence[index] = Actions.run(new Runnable() {
+            @Override
+            public void run() {
+                glyphs.remove(glyph);
+
+            }
+        });
+        glyph.addAction(Actions.sequence(sequence));
+        return killList;
+    }*/
 }

@@ -1,47 +1,44 @@
 package EuroRogue.AbilityCmpSubSystems;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.CmpMapper;
-import EuroRogue.Components.AICmp;
-import EuroRogue.Components.LevelCmp;
+import EuroRogue.CmpType;
+import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.DamageType;
+import EuroRogue.EventComponents.AnimateGlyphEvt;
+import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.Light;
 import EuroRogue.LightHandler;
+import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
-import EuroRogue.DamageType;
-import EuroRogue.EventComponents.IEventComponent;
-import EuroRogue.CmpType;
-import EuroRogue.EventComponents.AnimateGlyphEvt;
-import EuroRogue.MySparseLayers;
 import squidpony.squidai.AOE;
-import squidpony.squidai.BlastAOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.OrderedMap;
 
 public class MagicMissile extends Ability
 {
     private Skill skill = Skill.MAGIC_MISSILE;
-    private boolean active = true;
-    private  boolean scroll = false;
-    private Integer scrollID = null;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
     private Coord targetedLocation;
-    private boolean available = false;
+    public ParticleEffectActor particleEffect = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/magicMissile" ),Gdx.files.internal("" ));
 
     public MagicMissile()
     {
@@ -57,72 +54,13 @@ public class MagicMissile extends Ability
     }
 
     @Override
-    public boolean scroll()
-    {
-        return scroll;
-    }
-
-    @Override
-    public void setScroll(boolean bool)
-    {
-        scroll = bool;
-    }
-
-    @Override
-    public Integer getScrollID() { return scrollID; }
-
-    @Override
-    public void setScrollID(Integer id) { scrollID = id; }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
-
-    @Override
-    public boolean getActive()
-    {
-        return active;
-    }
-    @Override
-    public void activate()
-    {
-        active=true;
-    }
-    @Override
-    public void inactivate()
-    {
-        active=false;
-    }
-
-    @Override
     public void updateAOE(Entity performer)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         aoe.setOrigin(positionCmp.coord);
-        aoe.setMaxRange(statsCmp.getIntel());
-    }
-
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
-    {
-        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
-        ArrayList<Coord> enemyLocations = new ArrayList<>();
-        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
-        ArrayList<Coord> friendLocations = new ArrayList<>();
-        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
-        friendLocations.add(positionCmp.coord);
-        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
+        aoe.setMaxRange(1+statsCmp.getIntel()/2);
     }
 
     @Override
@@ -146,7 +84,8 @@ public class MagicMissile extends Ability
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
         //TextCellFactory.Glyph glyph = display.glyph('°',getSkill().school.color, startPos.x, startPos.y);
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
+
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.PROJ_MAGIC, startPos, targetCoord, eventCmp, particleEffect);
     }
 
     @Override
@@ -155,14 +94,19 @@ public class MagicMissile extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
-        glyph = display.glyph('°',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
+        ParticleEffectsCmp peCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, performer);
+        GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer);
+        glyph = display.glyph(' ',getSkill().school.color.toFloatBits(), glyphsCmp.rightGlyph.getX(), glyphsCmp.rightGlyph.getY());
         SColor color = skill.school.color;
 
-        Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.4f)));
+        Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(4, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));
         glyph.setName(light.hashCode() + " " + "0" + " temp");
         lightingHandler.addLight(light.hashCode(), light);
+        peCmp.addEffect(glyph, ParticleEffectsCmp.ParticleEffect.ARCANE_P, display);
+
+
     }
 
     @Override

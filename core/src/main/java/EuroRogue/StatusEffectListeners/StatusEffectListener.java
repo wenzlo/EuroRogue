@@ -14,8 +14,8 @@ import EuroRogue.Components.TickerCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.ScheduledEvt;
 import EuroRogue.StatType;
-import EuroRogue.StatusEffectCmps.StatusEffectCmp;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.StatusEffectCmps.StatusEffectCmp;
 
 public class StatusEffectListener implements EntityListener
 {
@@ -38,16 +38,16 @@ public class StatusEffectListener implements EntityListener
     @Override
     public void entityRemoved(Entity entity)
     {
+
         ArrayList<StatusEffect> currentStatusEffects = getStatusEffects(entity);
         currentStatusEffects.remove(effect);
         setStatMultipliers(entity, currentStatusEffects);
 
     }
 
-
-
     private void setStatMultipliers(Entity entity, ArrayList<StatusEffect> currentStatusEffects)
     {
+
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
 

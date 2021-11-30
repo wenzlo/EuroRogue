@@ -6,19 +6,14 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
 import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.MyEntitySystem;
-import EuroRogue.StatusEffectCmps.Bleeding;
-import EuroRogue.StatusEffectCmps.Burning;
-import EuroRogue.StatusEffectCmps.Calescent;
-import EuroRogue.StatusEffectCmps.Chilled;
-import EuroRogue.StatusEffectCmps.Frozen;
 import EuroRogue.StatusEffectCmps.Hungry;
-import EuroRogue.StatusEffectCmps.Staggered;
 import EuroRogue.StatusEffectCmps.Starving;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
-import EuroRogue.CmpType;
+import EuroRogue.StatusEffectCmps.WellFed;
 
 
 public class StatusEffectRemovalSys extends MyEntitySystem
@@ -35,7 +30,7 @@ public class StatusEffectRemovalSys extends MyEntitySystem
     @Override
     public void addedToEngine(Engine engine)
     {
-        entities = engine.getEntitiesFor(Family.one(Hungry.class, Starving.class, Bleeding.class, Burning.class, Calescent.class, Chilled.class, Frozen.class, Staggered.class).get());
+        entities = engine.getEntitiesFor(Family.one(WellFed.class, Hungry.class, Starving.class).get());
     }
 
     /**
@@ -54,7 +49,7 @@ public class StatusEffectRemovalSys extends MyEntitySystem
                {
                    StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, entity);
                    if(statusEffectCmp==null || statusEffectCmp.lastTick==null) continue;
-                   if(statusEffectCmp.lastTick<tickerCmp.tick)
+                   if(statusEffectCmp.lastTick<=tickerCmp.tick)
                    {
                        entity.remove(statusEffect.cls);
 

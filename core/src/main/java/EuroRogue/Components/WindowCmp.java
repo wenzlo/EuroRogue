@@ -10,6 +10,7 @@ public class WindowCmp implements Component
 {
     public MySparseLayers display;
     public Stage stage;
+
     public LightHandler lightingHandler;
 
     public int[] columnIndexes;

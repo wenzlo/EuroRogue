@@ -4,9 +4,11 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
+
 import java.util.ArrayList;
 
 import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.NameCmp;
@@ -18,7 +20,6 @@ import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
-import EuroRogue.CmpType;
 import squidpony.squidgrid.gui.gdx.SColor;
 
 
@@ -50,7 +51,9 @@ public class StatusEffectEvtSys extends MyEntitySystem
             TickerCmp tickerCmp = ((TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker));
             for(Entity entity:entities)
             {
+
                 StatusEffectEvt statusEffectEvt = (StatusEffectEvt) CmpMapper.getComp(CmpType.STATUS_EFFECT_EVT, entity);
+
 
                 if(statusEffectEvt.isProcessed()) return;
                 statusEffectEvt.processed = true;

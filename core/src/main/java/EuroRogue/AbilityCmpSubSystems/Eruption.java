@@ -9,12 +9,10 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
-import EuroRogue.Components.AimingCmp;
+import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
-import EuroRogue.Components.TickerCmp;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
@@ -25,28 +23,20 @@ import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
-import squidpony.squidai.AOE;
-import squidpony.squidai.AimLimit;
 import squidpony.squidai.BlastAOE;
-import squidpony.squidgrid.Direction;
-import squidpony.squidgrid.FOV;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.GreasedRegion;
 import squidpony.squidmath.OrderedMap;
 
 public class Eruption extends Ability
 {
     private Skill skill = Skill.ERUPTION;
-    private boolean active = true;
-    private  boolean scroll = false;
-    private Integer scrollID = null;
     private Coord targetedLocation;
-    private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
 
@@ -54,8 +44,9 @@ public class Eruption extends Ability
     public Eruption()
     {
         super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 1));
-        aoe.getReach().limit = AimLimit.FREE;
+        super.aimable = true;
         statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
+
     }
 
 
@@ -80,6 +71,7 @@ public class Eruption extends Ability
     public OrderedMap<Coord, Double> apply(Coord user, Coord aimAt)
     {
         setTargetedLocation(aimAt);
+
         return super.apply(user, aimAt);
 
     }
@@ -90,49 +82,6 @@ public class Eruption extends Ability
 
     public List<Skill> getReactions() {
         return Arrays.asList();
-    }
-
-    @Override
-    public boolean scroll() {
-        return scroll;
-    }
-
-    @Override
-    public void setScroll(boolean bool) { scroll = bool; }
-
-    @Override
-    public Integer getScrollID() { return scrollID; }
-
-    @Override
-    public void setScrollID(Integer id) { scrollID = id; }
-
-    @Override
-    public boolean isAvailable()
-    {
-
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
-
-    @Override
-    public boolean getActive()
-    {
-        return active;
-    }
-    @Override
-    public void activate()
-    {
-        active=true;
-    }
-    @Override
-    public void inactivate()
-    {
-        active=false;
     }
 
     @Override
@@ -151,19 +100,8 @@ public class Eruption extends Ability
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
         if(CmpMapper.getComp(CmpType.AIMING, actor) !=null) return new OrderedMap<>();
-        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+        return super.getIdealLocations(actor, levelCmp);
 
-
-
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
-        ArrayList<Coord> enemyLocations = new ArrayList<>();
-        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
-        ArrayList<Coord> friendLocations = new ArrayList<>();
-        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
-        friendLocations.add(positionCmp.coord);
-        OrderedMap<Coord, ArrayList<Coord>> idealLocations = idealLocations(positionCmp.coord, enemyLocations, friendLocations);
-
-        return idealLocations;
     }
 
     @Override
@@ -215,7 +153,7 @@ public class Eruption extends Ability
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.BLAST, startPos, targetCoord, eventCmp);
     }
 
     @Override
@@ -224,9 +162,10 @@ public class Eruption extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
-        glyph = display.glyph('•',getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
+        GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer);
+        glyph = display.glyph(' ',getSkill().school.color.toFloatBits(), glyphsCmp.rightGlyph.getX(), glyphsCmp.rightGlyph.getY());
         SColor color = skill.school.color;
 
         Light light = new Light(Coord.get(aoe.getOrigin().x*3, aoe.getOrigin().y*3), new Radiance(2, SColor.lerpFloatColors(color.toFloatBits(), SColor.WHITE_FLOAT_BITS, 0.3f)));

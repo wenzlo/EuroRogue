@@ -8,26 +8,28 @@ import EuroRogue.StatType;
 
 public enum StatusEffect
 {
+    BLEEDING(Bleeding.class, "Bleeding", EffectType.DEBUFF, DamageType.PIERCING, new Class[0], new Class[0], false),
+    BURNING(Burning.class, "Burning", EffectType.DEBUFF, DamageType.FIRE, new Class[]{Chilled.class, Frozen.class}, new Class[]{Calescent.class, Enraged.class}, false),
+    CALESCENT(Calescent.class, "Calescent", EffectType.DEBUFF, DamageType.FIRE, new Class[]{Chilled.class, Frozen.class}, new Class[0], true),
+    CHILLED(Chilled.class, "Chilled", EffectType.DEBUFF, DamageType.ICE, new Class[]{Calescent.class, Burning.class}, new Class[0], true),
+    DAGGER_EFCT(DaggerEfct.class, "Dagger Eq", EffectType.WEAPON, DamageType.NONE, new Class[0], new Class[0], false),
+    ENLIGHTENED(Enlightened.class, "Enlightened", EffectType.BUFF, DamageType.NONE, new Class[]{Enraged.class}, new Class[0], false),
+    ENRAGED(Enraged.class, "Enraged", EffectType.BUFF, DamageType.NONE, new Class[]{Enlightened.class}, new Class[0], false),
+    EXHAUSTED(Exhausted.class, "Exhausted", EffectType.DEBUFF, DamageType.NONE, new Class[0], new Class[0], false),
+    FROZEN(Frozen.class, "Frozen", EffectType.DEBUFF, DamageType.ICE, new Class[]{Calescent.class, Burning.class}, new Class[]{Chilled.class, Enraged.class}, false),
+    HUNGRY(Hungry.class, "Hungry", EffectType.DEBUFF, DamageType.NONE, new Class[]{WellFed.class}, new Class[0], true),
     L_ARMOR_EFCT(LeatherArmorEfct.class, "Leather Armor Eq", EffectType.ARMOR, DamageType.NONE, new Class[0], new Class[0], false),
     M_ARMOR_EFCT(MailArmorEfct.class, "Mail Armor Eq", EffectType.ARMOR, DamageType.NONE, new Class[0], new Class[0], false),
     P_ARMOR_EFCT(PlateArmorEfct.class, "Plate Armor Eq", EffectType.ARMOR, DamageType.NONE, new Class[0], new Class[0], false),
-    DAGGER_EFCT( DaggerEfct.class, "Dagger Eq", EffectType.WEAPON, DamageType.NONE,     new Class[0],                                new Class[0],false),
-    SWORD_EFCT(   SwordEfct.class, "Sword Eq",  EffectType.WEAPON, DamageType.NONE,     new Class[0],                                new Class[0],false),
-    QSTAFF_EFCT( QStaffEfct.class, "QStaff Eq", EffectType.WEAPON, DamageType.NONE,     new Class[0],                                new Class[0],false),
-    STAFF_EFCT(   StaffEfct.class,  "Staff Eq", EffectType.WEAPON, DamageType.NONE,     new Class[0],                                new Class[0],false),
-    BURNING(        Burning.class, "Burning",         EffectType.DEBUFF, DamageType.FIRE,     new Class[]{Chilled.class, Frozen.class},    new Class[]{Calescent.class, Enraged.class},false),
-    BLEEDING(      Bleeding.class, "Bleeding",        EffectType.DEBUFF, DamageType.PIERCING, new Class[0],                                new Class[0],false),
-    ENRAGED(        Enraged.class, "Enraged",         EffectType.BUFF,   DamageType.NONE,     new Class[]{Enlightened.class},                                new Class[0],                               false),
-    ENLIGHTENED(Enlightened.class, "Enlightened",     EffectType.BUFF,   DamageType.NONE,     new Class[]{Enraged.class},                                new Class[0],                               false),
-    CALESCENT(    Calescent.class, "Calescent",       EffectType.DEBUFF, DamageType.FIRE,     new Class[]{Chilled.class, Frozen.class},    new Class[0],                                true),
-    EXHAUSTED(    Exhausted.class, "Exhausted",       EffectType.DEBUFF, DamageType.NONE,     new Class[0],                                new Class[0],                               false),
-    STAGGERED(    Staggered.class, "Staggered",       EffectType.DEBUFF, DamageType.BLUDGEONING ,new Class[0],                                new Class[0],                               false),
-    HUNGRY(          Hungry.class, "Hungry",          EffectType.DEBUFF, DamageType.NONE,     new Class[]{WellFed.class},                  new Class[0],                               true),
-    STARVING(      Starving.class, "Starving",        EffectType.DEBUFF, DamageType.NONE,    new Class[0],                  new Class[]{Hungry.class},                  false),
-    WELL_FED(       WellFed.class, "Well Fed",        EffectType.BUFF,   DamageType.NONE,     new Class[]{Hungry.class, Starving.class},   new Class[0], false),
-    FROZEN(          Frozen.class, "Frozen",          EffectType.DEBUFF, DamageType.ICE,     new Class[]{Calescent.class, Burning.class}, new Class[]{Chilled.class, Enraged.class},  false),
-    CHILLED(        Chilled.class, "Chilled",         EffectType.DEBUFF, DamageType.ICE,     new Class[]{Calescent.class, Burning.class}, new Class[0],                                true),
-    WATER_WALKING(WaterWalking.class, "Water Walking",EffectType.BUFF,   DamageType.NONE,      new Class[0],                                new Class[0],                                false);
+    QSTAFF_EFCT(QStaffEfct.class, "QStaff Eq", EffectType.WEAPON, DamageType.NONE, new Class[0], new Class[0], false),
+    STAFF_EFCT(StaffEfct.class, "Staff Eq", EffectType.WEAPON, DamageType.NONE, new Class[0], new Class[0], false),
+    STAGGERED(Staggered.class, "Staggered", EffectType.DEBUFF, DamageType.BLUDGEONING, new Class[0], new Class[0], false),
+    STALKING(Stalking.class, "Stalking", EffectType.BUFF, DamageType.NONE, new Class[]{Stalking.class}, new Class[0], false),
+
+    STARVING(Starving.class, "Starving", EffectType.DEBUFF, DamageType.NONE, new Class[0], new Class[]{Hungry.class}, false),
+    SWORD_EFCT(SwordEfct.class, "Sword Eq", EffectType.WEAPON, DamageType.NONE, new Class[0], new Class[0], false),
+    WELL_FED(WellFed.class, "Well Fed", EffectType.BUFF, DamageType.NONE, new Class[]{Hungry.class, Starving.class}, new Class[0], false),
+    WATER_WALKING(WaterWalking.class, "Water Walking", EffectType.BUFF, DamageType.NONE, new Class[0], new Class[0], false);
 
     public Class cls;
     public String name;
@@ -49,10 +51,16 @@ public enum StatusEffect
         this.intensifies = intensifies;
     }
 
-    public static StatusEffectCmp newStatusEffectCmp(StatusEffectEvt seEvent, StatsCmp targetStats)
+    public static StatusEffectCmp newStatusEffectCmp(StatusEffectEvt seEvent,  StatsCmp targetStats)
+    {
+        return newStatusEffectCmp(seEvent.effect, seEvent.seRemovalType, seEvent.tick, seEvent.duration, targetStats);
+    }
+
+
+    public static StatusEffectCmp newStatusEffectCmp(StatusEffect effect, SERemovalType seRemovalType, Integer tick, Integer duration,  StatsCmp targetStats)
     {
         StatusEffectCmp statusEffectCmp;
-        switch (seEvent.effect)
+        switch (effect)
         {
             case EXHAUSTED:
                 statusEffectCmp = new Exhausted();
@@ -136,14 +144,17 @@ public enum StatusEffect
             case WATER_WALKING:
                 statusEffectCmp = new WaterWalking();
                 break;
+            case STALKING:
+                statusEffectCmp = new Stalking();
+                break;
             default:
-                throw new IllegalStateException("Unexpected value: " + seEvent.effect);
+                throw new IllegalStateException("Unexpected value: " + effect);
         }
-        statusEffectCmp.seRemovalType = seEvent.seRemovalType;
-        if(seEvent.seRemovalType==SERemovalType.TIMED)
+        if(seRemovalType==SERemovalType.TIMED)
         {
-            statusEffectCmp.lastTick = seEvent.tick+seEvent.duration;
+            statusEffectCmp.lastTick = tick + duration;
         }
+        statusEffectCmp.seRemovalType=seRemovalType;
 
         return  statusEffectCmp;
     }

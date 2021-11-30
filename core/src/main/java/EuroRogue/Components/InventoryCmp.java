@@ -1,7 +1,6 @@
 package EuroRogue.Components;
 
 import com.badlogic.ashley.core.Component;
-import com.badlogic.ashley.core.Entity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,13 +8,13 @@ import java.util.HashMap;
 
 public class InventoryCmp implements Component
 {
-    public HashMap<EquipmentSlot, Integer> equipmentSlots= new HashMap<EquipmentSlot, Integer>();
-    private ArrayList<Integer> inventory = new ArrayList<>();
+    public HashMap<EquipmentSlot, Integer> equipmentSlots= new HashMap<>();
+    public ArrayList<Integer> inventory = new ArrayList<>();
     private ArrayList<Integer> food = new ArrayList<>();
     private ArrayList<Integer> scrolls = new ArrayList<>();
     private int capacity = 10;
 
-
+    public InventoryCmp(){}
     public InventoryCmp(EquipmentSlot[] slots)
     {
         for (EquipmentSlot slot : slots) equipmentSlots.put(slot,null);

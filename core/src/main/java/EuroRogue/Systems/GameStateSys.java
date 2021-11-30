@@ -7,6 +7,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.GameStateEvt;
@@ -56,15 +57,16 @@ public class GameStateSys extends MyEntitySystem
 
             }
 
-            setWindowVisiblity(newGameState);
+            setWindowVisibility(newGameState);
             setInputProcessor(newGameState);
             ((GameStateEvt)CmpMapper.getComp(CmpType.GAMESTATE_EVT, entity)).setProcessed(true);
+            if(getGame().gameState==GameState.AIMING) getGame().getFocus().remove(AimingCmp.class);
             getGame().gameState=newGameState;
         }
 
     }
 
-    private void setWindowVisiblity(GameState gameState)
+    private void setWindowVisibility(GameState gameState)
     {
         switch (gameState)
         {
@@ -73,9 +75,9 @@ public class GameStateSys extends MyEntitySystem
                 for(Entity windowEntity : getGame().allWindows)
                     ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().startWindows.contains(windowEntity));
                 break;
-            case LOADING:
+            case SAVE_BUILD:
                 for(Entity windowEntity : getGame().allWindows)
-                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
+                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().saveBuildWindows.contains(windowEntity));
                 break;
 
             case PLAYING:
@@ -83,6 +85,12 @@ public class GameStateSys extends MyEntitySystem
                 for(Entity windowEntity : getGame().allWindows)
                 {
                     ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().playingWindows.contains(windowEntity));
+                }
+                break;
+            case SHRINE:
+                for(Entity windowEntity : getGame().allWindows)
+                {
+                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().shrineWindows.contains(windowEntity));
                 }
                 break;
             case CAMPING:
@@ -108,34 +116,51 @@ public class GameStateSys extends MyEntitySystem
     {
         switch (gameState)
         {
-
             case PLAYING:
+                getGame().shrineInput.setIgnoreInput(true);
                 getGame().campInput.setIgnoreInput(true);
                 getGame().input.setIgnoreInput(false);
                 getGame().aimInput.setIgnoreInput(true);
                 getGame().startInput.setIgnoreInput(true);
                 break;
             case AIMING:
+                getGame().shrineInput.setIgnoreInput(true);
                 getGame().campInput.setIgnoreInput(true);
                 getGame().input.setIgnoreInput(true);
                 getGame().aimInput.setIgnoreInput(false);
                 getGame().startInput.setIgnoreInput(true);
                 break;
             case CAMPING:
+                getGame().shrineInput.setIgnoreInput(true);
                 getGame().campInput.setIgnoreInput(false);
                 getGame().input.setIgnoreInput(true);
                 getGame().aimInput.setIgnoreInput(true);
                 getGame().startInput.setIgnoreInput(true);
                 break;
             case STARTING:
+                getGame().shrineInput.setIgnoreInput(true);
                 getGame().campInput.setIgnoreInput(true);
                 getGame().input.setIgnoreInput(true);
                 getGame().aimInput.setIgnoreInput(true);
                 getGame().startInput.setIgnoreInput(false);
                 break;
-            case LOADING:
+            case SHRINE:
+                getGame().shrineInput.setIgnoreInput(false);
+                getGame().campInput.setIgnoreInput(true);
+                getGame().input.setIgnoreInput(true);
+                getGame().aimInput.setIgnoreInput(true);
+                getGame().startInput.setIgnoreInput(true);
+                break;
+            case SAVE_BUILD:
+                getGame().shrineInput.setIgnoreInput(true);
+                getGame().campInput.setIgnoreInput(true);
+                getGame().input.setIgnoreInput(true);
+                getGame().aimInput.setIgnoreInput(true);
+                getGame().startInput.setIgnoreInput(true);
+                break;
             case GAME_OVER:
                 break;
         }
     }
+
 }

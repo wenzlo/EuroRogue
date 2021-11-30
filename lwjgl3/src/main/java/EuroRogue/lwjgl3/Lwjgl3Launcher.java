@@ -19,6 +19,8 @@ public class Lwjgl3Launcher {
         configuration.setTitle("EuroRogue");
         configuration.setWindowedMode(180 * 9, 114 * 9);
         configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
+        //configuration.setForegroundFPS(0);
+        configuration.useVsync(false);
         return configuration;
     }
 }

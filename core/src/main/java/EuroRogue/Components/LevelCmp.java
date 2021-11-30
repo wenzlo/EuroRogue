@@ -7,13 +7,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import EuroRogue.MyDungeonUtility;
 import EuroRogue.MyMapUtility;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.SpatialMap;
-import squidpony.squidgrid.mapping.DungeonGenerator;
-import squidpony.squidgrid.mapping.DungeonUtility;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.mapping.LineKit;
-import squidpony.squidgrid.mapping.Placement;
+import squidpony.squidgrid.mapping.SectionDungeonGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GreasedRegion;
 
@@ -24,11 +24,14 @@ public class LevelCmp implements Component
     public float[][] colors, bgColors;
     public double[][] resistance;
     public GreasedRegion floors;
+    public GreasedRegion doors;
+    public GreasedRegion caves;
+    public GreasedRegion caveWalls;
+    public GreasedRegion rooms;
     public SpatialMap<Integer, Integer> actors = new SpatialMap();
     public SpatialMap<Integer, Integer> items = new SpatialMap();
-    public Coord stairsUp;
-    public Coord stairsDown;
-
+    public SpatialMap<Integer, Integer> objects = new SpatialMap();
+    public float fowColor;
 
    /* public LevelCmp(DungeonGenerator dungeonGenerator)
     {
@@ -47,19 +50,58 @@ public class LevelCmp implements Component
     {
         this.decoDungeon=decoDungeon;
         this.bareDungeon=bareDungeon;
-        this.lineDungeon = DungeonUtility.hashesToLines(decoDungeon);
+        this.lineDungeon = MyDungeonUtility.hashesToLines(decoDungeon);
         this.prunedDungeon = new char[decoDungeon[0].length][decoDungeon.length];
         LineKit.pruneLines(this.lineDungeon, new GreasedRegion(), prunedDungeon);
         this.environment = environment;
-        this.resistance = DungeonUtility.generateResistances(decoDungeon);
+        this.resistance = MyDungeonUtility.generateSimpleResistances(decoDungeon);
         this.bgColors = MyMapUtility.generateDefaultBGColorsFloat(decoDungeon);
         this.colors = MyMapUtility.generateDefaultColorsFloat(decoDungeon);
         this.floors = new GreasedRegion(bareDungeon, '.');
+
+    }
+    public LevelCmp (SectionDungeonGenerator generator)
+    {
+        this.decoDungeon=generator.getDungeon();
+        this.bareDungeon=generator.getBareDungeon();
+        this.lineDungeon = MyDungeonUtility.hashesToLines(decoDungeon);
+        this.floors = generator.finder.allFloors.copy();
+        this.caves =generator.placement.finder.allCaves.copy();
+        this.caveWalls = generator.placement.finder.allCaves.copy().fringe8way();
+        this.rooms = generator.finder.allRooms.copy();
+        this.bgColors = MyMapUtility.generateDefaultBGColorsFloat(decoDungeon);
+        this.colors = MyMapUtility.generateDefaultColorsFloat(decoDungeon);
+        this.floors = new GreasedRegion(bareDungeon, '.');
+        this.prunedDungeon = new char[decoDungeon[0].length][decoDungeon.length];
+        this.doors = new GreasedRegion(decoDungeon, '+').or(new GreasedRegion(decoDungeon, '/'));
+        LineKit.pruneLines(this.lineDungeon, new GreasedRegion(), prunedDungeon);
+        for(int x=0; x<this.lineDungeon.length; x++){
+            for(int y=0; y<this.lineDungeon[0].length; y++){
+                if(!floors.contains(Coord.get(x,y))&&caveWalls.contains(Coord.get(x,y)))
+                {
+                    lineDungeon[x][y]='#';
+
+                } else if(!caves.contains(x,y) && !caveWalls.contains(x,y))
+                {
+                    this.bgColors[x][y] = SColor.SLATE_GRAY.toFloatBits();
+                    if(!doors.contains(x,y))
+                        this.colors[x][y] = SColor.SLATE_GRAY.toFloatBits();
+                }
+                if(lineDungeon[x][y]==' ' &&
+                        generator.placement.finder.allCaves.copy().fringe8way(2).contains(x,y)) lineDungeon[x][y] = '#';
+            }
+        }
+
+        this.environment = generator.finder.environment;
+        this.resistance = MyDungeonUtility.generateSimpleResistances(decoDungeon);
+
     }
 
-    public boolean isOccupied(Coord coord)
+    public boolean isBlocked(Coord coord)
     {
-        return actors.get(coord)!=null;
+        if (actors.positions().contains(coord)) return  true;
+        if (objects.positions().contains(coord)) return true;
+        return !new GreasedRegion(bareDungeon, '.').contains(coord);
     }
 
     public List<Coord> getPositions(List<Integer> actorIDs)

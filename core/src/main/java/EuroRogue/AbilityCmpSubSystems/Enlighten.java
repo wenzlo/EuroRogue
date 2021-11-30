@@ -13,17 +13,16 @@ import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.DamageType;
+import EuroRogue.EventComponents.AnimateGlyphEvt;
+import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
-import EuroRogue.LightHandler;
+import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
-import EuroRogue.DamageType;
-import EuroRogue.EventComponents.AnimateGlyphEvt;
-import EuroRogue.EventComponents.IEventComponent;
-import EuroRogue.MySparseLayers;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
@@ -32,13 +31,9 @@ import squidpony.squidmath.OrderedMap;
 
 public class Enlighten extends Ability
 {
-    private boolean active = true;
     private Skill skill = Skill.ENLIGHTEN;
-    public  boolean scroll = false;
-    private Integer scrollID = null;
     private OrderedMap<Coord, ArrayList<Coord>> idealLocations = new OrderedMap<>();
     private Coord targetedLocation;
-    private boolean available;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
 
     public Enlighten()
@@ -54,45 +49,6 @@ public class Enlighten extends Ability
     @Override
     public List<Skill> getReactions()  {
         return Arrays.asList();
-    }
-    @Override
-    public boolean scroll()
-    {
-        return scroll;
-    }
-    @Override
-    public void setScroll(boolean bool)
-    {
-        scroll = bool;
-    }
-    @Override
-    public Integer getScrollID() { return scrollID; }
-    @Override
-    public void setScrollID(Integer id) { scrollID = id; }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
-    @Override
-    public boolean getActive()
-    {
-        return active;
-    }
-    @Override
-    public void activate()
-    {
-        active=true;
-    }
-    @Override
-    public void inactivate()
-    {
-        active=false;
     }
 
     @Override
@@ -132,8 +88,9 @@ public class Enlighten extends Ability
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
         inactivate();
-        TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer)).glyph;
-        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.SELF_BUFF, eventCmp);
+        GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer);
+
+        return new AnimateGlyphEvt(glyphsCmp.glyph, AnimationsSys.AnimationType.SELF_BUFF, eventCmp);
     }
 
     @Override
@@ -141,10 +98,6 @@ public class Enlighten extends Ability
         return null;
     }
 
-    @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler) {
-
-    }
 
     @Override
     public HashMap<StatusEffect, SEParameters> getStatusEffects() {

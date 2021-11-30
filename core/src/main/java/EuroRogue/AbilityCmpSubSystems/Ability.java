@@ -1,5 +1,6 @@
 package EuroRogue.AbilityCmpSubSystems;
 
+import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 
 import java.util.ArrayList;
@@ -8,29 +9,63 @@ import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.PositionCmp;
-import EuroRogue.LightHandler;
-import EuroRogue.TargetType;
-import EuroRogue.DamageType;
-import EuroRogue.MySparseLayers;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LogCmp;
+import EuroRogue.Components.ManaPoolCmp;
+import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.Components.WindowCmp;
+import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
+import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
+import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.IColoredString;
+import EuroRogue.LightHandler;
+import EuroRogue.MySparseLayers;
+import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.SEParameters;
+import EuroRogue.StatusEffectCmps.Stalking;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.Technique;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class Ability extends Technique implements IAbilityCmpSubSys
+public class Ability extends Technique implements Component, IAbilitySubSys
 {
+    public boolean aimable = false;
+    public boolean aimed = false;
+    public boolean available = false;
+    private boolean active = true;
+    public TextCellFactory.Glyph glyph;
+
+    private boolean scroll = false;
+    private Integer scrollID = null;
     public Ability(String name, AOE aoe) { super(name, aoe); }
 
+    @Override
+    public void perform(Entity targetEntity, ActionEvt action, EuroRogue game)
+    {
+        if(getSkill().skillType== Skill.SkillType.REACTION) inactivate();
+        MySparseLayers display = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).display;
+        LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
+        Entity performerEntity = game.getEntity(action.performerID);
+        if(action.skill.skillType== Skill.SkillType.REACTION) spawnGlyph(display, lightHandler, performerEntity);
 
+        AnimateGlyphEvt animateGlyphEvt = genAnimateGlyphEvt(performerEntity, getTargetedLocation(), action, display);
+        ItemEvt itemEvt = genItemEvent(performerEntity, targetEntity);
+        if (animateGlyphEvt != null) performerEntity.add(animateGlyphEvt);
+        if(itemEvt != null) performerEntity.add(itemEvt);
+
+        if(getSkill().school != School.SUB) performerEntity.remove(Stalking.class);
+    }
 
     @Override
     public Skill getSkill() {
@@ -44,55 +79,110 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 
     @Override
     public boolean scroll() {
-        return false;
+        return scroll;
     }
 
     @Override
     public void setScroll(boolean bool) {
+        scroll = bool;
 
     }
 
     @Override
     public Integer getScrollID() {
-        return null;
+        return scrollID;
     }
 
     @Override
     public void setScrollID(Integer id) {
-
+        scrollID=id;
     }
 
     @Override
     public boolean isAvailable() {
-        return false;
+        return available;
     }
 
     @Override
-    public void setAvailable(boolean available) {
+    public void setAvailable(Entity performer, EuroRogue game)
+    {
+        if(performer==null) return;
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, performer);
+        AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType,performer);
+        ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL,performer);
+        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
+
+        boolean canAfford = manaPoolCmp.canAfford(getSkill());
+        if(scroll()) canAfford = true;
+
+        if(getSkill().skillType!=Skill.SkillType.REACTION && getSkill().skillType!=Skill.SkillType.BUFF &! aimed)
+        {
+            Entity targetEntity = game.getEntity(aiCmp.target);
+            if(targetEntity==null)
+                this.available = false;
+            else
+            {
+                this.available = ( aiCmp.target!=null && canAfford && getActive() &&
+                        getIdealLocations(performer, levelCmp).containsKey(((PositionCmp)CmpMapper.getComp(CmpType.POSITION, targetEntity)).coord));
+            }
+
+        }
+        else  if(getSkill().skillType==Skill.SkillType.REACTION || getSkill().skillType==Skill.SkillType.BUFF )
+        {
+            this.available =canAfford && !getIdealLocations(performer, levelCmp).isEmpty() && getActive();
+        }
+        else if(aimed) this.available =canAfford;
+
 
     }
 
     @Override
     public boolean getActive() {
-        return false;
+        return active;
     }
 
     @Override
     public void activate() {
+        active=true;
 
     }
 
     @Override
     public void inactivate() {
-
+        active = false;
     }
 
     @Override
     public void updateAOE(Entity performer) { }
 
+
     @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp) {
-        return null;
+    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
+    {
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
+
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+        AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, actor);
+
+        return idealLocations(positionCmp.coord, aiCmp.getEnemyLocations(levelCmp), aiCmp.getFriendLocations(levelCmp));
+    }
+
+    @Override
+    public HashMap<Integer, Integer> getAOEtargetsDmg(Entity performerEntity, LevelCmp levelCmp, EuroRogue game)
+    {
+        HashMap<Integer, Integer> targets = new HashMap<>();
+        for(Coord coord : aoe.findArea().keySet())
+        {
+            if(levelCmp.actors.positions().contains(coord))
+            {
+                Integer targetID = levelCmp.actors.get(coord);
+                Entity aoeTarEnt = game.getEntity(targetID);
+                PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, aoeTarEnt);
+                int dmg = (int) (aoe.findArea().get(positionCmp.coord)*getDamage(performerEntity));
+                targets.put(levelCmp.actors.get(coord), dmg);
+            }
+        }
+        return targets;
     }
 
     @Override
@@ -117,11 +207,11 @@ public class Ability extends Technique implements IAbilityCmpSubSys
 
     @Override
     public TextCellFactory.Glyph getGlyph() {
-        return null;
+        return glyph;
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler) {
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer) {
 
     }
 
@@ -198,45 +288,120 @@ public class Ability extends Technique implements IAbilityCmpSubSys
         return super.apply(user, aimAt);
     }
 
-    public static Ability newAbilityCmp(Skill skill)
+    public static Ability newAbilityCmp(Skill skill, boolean player)
     {
+        Ability ability;
         switch (skill)
         {
+            case BACK_STAB:
+                ability =  new BackStab();
+                break;
+            case QUICK_STRIKE:
+                ability =  new QuickStrike();
+                break;
             case ENLIGHTEN:
-                Enlighten enlighten= new Enlighten();
-                return  enlighten;
+                ability = new Enlighten();
+                break;
             case ICE_SHIELD:
-                IceShield iceShield = new IceShield();
-                return  new IceShield();
+                ability = new IceShield();
+                break;
             case MAGIC_MISSILE:
-                MagicMissile magicMissile = new MagicMissile();
-                return magicMissile;
+                ability = new MagicMissile();
+                break;
+            case BLINK:
+                ability =  new Blink();
+                break;
             case ERUPTION:
-                Eruption eruption = new Eruption();
-                return  eruption;
+                ability = new Eruption();
+                break;
+            case SHATTER:
+                ability = new Shatter();
+                break;
+            case CONE_OF_COLD:
+                ability = new ConeOfCold();
+                break;
             case ARCANE_TOUCH:
-                ArcaneTouch arcaneTouch = new ArcaneTouch();
-                return arcaneTouch;
+                ability = new ArcaneTouch();
+                break;
             case DAGGER_THROW:
-                DaggerThrow daggerThrow = new DaggerThrow();
-                return daggerThrow;
+                ability = new DaggerThrow();
+                break;
             case CHILL:
-                Chill chill = new Chill();
-                return chill;
+                ability = new Chill();
+                break;
             case IMMOLATE:
-                Immolate immolate = new Immolate();
-                return immolate;
+                ability = new Immolate();
+                break;
             case DODGE:
-                Dodge dodge = new Dodge();
-                return dodge;
+                ability = new Dodge();
+                break;
+            case CHARGE:
+                ability = new Charge();
+                break;
             case ENRAGE:
-                Enrage enrage = new Enrage();
-                return enrage;
+                ability = new Enrage();
+                break;
             case MELEE_ATTACK:
-                MeleeAttack meleeAttack = new MeleeAttack();
-                return meleeAttack;
+                ability = new MeleeAttack();
+                break;
+            case STALK:
+                ability = new Stalk();
+                break;
             //case OPPORTUNITY: return new Opportunity();
+            default:
+                throw new IllegalStateException("Unexpected value: " + skill);
         }
-        return null;
+        if(player && ability.aimable) ability.aimed=true;
+
+        return ability;
+    }
+    public void postToLog(Entity performer, EuroRogue game)
+    {
+        SColor schoolColor = getSkill().school.color;
+
+        IColoredString.Impl<SColor> line0 = new IColoredString.Impl<SColor>();
+        line0.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line0);
+
+        IColoredString.Impl<SColor> line1 = new IColoredString.Impl<SColor>();
+        line1.append("Name: ");
+        line1.append(name, schoolColor);
+        line1.append("   School: ");
+        line1.append(getSkill().school.name, schoolColor);
+        line1.append("   ttPerform: ");
+        line1.append(((Integer)getTTPerform(performer)).toString(), schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line1);
+
+
+        IColoredString.Impl<SColor> line2 = new IColoredString.Impl<SColor>();
+        line2.append("MaxRange: ");
+        line2.append(((Integer)aoe.getMaxRange()).toString(), schoolColor);
+        line2.append("   MinRange: ");
+        line2.append(((Integer)aoe.getMinRange()).toString(), schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line2);
+
+        IColoredString.Impl<SColor> line3 = new IColoredString.Impl<SColor>();
+        line3.append("Damage: ");
+        line3.append(((Integer)getDamage(performer)).toString(), schoolColor);
+        line3.append(getDmgType(performer).name(), schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line3);
+
+        IColoredString.Impl<SColor> line4 = new IColoredString.Impl<SColor>();
+        line4.append("Status Effects Applied: ");
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line4);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
+        for(StatusEffect statusEffect : getStatusEffects().keySet())
+        {
+            IColoredString.Impl<SColor> effectLine = new IColoredString.Impl<SColor>("   "+statusEffect.name+"  ", SColor.LIGHT_YELLOW_DYE);
+            effectLine.append(getStatusEffectDuration(statsCmp, statusEffect)+" ticks", SColor.WHITE);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(effectLine);
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
+
+
     }
 }

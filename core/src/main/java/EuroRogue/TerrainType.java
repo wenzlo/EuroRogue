@@ -26,6 +26,4 @@ public enum TerrainType
         }
         return STONE;
     }
-
-
 }

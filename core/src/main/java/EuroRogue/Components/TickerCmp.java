@@ -23,4 +23,23 @@ public class TickerCmp implements Component
         }
         return entityActions;
     }
+    //TODO add log entries for interrupted events
+    public void interrupt(Entity actor)
+    {
+        ArrayList<ScheduledEvt> actorsEvents = new ArrayList<>();
+        for(ScheduledEvt scheduledEvt : actionQueue)
+        {
+            if(scheduledEvt.entityID==actor.hashCode()) actorsEvents.add(scheduledEvt);
+        }
+        actionQueue.removeAll(actorsEvents);
+    }
+
+    public ArrayList<StatusEffectEvt> getSeEventsForTick(int tick) {
+        ArrayList<StatusEffectEvt> seEvents = new ArrayList<>();
+        for(StatusEffectEvt seEvent : seEvents)
+        {
+            if(seEvent.tick<=tick) seEvents.add(seEvent);
+        }
+        return seEvents;
+    }
 }

@@ -39,6 +39,7 @@ public class WeaponFactory
         weapon.add(new NameCmp(weaponType.name));
         weapon.add(new ItemCmp(ItemType.WEAPON));
         weapon.add(new CharCmp(weaponType.chr, SColor.LIGHT_GRAY));
+        weapon.add(new LightCmp());
         EquipmentCmp equipmentCmp = new EquipmentCmp(weaponType.slots);
         equipmentCmp.statusEffects.put(weaponType.grantedEffect, new SEParameters(TargetType.SELF, SERemovalType.OTHER));
         weapon.add(equipmentCmp);
@@ -55,15 +56,12 @@ public class WeaponFactory
     {
         WeaponType weaponType = rng.getRandomElement(WeaponType.values());
         Entity weapon = newBasicWeapon(weaponType, loc);
-        if(rng.nextInt()%20==0) addOnHitSERnd(weapon, TargetType.ENEMY);
-        if(rng.nextInt()%20==0) addOnEquipSERnd(weapon);
 
         return weapon;
     }
 
     public  Entity newBasicWeapon(WeaponType weaponType) {return newBasicWeapon(weaponType, null);}
-    public void addOnHitSERnd (Entity weaponEntity,  TargetType targetType)
-    {
+    public void addOnHitSERnd (Entity weaponEntity,  TargetType targetType){
         addOnHitSE(weaponEntity, rng.getRandomElement(onHitEffectsPool), targetType);
     }
     public static void addOnHitSE (Entity weaponEntity, StatusEffect statusEffect, TargetType targetType)
@@ -85,18 +83,17 @@ public class WeaponFactory
         NameCmp nameCmp = (NameCmp) CmpMapper.getComp(CmpType.NAME, weaponEntity);
         nameCmp.name = StatusEffect.getEffectDescriptorPre(statusEffect)+" "+nameCmp.name;
     }
-    public Entity newTorch(Coord loc)
+    public Entity newTorch()
     {
         Entity torch = new Entity();
         torch.add(new NameCmp("Torch"));
         torch.add(new ItemCmp(ItemType.TORCH));
-        torch.add(new CharCmp('*', SColor.SAFETY_ORANGE));
-        EquipmentCmp equipmentCmp = new EquipmentCmp(new EquipmentSlot[]{EquipmentSlot.LEFT_HAND_WEAP});
-        torch.add(equipmentCmp);
-        torch.add(new LightCmp(5, SColor.COSMIC_LATTE.toFloatBits()));
-        if(loc!=null) torch.add(new PositionCmp(loc));
+        torch.add(new EquipmentCmp(new EquipmentSlot[]{EquipmentSlot.LEFT_HAND_WEAP}, rng.between(3, 6), SColor.LIGHT_YELLOW_DYE.toFloatBits()));
+        torch.add(new CharCmp('*', SColor.DARK_BROWN));
+        torch.add(new LightCmp(0, SColor.BLACK.toFloatBits()));
 
-        return torch;
+
+       return torch;
     }
 
 

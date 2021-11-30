@@ -10,6 +10,7 @@ import java.util.List;
 
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.School;
+import EuroRogue.SortManaBySchool;
 import squidpony.panel.IColoredString;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.GWTRNG;
@@ -22,6 +23,7 @@ public class ManaPoolCmp implements Component
     public int numAttunedSlots;
     private final GWTRNG rng = new GWTRNG();
 
+    public ManaPoolCmp(){}
     public ManaPoolCmp(int numAttunedSlots)
     {
         this.numAttunedSlots = numAttunedSlots;
@@ -41,9 +43,26 @@ public class ManaPoolCmp implements Component
                 attuned + "\n";
 
     }
+    public List<School> allMana()
+    {
+        List<School> allMana = new ArrayList<>();
+        allMana.addAll(active);
+        allMana.addAll(spent);
+        allMana.addAll(attuned);
+        return allMana;
+    }
+    public List<School> unattunedMana()
+    {
+        List<School>mana = new ArrayList<>();
+        mana.addAll(active);
+        mana.addAll(spent);
+        return mana;
+    }
+
     public IColoredString.Impl<SColor> activeToIColoredString()
     {
         IColoredString.Impl<SColor> iColoredString = new IColoredString.Impl<>();
+        Collections.sort(active, new SortManaBySchool());
         for(School mana:active)
         {
             SColor color = mana.color;
@@ -56,6 +75,7 @@ public class ManaPoolCmp implements Component
     {
         IColoredString.Impl<SColor> iColoredString = new IColoredString.Impl<>();
         List<IColoredString<SColor>> spentPool = new ArrayList<>();
+        Collections.sort(spent, new SortManaBySchool());
         for(School mana:spent)
         {
             SColor color = mana.color;
@@ -74,7 +94,7 @@ public class ManaPoolCmp implements Component
     {
         IColoredString.Impl<SColor> iColoredString = new IColoredString.Impl<>();
         List<IColoredString<SColor>> attunedPool = new ArrayList<>();
-
+        Collections.sort(attuned, new SortManaBySchool());
         for(School mana:attuned) {
             SColor color = mana.color;
             iColoredString.append('■', color);
@@ -170,21 +190,26 @@ public class ManaPoolCmp implements Component
     {
         recoverMana(6-active.size());
     }
-    public void removeMana (School[] manaArray)
-{
-    for(School mana:manaArray) spent.remove(mana);
-}
-    public void removeMana (List<School> manaArray)
+
+    public void removeMana (School[] manaArray, StatsCmp statsCmp)
     {
-        for(School mana:manaArray) spent.remove(mana);
+        removeMana(Arrays.asList(manaArray), statsCmp);
     }
-    public void addMana (School[] manaArray)
+    public void removeMana (Collection<School> manaArray, StatsCmp statsCmp)
+    {
+        for(School mana:manaArray)
+        {
+            if(spent.contains(mana)) spent.remove(mana);
+            else if(active.contains(mana)) active.remove(mana);
+            statsCmp.setSpirit(unattunedMana().size());
+
+        }
+    }
+    public void addMana (School[] manaArray, StatsCmp statsCmp) { addMana(Arrays.asList(manaArray), statsCmp); }
+    public void addMana (Collection<School> manaArray, StatsCmp statsCmp)
     {
         for(School mana:manaArray) spent.add(mana);
-    }
-    public void addMana (List<School> manaArray)
-    {
-        for(School mana:manaArray) spent.add(mana);
+        statsCmp.setSpirit(unattunedMana().size());
     }
     public boolean inert(CodexCmp codexCmp)
     {
@@ -209,5 +234,10 @@ public class ManaPoolCmp implements Component
         }
         return true;
     }
+    public void setUnattunedManaSlots(StatsCmp statsCmp)
+    {
+
+    }
+
 
 }

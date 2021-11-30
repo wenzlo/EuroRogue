@@ -8,21 +8,22 @@ import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.CmpMapper;
-import EuroRogue.Components.AICmp;
+import EuroRogue.CmpType;
+import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
-import EuroRogue.EventComponents.ItemEvt;
-import EuroRogue.LightHandler;
-import EuroRogue.StatusEffectCmps.SEParameters;
-import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.TargetType;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
+import EuroRogue.EventComponents.ItemEvt;
+import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
-import EuroRogue.CmpType;
+import EuroRogue.StatusEffectCmps.SEParameters;
+import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
+import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
@@ -33,12 +34,8 @@ public class Opportunity extends Ability
 {
     //private Skill skill = Skill.OPPORTUNITY;
     private Skill skill = null;
-    private boolean active = true;
-    private  boolean scroll = false;
-    private Integer scrollID = null;
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
-    private boolean available = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
 
     public Opportunity()
@@ -55,47 +52,6 @@ public class Opportunity extends Ability
     }
 
     @Override
-    public boolean scroll() {
-        return scroll;
-    }
-
-    @Override
-    public void setScroll(boolean bool) {scroll = bool; }
-
-    @Override
-    public Integer getScrollID() { return scrollID; }
-
-    @Override
-    public void setScrollID(Integer id) { scrollID = id;}
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
-
-    @Override
-    public boolean getActive()
-    {
-        return active;
-    }
-    @Override
-    public void activate()
-    {
-        active=true;
-    }
-    @Override
-    public void inactivate()
-    {
-        active=false;
-    }
-
-    @Override
     public void updateAOE(Entity performer)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
@@ -106,7 +62,8 @@ public class Opportunity extends Ability
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
 
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, actor);
+        AICmp aiCmp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, actor);
         ArrayList<Coord> enemyLocations = new ArrayList<>();
         for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
         ArrayList<Coord> friendLocations = new ArrayList<>();
@@ -168,7 +125,7 @@ public class Opportunity extends Ability
         TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performer)).glyph;
         Coord startLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startLoc, targetCoord, actionEvt);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.BUMP, startLoc, targetCoord, actionEvt);
     }
 
     @Override
@@ -177,7 +134,7 @@ public class Opportunity extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler) {
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer) {
 
     }
 

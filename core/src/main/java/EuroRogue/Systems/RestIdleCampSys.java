@@ -9,34 +9,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
-import EuroRogue.Components.AICmp;
+import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.CharCmp;
 import EuroRogue.Components.CodexCmp;
 import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.NameCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
-import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.CmpMapper;
-
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.FrozenEvt;
 import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.EventComponents.RestEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.GameState;
 import EuroRogue.IColoredString;
-
 import EuroRogue.ItemEvtType;
+import EuroRogue.MyEntitySystem;
 import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
-import EuroRogue.CmpType;
-import EuroRogue.EventComponents.RestEvt;
-import EuroRogue.MyEntitySystem;
-
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
 import squidpony.squidgrid.gui.gdx.SColor;
 
@@ -66,8 +63,6 @@ public class RestIdleCampSys extends MyEntitySystem
         restingEnts = engine.getEntitiesFor(Family.all(RestEvt.class).get());
         frozenEnts = engine.getEntitiesFor(Family.all(FrozenEvt.class).get());
         campingEnts = engine.getEntitiesFor(Family.all(CampEvt.class).get());
-
-
     }
 
     /**
@@ -94,9 +89,13 @@ public class RestIdleCampSys extends MyEntitySystem
             for(StatusEffect statusEffect : getGame().getStatusEffects(actor))
             {
                 StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, actor);
-                if(statusEffectCmp.seRemovalType == SERemovalType.SHORT_REST) actor.remove(statusEffect.cls);
+
+                if(statusEffectCmp.seRemovalType == SERemovalType.SHORT_REST)
+                    actor.remove(statusEffect.cls);
+
             }
-            if(((AICmp)CmpMapper.getComp(CmpType.AI, getGame().getFocus())).visibleEnemies.contains(actor.hashCode()))
+            StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
+            if((CmpMapper.getAIComp(statsCmp.mobType.aiType, getGame().getFocus())).visibleEnemies.contains(actor.hashCode()))
             {
                 ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(genLogEvent(actor).entry);
             }
@@ -130,19 +129,42 @@ public class RestIdleCampSys extends MyEntitySystem
             }
 
             Entity eventEntity = new Entity();
-            GameStateEvt gameStateEvt = new GameStateEvt(GameState.CAMPING);
-            eventEntity.add(gameStateEvt);
-            getEngine().addEntity(eventEntity);
-            getEngine().getSystem(MakeCampSys.class).setProcessing(false);
-        }
 
+
+            if(CmpMapper.getStatusEffectComp(StatusEffect.STARVING, actorEntity)==null)
+            {
+                StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
+                statsCmp.rl = statsCmp.getMaxRestLvl();
+            }
+            for(StatusEffect statusEffect : StatusEffect.values())
+            {
+                StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, actorEntity);
+                if(statusEffectCmp!=null)
+                {
+                    System.out.println(statusEffect+" "+statusEffectCmp.seRemovalType);
+                    if(statusEffectCmp.seRemovalType == SERemovalType.LONG_REST) entity.remove(statusEffect.cls);
+                }
+            }
+
+
+            campEvt.processed = true;
+
+            if(entity == getGame().getFocus())
+            {
+                GameStateEvt gameStateEvt = new GameStateEvt(GameState.CAMPING);
+                eventEntity.add(gameStateEvt);
+                getEngine().addEntity(eventEntity);
+            }
+
+
+        }
     }
     private void activateAbilities(Entity entity)
     {
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX,entity);
         for(Skill skill : codexCmp.prepared)
         {
-            Ability abilityCmpSubSys = (Ability) CmpMapper.getAbilityComp(skill,entity);
+            Ability abilityCmpSubSys = CmpMapper.getAbilityComp(skill,entity);
             abilityCmpSubSys.activate();
         }
 

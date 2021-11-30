@@ -6,6 +6,7 @@ public enum GameState
     STARTING,
     PLAYING,
     CAMPING,
-    LOADING,
+    SAVE_BUILD,
+    SHRINE,
     GAME_OVER
 }

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import EuroRogue.StatType;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import squidpony.squidgrid.gui.gdx.SColor;
 
 
 public class EquipmentCmp implements Component
@@ -15,10 +16,20 @@ public class EquipmentCmp implements Component
     public boolean equipped = false;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public HashMap<StatType, Integer> statReqs = new HashMap<>();
-
+    public int lightLevel;
+    public float lightColor;
+    public EquipmentCmp (){}
     public EquipmentCmp(EquipmentSlot[] slots)
     {
         this.slotsOccupied=slots;
+        this.lightLevel = 0;
+        this.lightColor = SColor.BLACK.toFloatBits();
+    }
+    public EquipmentCmp(EquipmentSlot[] slots, int lightLevel, float lightColor)
+    {
+        this.slotsOccupied=slots;
+        this.lightLevel = lightLevel;
+        this.lightColor = lightColor;
     }
 
     public boolean canEquip (StatsCmp statsCmp)

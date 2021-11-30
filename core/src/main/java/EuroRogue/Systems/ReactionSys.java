@@ -5,30 +5,24 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
+import EuroRogue.AbilityCmpSubSystems.Skill;
+import EuroRogue.CmpMapper;
+import EuroRogue.CmpType;
 import EuroRogue.Components.CharCmp;
-import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.NameCmp;
-import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
-import EuroRogue.AbilityCmpSubSystems.Skill;
-import EuroRogue.CmpMapper;
-import EuroRogue.Components.InventoryCmp;
-import EuroRogue.CmpType;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.EventComponents.MoveEvt;
 import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
 import squidpony.squidgrid.gui.gdx.SColor;
-import squidpony.squidmath.Coord;
 
 public class ReactionSys extends MyEntitySystem
 {
@@ -69,10 +63,6 @@ public class ReactionSys extends MyEntitySystem
 
                 procActionEvt(actionEvt);
             }
-
-            /*if(moveEvt!=null)
-                procMoveEvt(moveEvt);*/
-
         }
     }
 
@@ -146,65 +136,7 @@ public class ReactionSys extends MyEntitySystem
             ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateReactionLogEvt(actionEvt, reactionAbility, actor, reactor).entry);
         }
     }
-    private void procMoveEvt (MoveEvt moveEvt)
-    {
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
-        Entity actor = getGame().getEntity(moveEvt.entityID);
 
-        Coord actorPos = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, actor)).coord;
-
-        Set<Integer> reactorIDs = levelCmp.getAdjActorIDs(actorPos);
-        int deltaX = moveEvt.direction.deltaX;
-        int deltaY = moveEvt.direction.deltaY;
-        Coord newPos = Coord.get(actorPos.x+deltaX, actorPos.y+deltaY);
-        Set<Integer> postMoveIDs = levelCmp.getAdjActorIDs(newPos);
-        postMoveIDs.remove(actor.hashCode());
-        reactorIDs.removeAll(postMoveIDs);
-
-        for(Integer reactorID:reactorIDs)
-        {
-            if(reactorID == null) continue;
-            if(reactorID.equals(getGame().getFocus().hashCode())) continue;
-            Entity reactor = getGame().getEntity(levelCmp.actors.get(reactorID));
-            InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, reactor);
-
-
-            getGame().updateAbilities(reactor);
-            for(Skill skill:moveReactions)
-            {
-                Ability reactionAbility = (Ability) CmpMapper.getAbilityComp(skill, reactor);
-                if(getGame().getScrollForSkill(skill, reactor)!=null ) reactionAbility = (Ability) CmpMapper.getAbilityComp(skill, getGame().getScrollForSkill(skill, reactor));
-                if(reactionAbility!=null && reactionAbility.isAvailable())
-                {
-                    if (!reactionAbility.scroll()) {
-
-                        if (reactionAbility.getActive()) {
-
-                            HashMap<Integer,Integer> targets = new HashMap<>();
-                            targets.put(actor.hashCode(),reactionAbility.getDamage(reactor));
-
-                            ActionEvt reaction = new ActionEvt(reactor.hashCode(), null, reactionAbility.getSkill(), targets, reactionAbility.getStatusEffects());
-
-                            Entity eventEntity = new Entity();
-                            eventEntity.add(reaction);
-                            getEngine().addEntity(eventEntity);
-                        }
-                    } else {
-
-                        HashMap<Integer,Integer> targets = new HashMap<>();
-                        targets.put(actor.hashCode(),reactionAbility.getDamage(reactor));
-
-                        Entity scrollEntity = getGame().getScrollForSkill(reactionAbility.getSkill(), reactor);
-                        ActionEvt reaction = new ActionEvt(reactor.hashCode(), scrollEntity.hashCode(), reactionAbility.getSkill(), targets, reactionAbility.getStatusEffects());
-
-                        Entity eventEntity = new Entity();
-                        eventEntity.add(reaction);
-                        getEngine().addEntity(eventEntity);
-                    }
-                }
-            }
-        }
-    }
 
     private LogEvt generateReactionLogEvt (ActionEvt actionEvt, Ability reactionAbility, Entity actor, Entity reactor) {
 

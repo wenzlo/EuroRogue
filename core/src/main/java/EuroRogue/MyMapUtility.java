@@ -47,8 +47,8 @@ public class MyMapUtility extends MapUtility
         int width = map.length;
         int height = map[0].length;
         float   bridge = SColor.LIMITED_PALETTE[35].toFloatBits(),
-                shallow_water = SColor.LIMITED_PALETTE[23].toFloatBits(),
-                deep_water = SColor.LIMITED_PALETTE[24].toFloatBits(),
+                shallow_water = SColor.LIMITED_PALETTE[24].toFloatBits(),
+                deep_water = SColor.LIMITED_PALETTE[23].toFloatBits(),
                 grass = SColor.LIMITED_PALETTE[21].toFloatBits(),
                 wall = SColor.LIMITED_PALETTE[7].toFloatBits(),
                 other = SColor.LIMITED_PALETTE[0].toFloatBits();

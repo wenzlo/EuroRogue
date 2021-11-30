@@ -2,18 +2,19 @@ package EuroRogue.AbilityCmpSubSystems;
 
 import com.badlogic.ashley.core.Entity;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.AICmp;
-import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.EquipmentSlot;
+import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.Components.WeaponCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -22,29 +23,26 @@ import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
+import EuroRogue.WeaponType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.OrderedMap;
 
 public class DaggerThrow extends Ability
 {
     private Skill skill = Skill.DAGGER_THROW;
-    private boolean active = true;
-    private  boolean scroll = false;
-    private Integer scrollID = null;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private TextCellFactory.Glyph glyph;
     public int itemID;
     public char chr;
     private Coord targetedLocation;
-    private boolean available = false;
 
     public DaggerThrow()
     {
-        super("Dagger Throw", new PointAOE(Coord.get(-1,-1),2,1));
+        super("Dagger Throw", new PointAOE(Coord.get(-1,-1),1,1));
     }
 
     public Skill getSkill() {
@@ -52,52 +50,27 @@ public class DaggerThrow extends Ability
     }
 
     public List<Skill> getReactions() {
-        return Arrays.asList();
+        return Arrays.asList(Skill.BLINK);
     }
 
     @Override
-    public boolean scroll()
-    {
-        return scroll;
-    }
-
-    @Override
-    public void setScroll(boolean bool)
-    {
-        scroll = bool;
-    }
-
-    @Override
-    public Integer getScrollID() { return scrollID; }
-
-    @Override
-    public void setScrollID(Integer id) { scrollID = id; }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public void setAvailable(boolean available)
-    {
-        this.available=available;
-    }
-
-    @Override
-    public boolean getActive()
-    {
-        return active;
-    }
-    @Override
-    public void activate()
-    {
-        active=true;
-    }
-    @Override
-    public void inactivate()
-    {
-        active=false;
+    public void setAvailable(Entity performer, EuroRogue game) {
+        super.setAvailable(performer, game);
+        InventoryCmp inventoryCmp = (InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY,performer);
+        Entity weaponEntity = game.getEntity(inventoryCmp.getSlotEquippedID(EquipmentSlot.RIGHT_HAND_WEAP));
+        WeaponType weaponType = null;
+        if(weaponEntity!=null)
+        {
+            WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, weaponEntity);
+            weaponType = weaponCmp.weaponType;
+        }
+        this.available = (weaponType == WeaponType.DAGGER && isAvailable());
+        if(isAvailable())
+        {
+            itemID = weaponEntity.hashCode();
+            chr = weaponType.chr;
+            statusEffects = CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, performer).getStatusEffects();
+        }
     }
 
     @Override
@@ -106,20 +79,7 @@ public class DaggerThrow extends Ability
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         aoe.setOrigin(positionCmp.coord);
-        aoe.setMaxRange(statsCmp.getDex());
-    }
-
-    @Override
-    public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
-    {
-        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-        AICmp aiCmp = (AICmp) CmpMapper.getComp(CmpType.AI, actor);
-        ArrayList<Coord> enemyLocations = new ArrayList<>();
-        for(Integer enemyID : aiCmp.visibleEnemies) enemyLocations.add(levelCmp.actors.getPosition(enemyID));
-        ArrayList<Coord> friendLocations = new ArrayList<>();
-        for(Integer friendlyID : aiCmp.visibleFriendlies) enemyLocations.add(levelCmp.actors.getPosition(friendlyID));
-        friendLocations.add(positionCmp.coord);
-        return idealLocations(positionCmp.coord, enemyLocations, friendLocations);
+        aoe.setMaxRange(1+statsCmp.getDex()/2);
     }
 
     @Override
@@ -145,7 +105,7 @@ public class DaggerThrow extends Ability
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
-        return new AnimateGlyphEvt(glyph, skill.animationType, startPos, targetCoord, eventCmp);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.PROJECTILE, startPos, targetCoord, eventCmp);
     }
 
     @Override
@@ -154,7 +114,7 @@ public class DaggerThrow extends Ability
     }
 
     @Override
-    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler)
+    public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
         glyph = display.glyph(chr ,getSkill().school.color, aoe.getOrigin().x, aoe.getOrigin().y);
 

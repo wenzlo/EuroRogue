@@ -8,12 +8,13 @@ public class Exhausted extends StatusEffectCmp
 
     public Exhausted()
     {
-
-        statMultipliers.put(StatType.TT_MOVE, 1.5f);
-        statusEffect = StatusEffect.EXHAUSTED;
-        name = statusEffect.name;
-        seRemovalType = SERemovalType.SHORT_REST;
-        lightChange = false;
+        this.statMultipliers.put(StatType.TT_CAST, 2f);
+        this.statMultipliers.put(StatType.TT_MELEE, 2f);
+        this.statusEffect = StatusEffect.EXHAUSTED;
+        this.name = statusEffect.name;
+        this.seRemovalType = SERemovalType.LONG_REST;
+        this.lightChange = false;
     }
+
 
 }
