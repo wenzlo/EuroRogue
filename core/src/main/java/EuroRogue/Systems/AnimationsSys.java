@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
+import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -151,21 +152,23 @@ public class AnimationsSys extends MyEntitySystem
 
                     float delay =  0.0f;
                     ArrayList<Coord> blastZone = new ArrayList(blastAOE.findArea().keySet());
-                    Collections.shuffle(blastZone);
+                    Collections.sort(blastZone, new SortByDistance(center));
                     HashMap<Integer, TextCellFactory.Glyph> killList = new HashMap<>();
                     for(Coord coord : blastZone)
                     {
-                        float intensity = (float) (blastAOE.findArea().get(coord)*1f);
+                        float intensity = (float) (blastAOE.getRadius()*blastAOE.findArea().get(coord)*2f);
 
 
-                        TextCellFactory.Glyph glyph = display.glyph(' ', SColor.LIGHT_YELLOW_DYE.toFloatBits(), center.x, center.y);
-                        Light light = new Light(coord, new Radiance(3*intensity, SColor.SAFETY_ORANGE.toFloatBits()));
+                        TextCellFactory.Glyph glyph = display.glyph(' ', SColor.LIGHT_YELLOW_DYE.toFloatBits(), coord.x, coord.y);
+                        glyph.setPosition(display.worldX(coord.x)-intensity*7, display.worldY(coord.y)+intensity*2);
+                        Light light = new Light(coord, new Radiance(intensity, SColor.SAFETY_ORANGE.toFloatBits()));
                         glyph.setName(light.hashCode() + " 0 " + " temp");
                         performerPeaCmp.addEffect(glyph, ParticleEffectsCmp.ParticleEffect.FIRE_P, display);
-                        performerPeaCmp.particleEffectsMap.get(glyph).get(ParticleEffectsCmp.ParticleEffect.FIRE_P).setScale(intensity*1.5f);
+                        ParticleEffectActor particleEffect = performerPeaCmp.particleEffectsMap.get(glyph).get(ParticleEffectsCmp.ParticleEffect.FIRE_P);
+                        particleEffect.setScale(intensity);
+
                         killList.put(light.hashCode(), glyph);
-                        display.slide(delay, glyph, coord.x, coord.y, 0.2f, null);
-                        delay = (float) (delay+(0.2/blastAOE.findArea().keySet().size()));
+                        delay = (float) (delay+(0.3/blastAOE.findArea().keySet().size()));
                         postRunnable = new Runnable() {
                             @Override
                             public void run()
@@ -185,13 +188,16 @@ public class AnimationsSys extends MyEntitySystem
                             glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actor)).leftGlyph;
                             display.tint(0f, glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
                         }
-                        for(Integer targetID : actionEvt.targetsDmg.keySet())
-                        {
+                        break;
 
-                            Entity targetActor = getGame().getEntity(targetID);
-                            glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
-                            display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
-                        }
+
+                    }
+                    for(Integer targetID : actionEvt.targetsDmg.keySet())
+                    {
+
+                        Entity targetActor = getGame().getEntity(targetID);
+                        glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
+                        display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
                     }
                     Light light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
                     display.removeGlyph(animation.glyph);
@@ -240,13 +246,14 @@ public class AnimationsSys extends MyEntitySystem
                             TextCellFactory.Glyph glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actor)).leftGlyph;
                             display.tint(0f, glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
                         }
-                        for(Integer targetID : actionEvt.targetsDmg.keySet())
-                        {
 
-                            Entity targetActor = getGame().getEntity(targetID);
-                            glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
-                            display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
-                        }
+                    }
+                    for(Integer targetID : actionEvt.targetsDmg.keySet())
+                    {
+
+                        Entity targetActor = getGame().getEntity(targetID);
+                        glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, targetActor);
+                        display.tint(0f, glyphsCmp.glyph, ability.getSkill().school.color.toFloatBits(),0.75f, postRunnable);
                     }
                     light = windowCmp.lightingHandler.getLightByGlyph(animation.glyph);
                     display.removeGlyph(animation.glyph);

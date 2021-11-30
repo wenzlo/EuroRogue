@@ -14,6 +14,7 @@ import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.FocusTargetCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.EuroRogue;
 import EuroRogue.MyEntitySystem;
@@ -55,6 +56,7 @@ public class WinSysStats extends MyEntitySystem
         Stage stage = null;
         SColor bgColor;
         String caption;
+        TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         for(Entity entity:entities)
         {
             EuroRogue game = getGame();
@@ -86,7 +88,7 @@ public class WinSysStats extends MyEntitySystem
 
             String statsSB = statsCmp.toString();
             int y = 1;
-            int x = 1;
+            int x = 2;
             for(String string:StringKit.split(statsSB, "\n"))
             {
                 display.put(x,y,string,SColor.LIGHT_YELLOW_DYE);

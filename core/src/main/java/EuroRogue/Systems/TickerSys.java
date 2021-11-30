@@ -14,9 +14,12 @@ import EuroRogue.CmpType;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
+import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.CodexEvt;
 import EuroRogue.EventComponents.DayNightCycleEvt;
+import EuroRogue.EventComponents.DeathEvt;
 import EuroRogue.EventComponents.GameStateEvt;
+import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LevelEvt;
 import EuroRogue.EventComponents.MoveEvt;
@@ -76,7 +79,7 @@ public class TickerSys extends MyEntitySystem
     {
         //if(((WindowCmp) CmpMapper.getComp(CmpType.WINDOW,game.dungeonWindow)).display.hasActiveAnimations()) return;
         if(getGame().gameState!= GameState.PLAYING) return;
-        ImmutableArray<Entity> eventsFamily = getEngine().getEntitiesFor(Family.one(LevelEvt.class, StatEvt.class, GameStateEvt.class, ActionEvt.class, CodexEvt.class, MoveEvt.class, ItemEvt.class,
+        ImmutableArray<Entity> eventsFamily = getEngine().getEntitiesFor(Family.one(DeathEvt.class, LevelEvt.class, StatEvt.class, GameStateEvt.class, ActionEvt.class, CodexEvt.class, MoveEvt.class, ItemEvt.class,
                 RestEvt.class, StatusEffectEvt.class, AnimateGlyphEvt.class, LevelEvt.class).get());
         if(eventsFamily.size()>0) return;
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
@@ -109,9 +112,18 @@ public class TickerSys extends MyEntitySystem
         ticker.actionQueue.removeAll(eventsToProc);
         for(ScheduledEvt scheduledEvt :eventsToProc)
         {
-            Entity eventEntity = new Entity();
-            eventEntity.add(scheduledEvt.eventComponent);
-            getEngine().addEntity(eventEntity);
+            if(scheduledEvt.eventComponent.getClass() == CampEvt.class)
+            {
+                Entity actor = getGame().getEntity(scheduledEvt.entityID);
+                actor.add(scheduledEvt.eventComponent);
+
+            } else {
+
+                Entity eventEntity = new Entity();
+                eventEntity.add(scheduledEvt.eventComponent);
+                getEngine().addEntity(eventEntity);
+            }
+
         }
     }
     public boolean removeStatusEffects(int tick)

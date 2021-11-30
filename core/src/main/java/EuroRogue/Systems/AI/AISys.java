@@ -109,6 +109,8 @@ public class AISys extends MyEntitySystem
         {
             if(!ticker.getScheduledActions(entity).isEmpty())continue;
             if( CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, entity)!=null && entity!=getGame().getFocus()) continue;
+            NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
+
             observe(entity);
             getGame().updateAbilities(entity);
 
@@ -161,11 +163,17 @@ public class AISys extends MyEntitySystem
                 continue;
             }
 
+
            /* String name = ((NameCmp) CmpMapper.getComp(CmpType.NAME, entity)).name;
             IColoredString.Impl<SColor> coloredString = new IColoredString.Impl<>(ticker.tick+" "+name+" takes turn", SColor.WHITE);
             entity.add(new LogEvt(ticker.tick, coloredString));*/
             boolean itemEventScheduled = false;
-
+            if(CmpMapper.getStatusEffectComp(StatusEffect.EXHAUSTED, entity) != null
+                && aiComp.visibleEnemies.isEmpty())
+            {
+                scheduleCampEvt(entity);
+                continue;
+            }
             for(EquipmentSlot slot : EquipmentSlot.values())
             {
                 if(inventoryCmp.getSlotEquippedID(slot)==null)
@@ -203,10 +211,11 @@ public class AISys extends MyEntitySystem
                     if(!ability.getIdealLocations(entity, level).isEmpty())
                     {
                         scheduleActionEvt(entity, ability);
-                        continue;
+                        break;
                     }
 
                 }
+                if(!ticker.getScheduledActions(entity).isEmpty()) continue;
 
 
 
@@ -220,19 +229,37 @@ public class AISys extends MyEntitySystem
             }
             else if(!aiComp.visibleEnemies.isEmpty())
             {
-                setTarget(entity, getGame().getEntity(aiComp.visibleEnemies.get(0)));
-                Coord targetLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, aiComp.getTargetEntity(getGame()))).coord;
-                aiComp.pathToFollow = aiComp.dijkstraMap.findPath(15, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
+                if(CmpMapper.getStatusEffectComp(StatusEffect.EXHAUSTED, entity) == null)
+                {
+                    setTarget(entity, getGame().getEntity(aiComp.visibleEnemies.get(0)));
+                    Coord targetLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, aiComp.getTargetEntity(getGame()))).coord;
+                    aiComp.pathToFollow = aiComp.dijkstraMap.findPath(15, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
+
+
+                } else {
+
+                    List<Coord> fs = aiComp.getEnemyLocations(level);
+                    Coord[] fearSources = new Coord[]{fs.get(0), fs.get(fs.size()-1)};
+
+                    aiComp.pathToFollow = aiComp.dijkstraMap.findFleePath(1, 1.2, level.getPositions(aiComp.visibleFriendlies), null, position.coord,  fearSources);
+                    if(aiComp.pathToFollow.size()==0)
+                    {
+                        Coord targetLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, aiComp.getTargetEntity(getGame()))).coord;
+                        aiComp.pathToFollow = aiComp.dijkstraMap.findPath(15, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
+                    }
+
+
+                }
                 if(aiComp.pathToFollow.size()>0)
                 {
                     Coord step = aiComp.pathToFollow.remove(0);
                     double terrainCost = aiComp.movementCosts[step.x][step.y];
-                    GreasedRegion debugDikj = new GreasedRegion(aiComp.dijkstraMap.costMap, 2.0);
-                    //debugDikj[position.coord.x][position.coord.y] ='@';
-                    //put.println(debugDikj);
+
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
+                    continue;
 
                 }
+
 
             }
 
@@ -270,7 +297,7 @@ public class AISys extends MyEntitySystem
                 }
             }
 
-            else if(!manaPool.spent.isEmpty())scheduleRestEvt(entity);
+            else /*if(!manaPool.spent.isEmpty())*/scheduleRestEvt(entity);
         }
     }
 
@@ -404,6 +431,12 @@ public class AISys extends MyEntitySystem
 
     public int scheduleMoveEvt(Entity entity, Direction direction, double terrainCost)
     {
+        if(CmpMapper.getStatusEffectComp(StatusEffect.EXHAUSTED, entity)!=null)
+        {
+            genExhaustedLogEvent(entity);
+            return 0;
+        }
+
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity);
         int gameTick = ticker.tick;
@@ -418,7 +451,9 @@ public class AISys extends MyEntitySystem
 
     public int scheduleActionEvt (Entity entity, Ability ability)
     {
+
         TargetType targetType = ability.getTargetType();
+        NameCmp nameCmp = (NameCmp) CmpMapper.getComp(CmpType.NAME, entity);
 
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         int gameTick = ticker.tick;
@@ -489,7 +524,7 @@ public class AISys extends MyEntitySystem
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
 
-        int scheduledTick = ticker.tick + 200;
+        int scheduledTick = ticker.tick + 50;
 
         CampEvt campEvt = new CampEvt(entity.hashCode(), inventoryCmp.getEquippedIDs());
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
@@ -642,6 +677,19 @@ public class AISys extends MyEntitySystem
                 return true;
         }
         return false;
+    }
+
+    private void genExhaustedLogEvent(Entity entity)
+    {
+        int tick = ((TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker)).tick;
+        String name = ((NameCmp)CmpMapper.getComp(CmpType.NAME, entity)).name;
+        IColoredString.Impl  string = new IColoredString.Impl();
+        string.append(tick+" ", SColor.WHITE);
+        string.append(name, SColor.LIGHT_YELLOW_DYE);
+        string.append(" is to Exhausted to Move.");
+        string.append(" Make Camp and rest!", SColor.RED);
+        LogEvt logEvt = new LogEvt(tick, string);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(logEvt.entry);
     }
 
 }

@@ -58,6 +58,7 @@ import EuroRogue.EventComponents.LevelEvt;
 import EuroRogue.EventComponents.ShrineEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.EventComponents.StorageEvt;
+import EuroRogue.EventComponents.StorageEvtType;
 import EuroRogue.Listeners.ActorListener;
 import EuroRogue.Listeners.ItemListener;
 import EuroRogue.Listeners.ObjectListener;
@@ -142,6 +143,7 @@ import EuroRogue.Systems.Win.WinSysHotBar;
 import EuroRogue.Systems.Win.WinSysInventory;
 import EuroRogue.Systems.Win.WinSysLog;
 import EuroRogue.Systems.Win.WinSysMana;
+import EuroRogue.Systems.Win.WinSysSaveBuild;
 import EuroRogue.Systems.Win.WinSysShrine;
 import EuroRogue.Systems.Win.WinSysShrineUiBg;
 import EuroRogue.Systems.Win.WinSysStart;
@@ -173,8 +175,8 @@ public class EuroRogue extends ApplicationAdapter {
     public Integer globalMenuIndex = 0;
     public char[] globalMenuSelectionKeys = "1234567890-=qwertuiop[]asdf".toCharArray();
     public HashMap<Character, MenuCmp> keyLookup = new HashMap<>();
-    public Entity uiBackgrounds, worldMapWindow, shrineWindow, shrineWinBG, gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, campWInBg, ticker, logWindow, currentLevel;
-    public  List<Entity> playingWindows, campingWindows, allWindows, uiBgWindows, startWindows, gameOverWindows, shrineWindows;
+    public Entity saveBuildWindow, uiBackgrounds, worldMapWindow, shrineWindow, shrineWinBG, gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, campWInBg, ticker, logWindow, currentLevel;
+    public  List<Entity> playingWindows, campingWindows, allWindows, uiBgWindows, startWindows, gameOverWindows, shrineWindows, saveBuildWindows;
     public float lastFrameTime;
     public GameState gameState;
     public String playerName = "Stilgar";
@@ -198,7 +200,7 @@ public class EuroRogue extends ApplicationAdapter {
     private static final int cellWidth = 9;
     /** The pixel height of a cell */
     private static final int cellHeight = 9;
-    public SquidInput input, aimInput, campInput, startInput, shrineInput;
+    public SquidInput input, aimInput, campInput, startInput, shrineInput, saveBuildInput;
     public InputMultiplexer inputProcessor;
     private final Color bgColor=Color.BLACK;
     public Storage storage;
@@ -270,7 +272,20 @@ public class EuroRogue extends ApplicationAdapter {
         dungeonGen = new SectionDungeonGenerator(42, 42, new GWTRNG(rng.nextInt()));
 
         Entity eventEntity = new Entity();
+
         LevelEvt levelEvt = new LevelEvt(LevelType.START);
+        System.out.println(depth);
+        if( depth>1)
+        {
+            List<LevelType> levelTypes = new ArrayList<>();
+            Collections.addAll(levelTypes, LevelType.values());
+
+            levelTypes.remove(LevelType.START);
+            //TODO move rng level tye selection to level sys
+            levelEvt = new LevelEvt(rng.getRandomElement(levelTypes));
+        }
+
+
         eventEntity.add(levelEvt);
 
         engine.addEntity(eventEntity);
@@ -335,11 +350,20 @@ public class EuroRogue extends ApplicationAdapter {
         shrineWinBG.add(new UiBgLightingCmp(windowCmp.display.gridWidth, windowCmp.display.gridHeight));
         engine.addEntity(shrineWinBG);
 
+        saveBuildWindow = new Entity();
+
+        Stage saveBuildWinStage = buildStage(50,29,56,30,56,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
+        saveBuildWindow.add(new WindowCmp((MySparseLayers)saveBuildWinStage.getActors().get(0),saveBuildWinStage, false));
+        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, saveBuildWindow)).columnIndexes = new int[]{1,25,40};
+        saveBuildWindow.add(new MenuCmp());
+        engine.addEntity(saveBuildWindow);
+
+
         startWindow = new Entity();
 
         Stage startWinStage = buildStage(50,29,56,30,56,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
         startWindow.add(new WindowCmp((MySparseLayers)startWinStage.getActors().get(0),startWinStage, false));
-        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, startWindow)).columnIndexes = new int[]{1,25,40};
+        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, startWindow)).columnIndexes = new int[]{2,35,40};
         startWindow.add(new MenuCmp());
         engine.addEntity(startWindow);
 
@@ -444,7 +468,7 @@ public class EuroRogue extends ApplicationAdapter {
         targetHotBar.add(new MenuCmp());
         engine.addEntity(targetHotBar);
 
-        allWindows = Arrays.asList(shrineWinBG, shrineWindow, gameOverWindow, startWindow, dungeonWindow, campWindow, campWInBg, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
+        allWindows = Arrays.asList(saveBuildWindow, shrineWinBG, shrineWindow, gameOverWindow, startWindow, dungeonWindow, campWindow, campWInBg, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
         uiBgWindows = Arrays.asList(startWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
 
         playingWindows = Arrays.asList(dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
@@ -452,6 +476,7 @@ public class EuroRogue extends ApplicationAdapter {
         campingWindows = Arrays.asList(campWInBg, campWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
         startWindows = Arrays.asList(focusManaWindow, inventoryWindow, focusHotBar, focusStatsWindow, startWindow);
         gameOverWindows = Arrays.asList(gameOverWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow );
+        saveBuildWindows = Arrays.asList(focusManaWindow, inventoryWindow, focusHotBar, focusStatsWindow, saveBuildWindow);
 
 
         for(Entity windowEntity : allWindows)
@@ -561,6 +586,7 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new AnimationsSys());
         engine.addSystem(new RestIdleCampSys());
         engine.addSystem(new WinSysHotBar());
+        engine.addSystem(new WinSysSaveBuild());
         engine.addSystem(new WinSysStart());
         engine.addSystem(new WinSysInventory());
         engine.addSystem(new MovementSys());
@@ -638,6 +664,39 @@ public class EuroRogue extends ApplicationAdapter {
         SColor.LIMITED_PALETTE[23] = SColor.CW_DARK_AZURE;
         SColor.LIMITED_PALETTE[24] = SColor.CW_LIGHT_AZURE;
 
+        saveBuildInput = new SquidInput((key, alt, ctrl, shift) ->
+        {
+
+            WinSysSaveBuild system = engine.getSystem(WinSysSaveBuild.class);
+            if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
+            {
+
+                if(shift) keyLookup.get(getUnshiftedChar(key)).menuMap.get(getUnshiftedChar(key)).runSecondaryAction();
+                else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
+                return;
+            }
+            switch (key)
+            {
+                case SquidInput.BACKSPACE:
+                    system.buildName = StringKit.safeSubstring(system.buildName, 0, system.buildName.length()-1);
+                    ((NameCmp) CmpMapper.getComp(CmpType.NAME, player)).name = playerName;
+                    return;
+
+            }
+
+            system.buildName = system.buildName + key;
+
+        },
+                //The second parameter passed to a SquidInput can be a SquidMouse, which takes mouse or touchscreen
+                //input and converts it to grid coordinates (here, a cell is 10 wide and 20 tall, so clicking at the
+                // pixel position 16,51 will pass screenX as 1 (since if you divide 16 by 10 and round down you get 1),
+                // and screenY as 2 (since 51 divided by 20 rounded down is 2)).
+                new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {
+
+
+
+                }));
+
         startInput = new SquidInput((key, alt, ctrl, shift) ->
         {
 
@@ -659,7 +718,7 @@ public class EuroRogue extends ApplicationAdapter {
                 case '4':
                     Entity eventEntity = new Entity();
 
-                    eventEntity.add( new StorageEvt("TestBuildSave", true) );
+                    eventEntity.add( new StorageEvt("TestBuildSave", StorageEvtType.SAVE_BUILD) );
                     engine.addEntity(eventEntity);
                     return;
 
@@ -667,7 +726,7 @@ public class EuroRogue extends ApplicationAdapter {
                 case '5':
                     eventEntity = new Entity();
 
-                    eventEntity.add( new StorageEvt("TestBuildSave", false) );
+                    eventEntity.add( new StorageEvt("TestBuildSave", StorageEvtType.LOAD_BUILD) );
                     engine.addEntity(eventEntity);
                     return;
             }
@@ -751,19 +810,11 @@ public class EuroRogue extends ApplicationAdapter {
                 Entity gameStateEvtEnt = new Entity();
                 engine.addEntity(gameStateEvtEnt);
                 gameStateEvtEnt.add(new GameStateEvt(GameState.PLAYING));
-                for(Entity entity : engine.getEntitiesFor(Family.one(CampEvt.class).get()))
-                {
-                    CampEvt campEvt = (CampEvt)CmpMapper.getComp(CmpType.CAMP_EVT, entity);
-                    for(Integer equipmentID : campEvt.equippedIDs)
-                    {
-                        Entity eventEntity = new Entity();
-                        ItemEvt itemEvt = new ItemEvt(equipmentID, getFocus().hashCode(), ItemEvtType.EQUIP);
-                        eventEntity.add(itemEvt);
-                        engine.addEntity(eventEntity);
-                    }
-                    campEvt.processed = true;
-                    break;
-                }
+
+
+
+
+
                 AISys aiSys = engine.getSystem(AISys.class);
                 aiSys.scheduleRestEvt(getFocus());
 
@@ -1046,6 +1097,20 @@ public class EuroRogue extends ApplicationAdapter {
                     focusLocation = ((PositionCmp)CmpMapper.getComp(CmpType.POSITION, getFocus())).coord;
                     if(decoDungeon[focusLocation.x][focusLocation.y]=='>')
                     {
+                        if(depth==1)
+                        {
+                            InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, focus);
+                            for(Integer id : inventoryCmp.getEquippedIDs())
+                            {
+                                Entity eventEntity = new Entity();
+                                ItemEvt itemEvt = new ItemEvt(id, focus.hashCode(), ItemEvtType.UNEQUIP);
+                                eventEntity.add(itemEvt);
+                                engine.addEntity(eventEntity);
+                            }
+                            GameStateEvt gameStateEvt = new GameStateEvt(GameState.SAVE_BUILD);
+                            player.add(gameStateEvt);
+                            return;
+                        }
                         depth++;
                         InventoryCmp inventoryCmp = ( InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, focus);
                         Entity evtEntity = new Entity();
@@ -1053,11 +1118,11 @@ public class EuroRogue extends ApplicationAdapter {
                         Collections.addAll(levelTypes, LevelType.values());
 
                         levelTypes.remove(LevelType.START);
-
+                        //TODO move rng level tye selection to level sys
                         LevelEvt levelEvt = new LevelEvt(rng.getRandomElement(levelTypes));
                         CampEvt campEvt = new CampEvt(focus.hashCode(), inventoryCmp.getEquippedIDs());
                         evtEntity.add(levelEvt);
-                        evtEntity.add(campEvt);
+                        focus.add(campEvt);
                         engine.addEntity(evtEntity);
                     }
                     break;
@@ -1255,7 +1320,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         input.setRepeatGap(160);
         campInput.setRepeatGap(240);
-        inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, input, shrineInput, startInput,  campInput, aimInput);
+        inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, input, shrineInput, startInput, saveBuildInput, campInput, aimInput);
         campInput.setIgnoreInput(true);
         Gdx.input.setInputProcessor(inputProcessor);
 
@@ -1639,8 +1704,11 @@ public class EuroRogue extends ApplicationAdapter {
         switch (gameState)
         {
             case GAME_OVER:
-            case LOADING:
+            case SAVE_BUILD:
+
+                if(saveBuildInput.hasNext()) saveBuildInput.next();
                 break;
+
 
             case PLAYING:
 

@@ -1,6 +1,7 @@
 package EuroRogue;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,13 +23,24 @@ import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WeaponCmp;
 import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.Systems.StorageSys;
 import squidpony.SquidStorage;
+import squidpony.StringKit;
 
 public class Storage extends SquidStorage
 {
+    public ArrayList<String> buildKeys = new ArrayList<>();
     public Storage()
     {
         super("EuroRogue");
+        try {
+            System.out.println("Found Build Keys");
+            this.buildKeys = this.get("EuroRogue", "buildKeys", buildKeys.getClass());
+            System.out.println(this.buildKeys);
+
+        } catch (Exception e) {
+            this.buildKeys =  new ArrayList<>();
+        }
     }
 
     public void storeCharBuild(String buildName, EuroRogue game)
@@ -47,6 +59,9 @@ public class Storage extends SquidStorage
         put(buildName + CmpType.MANA_POOL.toString(), manaPoolCmp );
         put(buildName + CmpType.INVENTORY.toString(), inventoryCmp );
         put(buildName + CmpType.LIGHT.toString(), lightCmp );
+
+        buildKeys.add(buildName);
+        put("buildKeys" , this.buildKeys );
 
 
 
@@ -76,6 +91,7 @@ public class Storage extends SquidStorage
 
 
         }
+
 
         store("EuroRogue");
 
@@ -186,5 +202,16 @@ public class Storage extends SquidStorage
 
     }
 
+    public void deleteBuild(String buildName)
+    {
+        System.out.println("Deleting Build");
+        remove(buildName);
+        buildKeys.remove(buildName);
+        put("buildKeys" , this.buildKeys );
+        store("EuroRogue");
+
+
+
+    }
 
 }

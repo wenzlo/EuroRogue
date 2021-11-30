@@ -4,12 +4,12 @@ public class StorageEvt implements IEventComponent
 {
     public boolean processed = false;
     public String buildName;
-    public boolean store;
+    public StorageEvtType storageEvtType;
 
-    public StorageEvt(String buildName, boolean store)
+    public StorageEvt(String buildName, StorageEvtType storageEvtType)
     {
         this.buildName = buildName;
-        this.store = store;
+        this.storageEvtType = storageEvtType;
     }
     @Override
     public boolean isProcessed() {

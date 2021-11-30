@@ -114,10 +114,14 @@ public class AISysRat  extends AISys
            /* String name = ((NameCmp) CmpMapper.getComp(CmpType.NAME, entity)).name;
             IColoredString.Impl<SColor> coloredString = new IColoredString.Impl<>(ticker.tick+" "+name+" takes turn", SColor.WHITE);
             entity.add(new LogEvt(ticker.tick, coloredString));*/
-
-
             ArrayList<Ability> availableAbilities = getAvailableActions(entity);
-            if(!availableAbilities.isEmpty() &! aiComp.visibleEnemies.isEmpty())
+            if(CmpMapper.getStatusEffectComp(StatusEffect.EXHAUSTED, entity) != null
+                    && aiComp.visibleEnemies.isEmpty())
+            {
+                scheduleCampEvt(entity);
+                continue;
+            }
+            else if(!availableAbilities.isEmpty() &! aiComp.visibleEnemies.isEmpty())
             {
                 Collections.shuffle(availableAbilities);
                 for(Ability ability : availableAbilities)
@@ -127,11 +131,7 @@ public class AISysRat  extends AISys
                         scheduleActionEvt(entity, ability);
                         return;
                     }
-
                 }
-
-
-
             }
 
             else if(manaPool.active.size()<manaPool.spent.size() || manaPool.active.size()==0)
@@ -146,15 +146,15 @@ public class AISysRat  extends AISys
                 Coord targetLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, aiComp.getTargetEntity(getGame()))).coord;
 
                 if(aiComp.visibleFriendlies.size()>1)
-                    aiComp.pathToFollow = aiComp.dijkstraMap.findPath(2, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
-                else if(aiComp.visibleFriendlies.size()<1)
+                    aiComp.pathToFollow = aiComp.dijkstraMap.findPath(1, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
+                else if(aiComp.visibleFriendlies.size()<1 || statsCmp.getRestLvl() <= 10)
                 {
                     List<Coord> fs = aiComp.getEnemyLocations(level);
                     Coord[] fearSources = new Coord[]{fs.get(0), fs.get(fs.size()-1)};
 
-                    aiComp.pathToFollow = aiComp.dijkstraMap.findFleePath(4, 1.2, level.getPositions(aiComp.visibleFriendlies), null, position.coord,  fearSources);
-                    if(aiComp.pathToFollow.size()==0)
-                        aiComp.pathToFollow = aiComp.dijkstraMap.findPath(2, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
+                    aiComp.pathToFollow = aiComp.dijkstraMap.findFleePath(1, 1.2, level.getPositions(aiComp.visibleFriendlies), null, position.coord,  fearSources);
+                    if(aiComp.pathToFollow.size()==0 && statsCmp.getRestLvl() > 8)
+                        aiComp.pathToFollow = aiComp.dijkstraMap.findPath(1, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
 
                 }
                 else if(aiComp.visibleFriendlies.size()==1)
@@ -164,13 +164,11 @@ public class AISysRat  extends AISys
                 {
                     Coord step = aiComp.pathToFollow.remove(0);
                     double terrainCost = aiComp.movementCosts[step.x][step.y];
-                    GreasedRegion debugDikj = new GreasedRegion(aiComp.dijkstraMap.costMap, 2.0);
-                    //debugDikj[position.coord.x][position.coord.y] ='@';
-                    //put.println(debugDikj);
+
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
+                    continue;
 
                 }
-
             }
 
             else if(aiComp.pathToFollow.size()>0)

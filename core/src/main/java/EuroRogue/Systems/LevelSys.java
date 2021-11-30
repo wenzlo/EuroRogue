@@ -236,7 +236,6 @@ public class LevelSys extends MyEntitySystem
 
     public Entity newLevel(LevelType levelType)
     {
-
         Entity newLevel = new Entity();
 
         LevelCmp levelCmp;
@@ -260,7 +259,7 @@ public class LevelSys extends MyEntitySystem
                 getGame().dungeonGen.generate(TilesetType.CAVES_LIMIT_CONNECTIVITY);
 
                 SColor.LIMITED_PALETTE[0] = SColor.STEAMED_CHESTNUT;
-                levelCmp  = new LevelCmp(getGame().dungeonGen);
+
                 SColor.LIMITED_PALETTE[0] = SColor.DB_LEAD;
                 ambientLightLvl = 0f;
                 maxAmbientLightLvl = 0f;
@@ -282,7 +281,7 @@ public class LevelSys extends MyEntitySystem
                 //getGame().dungeonGen.addGrass(3, 20);
                 getGame().dungeonGen.addDoors(100, true);
                 getGame().dungeonGen.generate(serpentMapGenerator.getDungeon(), serpentMapGenerator.getEnvironment());
-                levelCmp  = new LevelCmp(getGame().dungeonGen);
+
 
 
                 break;
@@ -292,7 +291,7 @@ public class LevelSys extends MyEntitySystem
                 getGame().dungeonGen.addGrass(3, 20);
                 getGame().dungeonGen.addDoors(100, true);
                 getGame().dungeonGen.generate(TilesetType.ROOMS_AND_CORRIDORS_B);
-                levelCmp  = new LevelCmp(getGame().dungeonGen);
+
 
                 break;
 
@@ -305,13 +304,31 @@ public class LevelSys extends MyEntitySystem
                 serpentMapGenerator.putCaveCarvers(2);
                 serpentMapGenerator.generate();
                 getGame().dungeonGen.generate(serpentMapGenerator.getDungeon(), serpentMapGenerator.getEnvironment());
-                levelCmp  = new LevelCmp(getGame().dungeonGen);
+
 
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + levelType);
         }
 
+        DijkstraMap dijkstraMap = new DijkstraMap(getGame().dungeonGen.getDungeon(), Measurement.EUCLIDEAN);
+        dijkstraMap.setGoals(new Coord[]{getGame().dungeonGen.stairsDown});
+        for(Coord coord : new GreasedRegion(getGame().dungeonGen.getDungeon(), '~'))
+        {
+            dijkstraMap.costMap[coord.x][coord.y] = 4;
+        }
+        dijkstraMap.scan();
+        ArrayList<Coord> path = dijkstraMap.findPath(100, null, null,getGame().dungeonGen.stairsUp, getGame().dungeonGen.stairsDown);
+        for(Coord coord : path)
+        {
+            if(getGame().dungeonGen.getDungeon()[coord.x][coord.y] == '~')
+            {
+                System.out.println(" clearing path coord "+coord);
+                getGame().dungeonGen.getDungeon()[coord.x][coord.y] = ',';
+            }
+
+        }
+        levelCmp  = new LevelCmp(getGame().dungeonGen);
 
         lightingCmp = new LightingCmp(levelCmp.lineDungeon, levelCmp.bgColors, minAmbientLight, maxAmbientLightLvl, ambientLightLvl);
         newLevel.add(levelCmp);
@@ -322,6 +339,9 @@ public class LevelSys extends MyEntitySystem
         GreasedRegion spwnCrds = new GreasedRegion();
         spwnCrds.addAll(new GreasedRegion(levelCmp.decoDungeon, '.'));
         spwnCrds.andNot(stairsUpFOV);
+        GreasedRegion pathGR = new GreasedRegion();
+        pathGR.addAll(path);
+        spwnCrds.andNot(pathGR);
         int numShrines = 0;
         ArrayList<School> schools = new ArrayList(Arrays.asList(School.values()));
         OrderedSet<OrderedSet<Coord>> roomCenters = getGame().dungeonGen.placement.getCenters();
@@ -349,7 +369,6 @@ public class LevelSys extends MyEntitySystem
             if(numShrines==4)break;
         }
         for(int i=numShrines; i<4; i++)
-        //for(Coord caveLoc : getGame().dungeonGen.placement.finder.allCaves)
         {
             Coord caveLoc = rng.getRandomElement(spwnCrds);
             School school = rng.getRandomElement(schools);

@@ -69,6 +69,7 @@ public class EventCleanUpSys extends MyEntitySystem
                 IEventComponent eventComponent = (IEventComponent) CmpMapper.getComp(cmpType, entity);
                 if(eventComponent != null)
                 {
+
                     if(eventComponent.isProcessed())entity.remove(cmpType.type);
                 }
             }

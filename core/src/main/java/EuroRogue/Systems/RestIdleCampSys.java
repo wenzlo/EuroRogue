@@ -91,9 +91,8 @@ public class RestIdleCampSys extends MyEntitySystem
                 StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, actor);
 
                 if(statusEffectCmp.seRemovalType == SERemovalType.SHORT_REST)
-                {
                     actor.remove(statusEffect.cls);
-                }
+
             }
             StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
             if((CmpMapper.getAIComp(statsCmp.mobType.aiType, getGame().getFocus())).visibleEnemies.contains(actor.hashCode()))
@@ -130,12 +129,35 @@ public class RestIdleCampSys extends MyEntitySystem
             }
 
             Entity eventEntity = new Entity();
-            GameStateEvt gameStateEvt = new GameStateEvt(GameState.CAMPING);
-            eventEntity.add(gameStateEvt);
-            getEngine().addEntity(eventEntity);
-            getEngine().getSystem(MakeCampSys.class).setProcessing(false);
-        }
 
+
+            if(CmpMapper.getStatusEffectComp(StatusEffect.STARVING, actorEntity)==null)
+            {
+                StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
+                statsCmp.rl = statsCmp.getMaxRestLvl();
+            }
+            for(StatusEffect statusEffect : StatusEffect.values())
+            {
+                StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, actorEntity);
+                if(statusEffectCmp!=null)
+                {
+                    System.out.println(statusEffect+" "+statusEffectCmp.seRemovalType);
+                    if(statusEffectCmp.seRemovalType == SERemovalType.LONG_REST) entity.remove(statusEffect.cls);
+                }
+            }
+
+
+            campEvt.processed = true;
+
+            if(entity == getGame().getFocus())
+            {
+                GameStateEvt gameStateEvt = new GameStateEvt(GameState.CAMPING);
+                eventEntity.add(gameStateEvt);
+                getEngine().addEntity(eventEntity);
+            }
+
+
+        }
     }
     private void activateAbilities(Entity entity)
     {

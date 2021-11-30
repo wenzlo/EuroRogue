@@ -114,7 +114,12 @@ public class AISysSnake extends AISys
             ArrayList<Ability> availableAbilities = getAvailableActions(entity);
             if(aiComp.visibleEnemies.isEmpty() && grass.contains(position.coord))
             {
-                scheduleRestEvt(entity);
+                if(statsCmp.getRestLvl()>10)
+                    scheduleRestEvt(entity);
+
+                else scheduleCampEvt(entity);
+
+                continue;
             }
             else if(aiComp.visibleEnemies.isEmpty()  && aiComp.pathToFollow.isEmpty())
             {

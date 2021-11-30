@@ -13,6 +13,7 @@ import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.MobType;
 import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.AI.AIType;
 import EuroRogue.Components.CodexCmp;
@@ -75,7 +76,16 @@ public class DeathSys extends MyEntitySystem
         for(Entity entity : entities)
         {
             DeathEvt deathEvt = (DeathEvt) CmpMapper.getComp(CmpType.DEATH_EVT, entity);
-            deathEvt.setProcessed(true);
+            int currentTime = (int) System.currentTimeMillis();
+            System.out.println(currentTime);
+            System.out.println(deathEvt.tod);
+            System.out.println(currentTime-deathEvt.tod );
+            if((currentTime-deathEvt.tod) > deathEvt.delay)
+                deathEvt.setProcessed(true);
+
+            else continue;
+
+
             if(getGame().getFocus()==entity)
             {
                 Entity eventEntity = new Entity();
@@ -92,7 +102,7 @@ public class DeathSys extends MyEntitySystem
         deathEvt.setProcessed(true);
         EuroRogue game = getGame();
         interupt( entity);
-        game.currentLevel.getComponent(LevelCmp.class).actors.remove(entity.hashCode());
+
 
         StatsCmp playerStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, game.player);
         AICmp playerAI = CmpMapper.getAIComp(AIType.DEFAULT_AI, game.player);
@@ -130,60 +140,67 @@ public class DeathSys extends MyEntitySystem
 
         Collections.sort(dropLocations, new SortByDistance(actorPosition));
 
-        boolean scrollDropped = false;
-        for(Skill skill : entityCodexCmp.known)
+        StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, entity);
+        if(statsCmp.mobType==MobType.DEFAULT)
         {
-            if(!playerCodexCmp.known.contains(skill) && Skill.qualify(skill, playerStats, playerCodexCmp))
+            boolean scrollDropped = false;
+            for(Skill skill : entityCodexCmp.known)
             {
-                for(Coord pos : dropLocations)
+                if(!playerCodexCmp.known.contains(skill) && Skill.qualify(skill, playerStats, playerCodexCmp))
                 {
-                    if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
+                    for(Coord pos : dropLocations)
                     {
-                        Entity scrollItem = getGame().generateScroll(pos, skill, levelCmp);
-                        getEngine().addEntity(scrollItem);
-                        scrollDropped=true;
+                        if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
+                        {
+                            Entity scrollItem = getGame().generateScroll(pos, skill, levelCmp);
+                            getEngine().addEntity(scrollItem);
+                            scrollDropped=true;
 
-                        dropLocations.remove(pos);
-                        break;
+                            dropLocations.remove(pos);
+                            break;
+                        }
                     }
+                    break;
                 }
-                break;
             }
-        }
-        for(Skill skill : entityCodexCmp.known)
-        {
-            if(!scrollDropped && skill!=Skill.MELEE_ATTACK)
+            for(Skill skill : entityCodexCmp.known)
             {
-                for(Coord pos : dropLocations)
+                if(!scrollDropped && skill!=Skill.MELEE_ATTACK)
                 {
-                    if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
+                    for(Coord pos : dropLocations)
                     {
-                        Entity scrollItem = getGame().generateScroll(pos, skill, levelCmp);
-                        getEngine().addEntity(scrollItem);
-                        dropLocations.remove(pos);
-                        break;
+                        if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos))
+                        {
+                            Entity scrollItem = getGame().generateScroll(pos, skill, levelCmp);
+                            getEngine().addEntity(scrollItem);
+                            dropLocations.remove(pos);
+                            break;
+                        }
                     }
+                    break;
                 }
-                break;
             }
-        }
 
-        for(Coord pos : dropLocations)
-        {
-
-            if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos) &! manaPoolCmp.attuned.isEmpty())
+            for(Coord pos : dropLocations)
             {
-                getEngine().addEntity(getGame().generateManaITem(pos, manaPoolCmp.attuned.get(0)));
 
-                dropLocations.remove(pos);
-                break;
+                if(!levelCmp.items.positions().contains(pos) && levelCmp.floors.contains(pos) &! manaPoolCmp.attuned.isEmpty())
+                {
+                    getEngine().addEntity(getGame().generateManaITem(pos, manaPoolCmp.attuned.get(0)));
+
+                    dropLocations.remove(pos);
+                    break;
+                }
             }
         }
+
         removeLights(entity);
 
-        dropItems(entity, dropLocations);
+        if(statsCmp.mobType == MobType.DEFAULT)
+            dropItems(entity, dropLocations);
         removeParticleEffects(entity, display);
         removeGlyphs(entity, display);
+        game.currentLevel.getComponent(LevelCmp.class).actors.remove(entity.hashCode());
         getEngine().removeEntity(entity);
 
     }
@@ -267,6 +284,26 @@ public class DeathSys extends MyEntitySystem
                 if(glyph!=null) windowCmp.lightingHandler.removeLightByGlyph(abilityComp.getGlyph());
             }
         }
+        Entity focus = getGame().getFocus();
+        codexCmp = (CodexCmp)CmpMapper.getComp(CmpType.CODEX, focus);
+
+        for(Skill skill : codexCmp.prepared)
+        {
+
+            Ability abilityComp = CmpMapper.getAbilityComp(skill, focus);
+
+            if(abilityComp!=null)
+            {
+
+                TextCellFactory.Glyph  glyph = abilityComp.glyph;
+
+                if(glyph!=null)
+                {
+
+                    windowCmp.lightingHandler.removeLightByGlyph(abilityComp.getGlyph());
+                }
+            }
+        }
     }
     private void removeGlyphs(Entity entity, MySparseLayers display)
     {
@@ -303,5 +340,20 @@ public class DeathSys extends MyEntitySystem
             }
 
         }
+        Entity focus = getGame().getFocus();
+        CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX,focus);
+        peCmp = (ParticleEffectsCmp) CmpMapper.getComp(CmpType.PARTICLES, focus);
+        for(Skill skill : codexCmp.prepared)
+        {
+            Ability ability = CmpMapper.getAbilityComp(skill, focus);
+
+            if(ability.getGlyph()!=null)
+            {
+
+                peCmp.removeEffectsByGlyph(ability.getGlyph(), display);
+            }
+        }
+
     }
+
 }

@@ -12,6 +12,7 @@ import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.Components.WindowCmp;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
@@ -38,7 +39,6 @@ public class IceShield extends Ability
     private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    public TextCellFactory.Glyph glyph;
     private GWTRNG rng = new GWTRNG();
 
     public IceShield()
@@ -81,10 +81,13 @@ public class IceShield extends Ability
     @Override
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
-        inactivate();
 
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
+        if(targetCoord==null)
+        {
+            targetCoord=startPos;
 
+        }
         return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.ICE_SHIELD, startPos, targetCoord, eventCmp);
     }
 

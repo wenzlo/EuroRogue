@@ -11,6 +11,7 @@ import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
@@ -21,6 +22,8 @@ import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
+import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.IColoredString;
 import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.School;
@@ -30,6 +33,7 @@ import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.Technique;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
@@ -40,6 +44,7 @@ public class Ability extends Technique implements Component, IAbilitySubSys
     public boolean aimed = false;
     public boolean available = false;
     private boolean active = true;
+    public TextCellFactory.Glyph glyph;
 
     private boolean scroll = false;
     private Integer scrollID = null;
@@ -202,7 +207,7 @@ public class Ability extends Technique implements Component, IAbilitySubSys
 
     @Override
     public TextCellFactory.Glyph getGlyph() {
-        return null;
+        return glyph;
     }
 
     @Override
@@ -349,5 +354,54 @@ public class Ability extends Technique implements Component, IAbilitySubSys
         if(player && ability.aimable) ability.aimed=true;
 
         return ability;
+    }
+    public void postToLog(Entity performer, EuroRogue game)
+    {
+        SColor schoolColor = getSkill().school.color;
+
+        IColoredString.Impl<SColor> line0 = new IColoredString.Impl<SColor>();
+        line0.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line0);
+
+        IColoredString.Impl<SColor> line1 = new IColoredString.Impl<SColor>();
+        line1.append("Name: ");
+        line1.append(name, schoolColor);
+        line1.append("   School: ");
+        line1.append(getSkill().school.name, schoolColor);
+        line1.append("   ttPerform: ");
+        line1.append(((Integer)getTTPerform(performer)).toString(), schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line1);
+
+
+        IColoredString.Impl<SColor> line2 = new IColoredString.Impl<SColor>();
+        line2.append("MaxRange: ");
+        line2.append(((Integer)aoe.getMaxRange()).toString(), schoolColor);
+        line2.append("   MinRange: ");
+        line2.append(((Integer)aoe.getMinRange()).toString(), schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line2);
+
+        IColoredString.Impl<SColor> line3 = new IColoredString.Impl<SColor>();
+        line3.append("Damage: ");
+        line3.append(((Integer)getDamage(performer)).toString(), schoolColor);
+        line3.append(getDmgType(performer).name(), schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line3);
+
+        IColoredString.Impl<SColor> line4 = new IColoredString.Impl<SColor>();
+        line4.append("Status Effects Applied: ");
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line4);
+        StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
+        for(StatusEffect statusEffect : getStatusEffects().keySet())
+        {
+            IColoredString.Impl<SColor> effectLine = new IColoredString.Impl<SColor>("   "+statusEffect.name+"  ", SColor.LIGHT_YELLOW_DYE);
+            effectLine.append(getStatusEffectDuration(statsCmp, statusEffect)+" ticks", SColor.WHITE);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(effectLine);
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
+
+
     }
 }

@@ -75,9 +75,9 @@ public class GameStateSys extends MyEntitySystem
                 for(Entity windowEntity : getGame().allWindows)
                     ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().startWindows.contains(windowEntity));
                 break;
-            case LOADING:
+            case SAVE_BUILD:
                 for(Entity windowEntity : getGame().allWindows)
-                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(false);
+                    ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity)).display.setVisible(getGame().saveBuildWindows.contains(windowEntity));
                 break;
 
             case PLAYING:
@@ -151,7 +151,13 @@ public class GameStateSys extends MyEntitySystem
                 getGame().aimInput.setIgnoreInput(true);
                 getGame().startInput.setIgnoreInput(true);
                 break;
-            case LOADING:
+            case SAVE_BUILD:
+                getGame().shrineInput.setIgnoreInput(true);
+                getGame().campInput.setIgnoreInput(true);
+                getGame().input.setIgnoreInput(true);
+                getGame().aimInput.setIgnoreInput(true);
+                getGame().startInput.setIgnoreInput(true);
+                break;
             case GAME_OVER:
                 break;
         }

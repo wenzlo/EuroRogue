@@ -137,7 +137,7 @@ public class ItemSys extends MyEntitySystem
         for(StatusEffect statusEffect : equipmentCmp.statusEffects.keySet())
         {
             Entity eventEntity = new Entity();
-            System.out.println("Adding Status Effect Event "+ statusEffect);
+
             StatusEffectEvt statusEffectEvt = new StatusEffectEvt(getGame().getGameTick(), null, statusEffect, null, null, actorEntity.hashCode(), SERemovalType.OTHER );
             eventEntity.add(statusEffectEvt);
             getEngine().addEntity(eventEntity);
@@ -164,7 +164,7 @@ public class ItemSys extends MyEntitySystem
 
         }
 
-        System.out.println(lightCmp);
+
         if(equipmentCmp.lightLevel > 0) lightCmp.level = equipmentCmp.lightLevel; lightCmp.color = equipmentCmp.lightColor;
         if(itemCmp.type== ItemType.TORCH) {
             peCmp.addEffect(glyphsCmp.leftGlyph, ParticleEffectsCmp.ParticleEffect.TORCH_P, windowCmp.display);

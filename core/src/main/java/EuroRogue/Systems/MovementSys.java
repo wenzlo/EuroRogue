@@ -33,6 +33,8 @@ import EuroRogue.MyEntitySystem;
 import EuroRogue.MyFOV;
 import EuroRogue.StatusEffectCmps.Bleeding;
 import EuroRogue.StatusEffectCmps.Burning;
+import EuroRogue.StatusEffectCmps.Exhausted;
+import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.Stalking;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import squidpony.squidgrid.Direction;
@@ -58,17 +60,24 @@ public class MovementSys extends MyEntitySystem
     {
         for (Entity entity : entities)
         {
-
             EuroRogue game = getGame();
             MoveEvt moveEvt = (MoveEvt) CmpMapper.getComp(CmpType.MOVE_EVT,entity);
 
             Entity actor = game.getEntity(moveEvt.entityID);
+            StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actor);
+
+            Exhausted exhausted = (Exhausted) CmpMapper.getStatusEffectComp(StatusEffect.EXHAUSTED, actor);
+            if(exhausted == null)
+            {
+                statsCmp.rl--;
+                if(statsCmp.rl <= 0)
+                    actor.add(new Exhausted());
+            }
 
             moveEvt.processed=true;
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
             SpatialMap actorMap = levelCmp.actors;
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
-
 
             if(levelCmp.doors.contains(moveEvt.destination) && levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y] =='+')
             {
@@ -80,7 +89,6 @@ public class MovementSys extends MyEntitySystem
             else if (levelCmp.doors.contains(moveEvt.destination) && levelCmp.decoDungeon[moveEvt.destination.x][moveEvt.destination.y] =='/'
                     && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT))
             {
-
                 LightingCmp lightingCmp = (LightingCmp)CmpMapper.getComp(CmpType.LIGHTING,getGame().currentLevel);
                 closeDoor(moveEvt.destination, levelCmp, lightingCmp);
                 continue;
@@ -92,7 +100,6 @@ public class MovementSys extends MyEntitySystem
 
             positionCmp.orientation = Direction.getRoughDirection(positionCmp.coord.toGoTo(moveEvt.destination).deltaX, positionCmp.coord.toGoTo(moveEvt.destination).deltaY);
             positionCmp.coord = moveEvt.destination;
-
 
             GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actor);
             WindowCmp windowCmp = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow);
@@ -130,19 +137,7 @@ public class MovementSys extends MyEntitySystem
             getEngine().addEntity(eventEntity3);
         }
     }
-    private void genLogEvent(Entity entity, Coord oldPos, Coord newPos)
-    {
-        int tick = ((TickerCmp)CmpMapper.getComp(CmpType.TICKER, getGame().ticker)).tick;
-        String name = ((NameCmp)CmpMapper.getComp(CmpType.NAME, entity)).name;
-        IColoredString.Impl  string = new IColoredString.Impl();
-        string.append(tick+" ", SColor.WHITE);
-        string.append(name, SColor.LIGHT_YELLOW_DYE);
-        string.append(" moves " + Direction.toGoTo(oldPos, newPos));
-        LogEvt logEvt = new LogEvt(tick, string);
-        Entity eventEntity = new Entity();
-        getEngine().addEntity(eventEntity);
-        eventEntity.add(logEvt);
-    }
+
 
     public void openDoor(Coord door, LevelCmp levelCmp, LightingCmp lightingCmp)
     {

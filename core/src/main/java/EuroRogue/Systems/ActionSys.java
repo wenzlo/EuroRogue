@@ -19,6 +19,7 @@ import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.Components.WindowCmp;
 import EuroRogue.DamageType;
@@ -30,6 +31,8 @@ import EuroRogue.IColoredString;
 import EuroRogue.ItemEvtType;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.StatusEffectCmps.Bleeding;
+import EuroRogue.StatusEffectCmps.Exhausted;
+import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -73,6 +76,18 @@ public class ActionSys extends MyEntitySystem
             action.processed=true;
 
             Entity performerEntity = getGame().getEntity(action.performerID);
+            StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS,performerEntity);
+            if(CmpMapper.getStatusEffectComp(StatusEffect.EXHAUSTED, performerEntity) == null)
+            {
+                statsCmp.rl --;
+                if(statsCmp.getRestLvl() <= 0)
+                {
+                    Exhausted exhausted = new Exhausted();
+                    exhausted.seRemovalType = SERemovalType.LONG_REST;
+                    performerEntity.add(new Exhausted());
+                }
+            }
+
             Ability abilityCmp = CmpMapper.getAbilityComp(action.skill, performerEntity);
             if(action.scrollID!=null) abilityCmp = getGame().getScrollAbilityCmp(action.skill, performerEntity);
             TargetType targetType = abilityCmp.getTargetType();
@@ -132,7 +147,6 @@ public class ActionSys extends MyEntitySystem
                     damageEvtEntity.add(new DamageEvent(performerEntity.hashCode(), bleeding.damagePerMove, DamageType.NONE, StatusEffect.BLEEDING));
                     getEngine().addEntity(damageEvtEntity);
                 }
-                generateActionLogEvt(action, performerEntity);
 
             }
         }
@@ -148,6 +162,7 @@ public class ActionSys extends MyEntitySystem
         coloredEvtText.append(" "+name, SColor.BROWN);
         coloredEvtText.append(" performs", SColor.WHITE);
         coloredEvtText.append(" "+actionEvt.skill.name, actionEvt.skill.school.color);
+
         return new LogEvt(tick, coloredEvtText);
     }
     private LogEvt generateCancelLogEvt (ActionEvt actionEvt, Entity entity)

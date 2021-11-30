@@ -34,6 +34,8 @@ import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.StatEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
+import EuroRogue.EventComponents.StorageEvt;
+import EuroRogue.EventComponents.StorageEvtType;
 import EuroRogue.GameState;
 import EuroRogue.IColoredString;
 import EuroRogue.ItemEvtType;
@@ -123,6 +125,12 @@ public class MenuUpdateSys extends MyEntitySystem {
         int y = 0;
         for (Ability abilityCmp : preparedAbilities)
         {
+            Runnable postDescription = new Runnable() {
+                @Override
+                public void run() {
+                    abilityCmp.postToLog(focusEntity, getGame());
+                }
+            };
             Coord coord = Coord.get(x, y);
             Character chr = null;
 
@@ -167,6 +175,7 @@ public class MenuUpdateSys extends MyEntitySystem {
                 };
             }
             menuItem.addPrimaryAction(primaryAction);
+            menuItem.addSecondaryAction(postDescription);
             menuCmp.menuMap.put(coord, chr, menuItem);
             getGame().keyLookup.put(chr, menuCmp);
             y++;
@@ -627,13 +636,17 @@ public class MenuUpdateSys extends MyEntitySystem {
             }
         };
         char chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
-        MenuItem menuItem = new MenuItem(new IColoredString.Impl(chr+") New Game", SColor.WHITE));
+        String label = "Start Tutorial Level";
+        if(getGame().depth>1)
+            label = "Start Game";
+        MenuItem menuItem = new MenuItem(new IColoredString.Impl(chr+") " + label, SColor.WHITE));
         menuItem.addPrimaryAction(primaryAction);
 
-
-        menuCmp.menuMap.put(Coord.get(1,1), chr, menuItem );
+        int x=0; int y=0;
+        menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
         getGame().keyLookup.put(chr, menuCmp);
         getGame().globalMenuIndex++;
+        y++;
 
         Entity player = getGame().player;
 
@@ -642,23 +655,62 @@ public class MenuUpdateSys extends MyEntitySystem {
             public void run()
             {
                 getGame().generatePlayer();
-                StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS,player);
+                getGame().depth = 1;
 
             }
         };
         chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
-        menuItem = new MenuItem(new IColoredString.Impl(chr+") New Character", SColor.WHITE));
+        menuItem = new MenuItem(new IColoredString.Impl(chr+") New Random Tutorial Build", SColor.WHITE));
         menuItem.addPrimaryAction(primaryAction);
 
 
-        menuCmp.menuMap.put(Coord.get(1,2), chr, menuItem );
+        menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
         getGame().keyLookup.put(chr, menuCmp);;
         getGame().globalMenuIndex++;
+        y++;
+
+        for(String key : getGame().storage.buildKeys)
+        {
+            primaryAction = new Runnable() {
+                @Override
+                public void run()
+                {
+                    StorageEvt storageEvt = new StorageEvt(key, StorageEvtType.LOAD_BUILD);
+                    player.add(storageEvt);
+                    getGame().depth = 2;
+
+                }
+            };
+            Runnable secondaryAction = new Runnable() {
+                @Override
+                public void run()
+                {
+                    StorageEvt storageEvt = new StorageEvt(key, StorageEvtType.DELETE_BUILD);
+                    player.add(storageEvt);
+                    getGame().depth = 1;
+
+                }
+            };
+            chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+            menuItem = new MenuItem(new IColoredString.Impl(chr+") Load Build: "+ key, SColor.WHITE));
+            menuItem.addPrimaryAction(primaryAction);
+            menuItem.addSecondaryAction(secondaryAction);
+            menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
+            getGame().keyLookup.put(chr, menuCmp);;
+            getGame().globalMenuIndex++;
+            y++;
+            //System.out.println("build choice added");
+
+        }
+        y++;
+        x++;
+        y=12;
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
-        menuCmp.menuMap.put(Coord.get(1,5), null, new MenuItem(new IColoredString.Impl("Stat Increase Costs", SColor.WHITE)));
-        int x=1;int y=7;
+        menuCmp.menuMap.put(Coord.get(x,y), null, new MenuItem(new IColoredString.Impl("Stat Increase Costs", SColor.WHITE)));
 
+        y++;
+        y++;
         for (StatType statType : StatType.CORE_STATS)
         {
             Coord coord = Coord.get(x, y);
@@ -671,7 +723,6 @@ public class MenuUpdateSys extends MyEntitySystem {
             menuItem = new MenuItem(statLabel);
 
             menuCmp.menuMap.put(coord, null, menuItem);
-
 
             y++;
         }

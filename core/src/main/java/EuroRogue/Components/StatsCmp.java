@@ -14,12 +14,14 @@ import EuroRogue.School;
 import EuroRogue.SortManaBySchool;
 import EuroRogue.StatType;
 import squidpony.squidgrid.Direction;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.GWTRNG;
 
 
 public class StatsCmp implements Component
 {
     public int hp;
+    public int rl;
     public MobType mobType;
     private int str = 0;
     private int dex = 0;
@@ -58,22 +60,7 @@ public class StatsCmp implements Component
             spiritDecreases = Arrays.asList(StatType.TT_CAST, StatType.TT_MELEE, StatType.TT_MOVE,
                                             StatType.TT_REST);
 
-    public int getStr() { return str; }
-    public int getDex() { return dex; }
-    public int getCon() { return con; }
-    public int getPerc() { return perc; }
-    public int getIntel() { return intel; }
-    public int getSoundDetectionLvl()
-    {
 
-        return Math.round(7-perc/2f * soundDetectionLvlMult);
-    }
-    public double getMoveSndLvl()
-    {
-        return Math.round(10 * moveSndLvlMult);
-    }
-    public double getLightDetectionLvl() {return Math.round((0.5-getPerc()*0.05f)*lightDetectionLvlMult*100)/100.0;}
-    public double getVisibleLightLvl() {return Math.round(visibleDetectionLvlMult)/100.0;}
     public StatsCmp(){}
     public StatsCmp(int str, int dex, int con, int perc, int intel, MobType mobType)
     {
@@ -84,6 +71,7 @@ public class StatsCmp implements Component
         this.intel = intel;
         this.mobType = mobType;
         this.hp = getMaxHP();
+        this.rl = getMaxRestLvl();
     }
     public StatsCmp(GWTRNG rng)
     {
@@ -124,11 +112,38 @@ public class StatsCmp implements Component
             statCosts.put(statType, new ArrayList<>(cost));
             cost.clear();
         }
+
     }
     public int getMaxHP()
     {
         return Math.round((Arrays.stream(new int[]{str, con, dex, intel, perc}).sum()*4+8 * con)*getStatMultiplier(StatType.MAX_HP));
     }
+    public int getMaxRestLvl()
+    {
+        return 90 + getCon()*10;
+    }
+    public int getRestLvl()
+    {
+        return rl;
+    }
+
+    public int getStr() { return str; }
+    public int getDex() { return dex; }
+    public int getCon() { return con; }
+    public int getPerc() { return perc; }
+    public int getIntel() { return intel; }
+    public int getSoundDetectionLvl()
+    {
+
+        return Math.round(7-perc/2f * soundDetectionLvlMult);
+    }
+    public double getMoveSndLvl()
+    {
+        return Math.round(10 * moveSndLvlMult);
+    }
+    public double getLightDetectionLvl() {return Math.round((0.5-getPerc()*0.05f)*lightDetectionLvlMult*100)/100.0;}
+    public double getVisibleLightLvl() {return Math.round(visibleDetectionLvlMult)/100.0;}
+
     public int getSpellPower()
     {
         if(getIntel() == 0) return 0;
@@ -402,6 +417,7 @@ public class StatsCmp implements Component
         StringBuilder sb = new StringBuilder();
         sb.append("CORE STATS" +"\n");
         sb.append("HP = "+hp+"/"+getMaxHP() +"\n");
+        sb.append("Rest Lvl = "+ getRestLvl()+"\n");
         sb.append("strength     = "+ str +"\n");
         sb.append("dexterity    = "+ dex +"\n");
         sb.append("constitution = "+ con +"\n");
@@ -413,7 +429,6 @@ public class StatsCmp implements Component
         sb.append("ttMelee = "+getTTMelee()+"\n");
         sb.append("ttCast  = "+getTTCast()+"\n");
         sb.append("ttRest  = "+getTTRest()+"\n"+"\n");
-        sb.append("NoiseLvl= "+ getMoveSndLvl()+"\n");
 
         sb.append("RESISTS"+"\n"+"\n");
         sb.append("Bludgeon = "+(Math.round((-(1-getResistMultiplier(DamageType.BLUDGEONING)))*100))+"%"+"\n");

@@ -5,14 +5,18 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
+import javax.print.attribute.standard.MediaSize;
+
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.FOVCmp;
 import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
+import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.TickerCmp;
+import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
@@ -38,7 +42,7 @@ public class MakeCampSys extends MyEntitySystem
      */
     @Override
     public void addedToEngine(Engine engine) {
-        entities = engine.getEntitiesFor(Family.all(FocusCmp.class).get());
+        entities = engine.getEntitiesFor(Family.all(CampEvt.class).get());
     }
 
     /**
@@ -57,14 +61,15 @@ public class MakeCampSys extends MyEntitySystem
         {
             FOVCmp fovCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, entity);
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
-            OrderedSet<Coord> positions = levelCmp.actors.positions();
+            NameCmp nameCmp = (NameCmp) CmpMapper.getComp(CmpType.NAME, entity);
+            System.out.println(entity.getComponents());
+            System.out.println(levelCmp.actors.positions());
             for(Coord coord : levelCmp.actors.positions())
             {
                 if(coord==positionCmp.coord)continue;
                 if(fovCmp.visible.contains(coord))
                 {
                     tickerCmp.actionQueue.removeAll(tickerCmp.getScheduledActions(entity));
-                    this.setProcessing(false);
                     ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateCampLogEvt().entry);
                     break;
                 }

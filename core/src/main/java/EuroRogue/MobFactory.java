@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -63,6 +64,8 @@ public class MobFactory
         mob.add(new LightCmp(0, SColor.AURORA_BURNT_YELLOW.toFloatBits()));
         mob.add(new FocusCmp());
         mob.add(new ParticleEffectsCmp());
+        ManaPoolCmp manaPoolCmp = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, mob);
+        Collections.addAll(manaPoolCmp.spent, new School[]{School.WAR, School.WAR, School.WAR});
 
         setRandomSkillSet(mob, MobType.PLAYER);
 
@@ -159,6 +162,7 @@ public class MobFactory
 
         stats.setSpirit(manaPool.unattunedMana().size());
         stats.hp= stats.getMaxHP();
+        stats.rl = stats.getMaxRestLvl();
     }
 
     public StatsCmp getRandomStats(int total, MobType mobType)

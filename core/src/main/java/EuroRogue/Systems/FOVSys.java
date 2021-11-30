@@ -15,6 +15,7 @@ import EuroRogue.Components.LightingCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
+import EuroRogue.EventComponents.MoveEvt;
 import EuroRogue.GameState;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.MyFOV;
@@ -28,6 +29,7 @@ import squidpony.squidmath.GreasedRegion;
 public class FOVSys extends MyEntitySystem {
 
     private ImmutableArray<Entity> entities;
+    private ImmutableArray<Entity> moveEvents;
 
 
     public FOVSys() {
@@ -42,6 +44,8 @@ public class FOVSys extends MyEntitySystem {
     @Override
     public void addedToEngine(Engine engine) {
         entities = engine.getEntitiesFor(Family.one(FOVCmp.class).get());
+        moveEvents = engine.getEntitiesFor(Family.one(MoveEvt.class).get());
+
     }
 
     /**
@@ -52,10 +56,15 @@ public class FOVSys extends MyEntitySystem {
     @Override
     public void update(float deltaTime)
     {
-        if(getGame().gameState!= GameState.PLAYING) return;
+        if(getGame().gameState!= GameState.PLAYING ) return;
+        Entity focus = getGame().getFocus();;
         for (int i = 0; i < entities.size(); ++i)
         {
-            updateFOV(entities.get(i));
+            Entity actor = entities.get(i);
+            if( actor == focus || moveEvents.size()>0)
+            {
+                updateFOV(actor);
+            }
         }
     }
 
