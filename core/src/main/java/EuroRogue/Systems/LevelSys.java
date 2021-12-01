@@ -323,7 +323,6 @@ public class LevelSys extends MyEntitySystem
         {
             if(getGame().dungeonGen.getDungeon()[coord.x][coord.y] == '~')
             {
-                System.out.println(" clearing path coord "+coord);
                 getGame().dungeonGen.getDungeon()[coord.x][coord.y] = ',';
             }
 

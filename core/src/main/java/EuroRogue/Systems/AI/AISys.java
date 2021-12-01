@@ -12,7 +12,10 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.text.html.HTMLDocument;
 
 import EuroRogue.AbilityCmpSubSystems.Ability;
 import EuroRogue.AbilityCmpSubSystems.Skill;
@@ -233,7 +236,7 @@ public class AISys extends MyEntitySystem
                 {
                     setTarget(entity, getGame().getEntity(aiComp.visibleEnemies.get(0)));
                     Coord targetLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, aiComp.getTargetEntity(getGame()))).coord;
-                    aiComp.pathToFollow = aiComp.dijkstraMap.findPath(15, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
+                    aiComp.pathToFollow = aiComp.dijkstraMap.findPath(1, null, null, aiComp.location, targetLoc);
 
 
                 } else {
@@ -245,7 +248,7 @@ public class AISys extends MyEntitySystem
                     if(aiComp.pathToFollow.size()==0)
                     {
                         Coord targetLoc = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, aiComp.getTargetEntity(getGame()))).coord;
-                        aiComp.pathToFollow = aiComp.dijkstraMap.findPath(15, level.getPositions(aiComp.visibleFriendlies), null, position.coord, targetLoc);
+                        aiComp.pathToFollow = aiComp.dijkstraMap.findPath(1, null, null, aiComp.location, targetLoc);
                     }
 
 
@@ -268,12 +271,13 @@ public class AISys extends MyEntitySystem
                 ArrayList<Coord> alerts = new ArrayList<>(aiComp.alerts.values());
                 Collections.sort(alerts, new SortByDistance(aiComp.location));
                 Coord targetLoc = alerts.get(0);
-                aiComp.pathToFollow = aiComp.dijkstraMap.findPath(15,null, null, position.coord, targetLoc);
+                aiComp.pathToFollow = aiComp.dijkstraMap.findPath(1, null, null, aiComp.location, targetLoc);
                 if(aiComp.pathToFollow.size()>0)
                 {
                     Coord step = aiComp.pathToFollow.remove(0);
                     double terrainCost = aiComp.movementCosts[step.x][step.y];
                     scheduleMoveEvt(entity, Direction.toGoTo(position.coord, step), terrainCost);
+                    continue;
                 }
             }
             else if(aiComp.pathToFollow.size()>0)
@@ -320,9 +324,10 @@ public class AISys extends MyEntitySystem
         LightingCmp lightingCmp = (LightingCmp) CmpMapper.getComp(CmpType.LIGHTING, getGame().currentLevel);
 
         if(!detected(entity)) entity.remove(DetectedCmp.class);
-
-        for(Coord entPos:levelCmp.actors.positions())
+        Iterator<Coord> positions = levelCmp.actors.positionIterator();
+        while(positions.hasNext())
         {
+            Coord entPos = positions.next();
             if(entPos==aiComp.location)
             {
                 continue;
@@ -357,7 +362,7 @@ public class AISys extends MyEntitySystem
             if(selfFOV.visible.contains(entPos))
             {
                 aiComp.visibleItems.add(entID);
-                goals.add(entPos);
+                //goals.add(entPos);
             }
         }
 
@@ -390,11 +395,14 @@ public class AISys extends MyEntitySystem
         for(Integer id : alertsToRemove) aiComp.alerts.remove(id);
         goals.addAll(aiComp.alerts.values());
 
+        /*if(goals.size()>0)
+        {
+            aiComp.dijkstraMap.clearGoals();
+            aiComp.dijkstraMap.setGoals(goals);
+            aiComp.dijkstraMap.partialScan(15);
+            //System.out.println(aiComp.visibleEnemies);
+        }*/
 
-        aiComp.dijkstraMap.clearGoals();
-        aiComp.dijkstraMap.setGoals(goals);
-        aiComp.dijkstraMap.scan();
-        //System.out.println(aiComp.visibleEnemies);
 
 
 

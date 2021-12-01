@@ -40,8 +40,6 @@ public class AISysSnake extends AISys
         super.aiType = AIType.SNAKE_AI;
 
     }
-
-
     /**
      * The update method called every tick.
      *
@@ -112,7 +110,7 @@ public class AISysSnake extends AISys
 
             boolean stalking = CmpMapper.getStatusEffectComp(StatusEffect.STALKING,entity) != null;
             ArrayList<Ability> availableAbilities = getAvailableActions(entity);
-            if(aiComp.visibleEnemies.isEmpty() && grass.contains(position.coord))
+            if(aiComp.visibleEnemies.isEmpty())
             {
                 if(statsCmp.getRestLvl()>10)
                     scheduleRestEvt(entity);
@@ -133,8 +131,6 @@ public class AISysSnake extends AISys
                     if(!aiComp.pathToFollow.isEmpty()) break;
 
                 }
-
-
             }
             else if(!availableAbilities.isEmpty())
             {

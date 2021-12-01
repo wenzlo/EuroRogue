@@ -75,7 +75,7 @@ public class WinSysSaveBuild extends MyEntitySystem
 
                 eventEntity.add( new StorageEvt(buildName, StorageEvtType.SAVE_BUILD) );
                 getGame().engine.addEntity(eventEntity);
-                System.out.println("Saving Build from menuITem");
+
 
             }
         };

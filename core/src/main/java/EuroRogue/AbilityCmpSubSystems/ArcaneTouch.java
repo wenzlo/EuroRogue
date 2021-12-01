@@ -42,7 +42,6 @@ public class ArcaneTouch extends Ability
         super("Arcane Touch", new PointAOE(Coord.get(-1,-1), 1, 1));
     }
 
-
     public Skill getSkill() {
         return skill;
     }
@@ -57,52 +56,38 @@ public class ArcaneTouch extends Ability
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
         aoe.setOrigin(positionCmp.coord);
     }
-
     @Override
     public void setTargetedLocation(Coord targetedLocation) { this.targetedLocation=targetedLocation;}
-
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
-
-    @Override
-    public float getDmgReduction(StatsCmp statsCmp) {
-        return 0;
-    }
-
     @Override
     public TargetType getTargetType() {
         return TargetType.ENEMY;
     }
-
     @Override
     public int getDamage(Entity performer)
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         return statsCmp.getSpellPower();
     }
-
     @Override
     public DamageType getDmgType(Entity performer)
     {
         return DamageType.ARCANE;
     }
-
     @Override
     public int getTTPerform(Entity performer)
     {
         return ((StatsCmp) CmpMapper.getComp(CmpType.STATS,performer)).getTTCast();
     }
-
     @Override
     public double getNoiseLvl(Entity performer) {
         return 10;
     }
-
     @Override
     public ItemEvt genItemEvent(Entity performer, Entity target) {
         return null;
     }
-
     @Override
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
@@ -110,12 +95,10 @@ public class ArcaneTouch extends Ability
 
         return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.MELEE_ARCANE, startPos, targetCoord, eventCmp);
     }
-
     @Override
     public TextCellFactory.Glyph getGlyph() {
         return glyph;
     }
-
     @Override
     public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer)
     {
@@ -132,25 +115,21 @@ public class ArcaneTouch extends Ability
 
 
     }
-
     @Override
     public HashMap<StatusEffect, SEParameters> getStatusEffects()
     {
         return statusEffects;
     }
-
     @Override
     public void addStatusEffect(StatusEffect statusEffect, SEParameters seParameters)
     {
         statusEffects.put(statusEffect, seParameters);
     }
-
     @Override
     public void removeStatusEffect(StatusEffect statusEffect)
     {
         statusEffects.remove(statusEffect);
     }
-
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {

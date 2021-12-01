@@ -86,10 +86,10 @@ public class FOVSys extends MyEntitySystem {
             origin =  Coord.get(x,y);
         }
 
-        MyFOV.reuseFOV(levelCmp.resistance, fovCmp.fov, origin.x, origin.y, 10, Radius.CIRCLE);
+        MyFOV.reuseFOV(levelCmp.resistance, fovCmp.fov, origin.x, origin.y, 9, Radius.CIRCLE);
 
         boolean stalking = CmpMapper.getStatusEffectComp(StatusEffect.STALKING, entity)!=null;
-        boolean brightLight = lightingCmp.fgLightLevel[positionCmp.coord.x][positionCmp.coord.y] >0.6;
+        boolean brightLight = lightingCmp.fgLightLevel[positionCmp.coord.x][positionCmp.coord.y] > 0.5;
         double radiusMultiplier = brightLight ? 0.5 : 1;
         MyFOV.reuseFOV(levelCmp.resistance, fovCmp.nightVision, origin.x, origin.y, statsCmp.getNVRadius(), Radius.CIRCLE,
                         orientationToAngle(positionCmp.orientation), radiusMultiplier, radiusMultiplier, 1.01*radiusMultiplier,

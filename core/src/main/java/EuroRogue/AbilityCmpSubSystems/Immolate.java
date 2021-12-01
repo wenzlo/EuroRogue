@@ -64,12 +64,6 @@ public class Immolate extends Ability
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
 
-
-    @Override
-    public float getDmgReduction(StatsCmp statsCmp) {
-        return 0;
-    }
-
     @Override
     public TargetType getTargetType() {
         return TargetType.ENEMY;
@@ -154,7 +148,7 @@ public class Immolate extends Ability
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getSpellPower()*3;
+        return statsCmp.getSpellPower();
     }
 
 

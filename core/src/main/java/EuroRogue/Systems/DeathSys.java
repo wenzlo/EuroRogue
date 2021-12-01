@@ -77,9 +77,7 @@ public class DeathSys extends MyEntitySystem
         {
             DeathEvt deathEvt = (DeathEvt) CmpMapper.getComp(CmpType.DEATH_EVT, entity);
             int currentTime = (int) System.currentTimeMillis();
-            System.out.println(currentTime);
-            System.out.println(deathEvt.tod);
-            System.out.println(currentTime-deathEvt.tod );
+
             if((currentTime-deathEvt.tod) > deathEvt.delay)
                 deathEvt.setProcessed(true);
 

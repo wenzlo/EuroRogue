@@ -51,7 +51,7 @@ import EuroRogue.Systems.AI.AISys;
 import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
-
+//TODO move to individual WinSystems
 public class MenuUpdateSys extends MyEntitySystem {
     private ImmutableArray<Entity> entities;
 
@@ -506,6 +506,16 @@ public class MenuUpdateSys extends MyEntitySystem {
         int y = 0;
         for (Skill skill : codexCmp.known)
         {
+            Ability abilityCmp = CmpMapper.getAbilityComp(skill, focusEntity);
+            if(abilityCmp==null)
+                abilityCmp = Ability.newAbilityCmp(skill, true);
+            Ability finalAbilityCmp = abilityCmp;
+            Runnable postDescription = new Runnable() {
+                @Override
+                public void run() {
+                    finalAbilityCmp.postToLog(focusEntity, getGame());
+                }
+            };
             Coord coord = Coord.get(x, y);
             Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
             IColoredString.Impl abilityLabel = getCodexSkillLabel(skill, chr, finalLength, codexCmp.prepared.contains(skill));
@@ -541,6 +551,7 @@ public class MenuUpdateSys extends MyEntitySystem {
             }
 
             menuItem.addPrimaryAction(primaryAction);
+            menuItem.addSecondaryAction(postDescription);
             menuCmp.menuMap.put(coord, charKey, menuItem);
 
             getGame().keyLookup.put(charKey, menuCmp);
@@ -668,6 +679,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         getGame().keyLookup.put(chr, menuCmp);;
         getGame().globalMenuIndex++;
         y++;
+
 
         for(String key : getGame().storage.buildKeys)
         {

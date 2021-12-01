@@ -274,7 +274,7 @@ public class EuroRogue extends ApplicationAdapter {
         Entity eventEntity = new Entity();
 
         LevelEvt levelEvt = new LevelEvt(LevelType.START);
-        System.out.println(depth);
+
         if( depth>1)
         {
             List<LevelType> levelTypes = new ArrayList<>();
@@ -377,7 +377,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         campWindow = new Entity();
 
-        Stage campWinStage = buildStage(48,27,56,26,56,26,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        Stage campWinStage = buildStage(48,27,59,30,59,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
         campWindow.add(new WindowCmp( (MySparseLayers)campWinStage.getActors().get(0),campWinStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{1,25,40, 65};
         campWindow.add(new MenuCmp());
@@ -386,7 +386,7 @@ public class EuroRogue extends ApplicationAdapter {
         campWInBg = new Entity();
 
         font = DefaultResources.getStretchableSquareFont();
-        width = ((MySparseLayers) campWinStage.getActors().get(0)).gridWidth/4+1;
+        width = ((MySparseLayers) campWinStage.getActors().get(0)).gridWidth/4+2;
         height = ((MySparseLayers) campWinStage.getActors().get(0)).gridHeight/2+1;
         Stage campBgStage = buildStage(46, 26, width, height, width, height ,cellWidth*4,cellHeight*4, font, SColor.WHITE.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)campBgStage.getActors().get(0), campBgStage, true);
@@ -631,30 +631,6 @@ public class EuroRogue extends ApplicationAdapter {
         objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
         mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory, armorFactory);
 
-        // gotta have a random number generator. We can seed an RNG with any long we want, or even a String.
-        // if the seed is identical between two runs, any random factors will also be identical (until user input may
-        // cause the usage of an RNG to change). You can randomize the dungeon and several other initial settings by
-        // just removing the String seed, making the line "rng = new GWTRNG();" . Keeping the seed as a default allows
-        // changes to be more easily reproducible, and using a fixed seed is strongly recommended for tests. 
-
-        // SquidLib has many methods that expect an IRNG instance, and there's several classes to choose from.
-        // In this program we'll use GWTRNG, which will behave better on the HTML target than other generators.
-
-
-
-        // YCwCmFilter multiplies the brightness (Y), warmth (Cw), and mildness (Cm) of a color 
-        // This filters colors in a way we adjust over time, producing a sort of hue shift effect.
-        // It can also be used to over- or under-saturate colors, change their brightness, or any combination of these.
-       /* FloatFilters.YCwCmFilter warmMildFilter = new FloatFilters.YCwCmFilter(0.875f, 0.6f, 0.6f);
-        FloatFilters.ColorizeFilter sepiaFilter = new FloatFilters.ColorizeFilter(SColor.CLOVE_BROWN, 0.6f, 0.0f);
-        FloatFilters.LerpFilter burningFilter = new FloatFilters.LerpFilter(SColor.SAFETY_ORANGE.toFloatBits(), 0.2f);*/
-
-        // FilterBatch is exactly like libGDX' SpriteBatch, except it is a fair bit faster when the Batch color is set
-        // often (which is always true for SquidLib's text-based display), and it allows a FloatFilter to be optionally
-        // set that can adjust colors in various ways. The FloatFilter here, a YCwCmFilter, can have its adjustments to
-        // brightness (Y, also called luma), warmth (blue/green vs. red/yellow) and mildness (blue/red vs. green/yellow)
-        // changed at runtime, and the putMap() method does this. This can be very powerful; you might increase the
-        // warmth of all colors (additively) if the player is on fire, for instance.
         filterBatch = new FilterBatch();
         initializeWindows();
         initializeSystems();

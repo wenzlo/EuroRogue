@@ -28,7 +28,6 @@ import squidpony.squidai.DijkstraMap;
 import squidpony.squidgrid.Direction;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
-import squidpony.squidmath.GreasedRegion;
 
 
 public class AISysRat  extends AISys

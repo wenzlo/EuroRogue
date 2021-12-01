@@ -164,7 +164,7 @@ public class Chill extends Ability
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getSpellPower()*3;
+        return statsCmp.getSpellPower();
     }
 
 

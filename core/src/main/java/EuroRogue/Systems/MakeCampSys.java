@@ -62,8 +62,7 @@ public class MakeCampSys extends MyEntitySystem
             FOVCmp fovCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, entity);
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
             NameCmp nameCmp = (NameCmp) CmpMapper.getComp(CmpType.NAME, entity);
-            System.out.println(entity.getComponents());
-            System.out.println(levelCmp.actors.positions());
+
             for(Coord coord : levelCmp.actors.positions())
             {
                 if(coord==positionCmp.coord)continue;

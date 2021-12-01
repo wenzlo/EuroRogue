@@ -32,6 +32,8 @@ public class WinSysCampUiBg extends MyEntitySystem
     private ImmutableArray<Entity> entities;
     private LightHandler lightHandler;
 
+
+
     public WinSysCampUiBg()
     {
         super.priority=10;

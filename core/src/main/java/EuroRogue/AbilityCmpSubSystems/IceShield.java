@@ -12,7 +12,6 @@ import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
-import EuroRogue.Components.WindowCmp;
 import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
@@ -131,7 +130,7 @@ public class IceShield extends Ability
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
-        return statsCmp.getSpellPower()*3;
+        return statsCmp.getSpellPower();
     }
 
     @Override

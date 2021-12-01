@@ -141,7 +141,6 @@ public class RestIdleCampSys extends MyEntitySystem
                 StatusEffectCmp statusEffectCmp = (StatusEffectCmp) CmpMapper.getStatusEffectComp(statusEffect, actorEntity);
                 if(statusEffectCmp!=null)
                 {
-                    System.out.println(statusEffect+" "+statusEffectCmp.seRemovalType);
                     if(statusEffectCmp.seRemovalType == SERemovalType.LONG_REST) entity.remove(statusEffect.cls);
                 }
             }

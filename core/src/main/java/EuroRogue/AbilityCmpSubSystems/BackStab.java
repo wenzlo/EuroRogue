@@ -125,10 +125,7 @@ public class BackStab extends Ability
     {
         return statsCmp.getAttackPower()*3;
     }
-    @Override
-    public float getDmgReduction(StatsCmp statsCmp) {
-        return 0;
-    }
+
     @Override
     public TargetType getTargetType() {
         return TargetType.ENEMY;

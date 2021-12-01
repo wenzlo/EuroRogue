@@ -169,11 +169,6 @@ public class Blink extends Ability
     }
 
     @Override
-    public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect) {
-        return 0;
-    }
-
-    @Override
     public float getDmgReduction(StatsCmp statsCmp)
     {
         return 1f;

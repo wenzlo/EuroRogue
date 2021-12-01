@@ -22,7 +22,6 @@ import EuroRogue.EventComponents.ActionEvt;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
-import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.IColoredString;
 import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
@@ -38,19 +37,18 @@ import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
-public class Ability extends Technique implements Component, IAbilitySubSys
+public class Ability extends Technique implements Component
 {
     public boolean aimable = false;
     public boolean aimed = false;
     public boolean available = false;
     private boolean active = true;
     public TextCellFactory.Glyph glyph;
-
     private boolean scroll = false;
     private Integer scrollID = null;
+
     public Ability(String name, AOE aoe) { super(name, aoe); }
 
-    @Override
     public void perform(Entity targetEntity, ActionEvt action, EuroRogue game)
     {
         if(getSkill().skillType== Skill.SkillType.REACTION) inactivate();
@@ -67,43 +65,35 @@ public class Ability extends Technique implements Component, IAbilitySubSys
         if(getSkill().school != School.SUB) performerEntity.remove(Stalking.class);
     }
 
-    @Override
     public Skill getSkill() {
         return null;
     }
 
-    @Override
     public List<Skill> getReactions() {
         return null;
     }
 
-    @Override
     public boolean scroll() {
         return scroll;
     }
 
-    @Override
     public void setScroll(boolean bool) {
         scroll = bool;
 
     }
 
-    @Override
     public Integer getScrollID() {
         return scrollID;
     }
 
-    @Override
     public void setScrollID(Integer id) {
         scrollID=id;
     }
 
-    @Override
     public boolean isAvailable() {
         return available;
     }
 
-    @Override
     public void setAvailable(Entity performer, EuroRogue game)
     {
         if(performer==null) return;
@@ -136,27 +126,21 @@ public class Ability extends Technique implements Component, IAbilitySubSys
 
     }
 
-    @Override
     public boolean getActive() {
         return active;
     }
 
-    @Override
     public void activate() {
         active=true;
 
     }
 
-    @Override
     public void inactivate() {
         active = false;
     }
 
-    @Override
     public void updateAOE(Entity performer) { }
 
-
-    @Override
     public OrderedMap<Coord, ArrayList<Coord>> getIdealLocations(Entity actor, LevelCmp levelCmp)
     {
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, actor);
@@ -166,8 +150,6 @@ public class Ability extends Technique implements Component, IAbilitySubSys
 
         return idealLocations(positionCmp.coord, aiCmp.getEnemyLocations(levelCmp), aiCmp.getFriendLocations(levelCmp));
     }
-
-    @Override
     public HashMap<Integer, Integer> getAOEtargetsDmg(Entity performerEntity, LevelCmp levelCmp, EuroRogue game)
     {
         HashMap<Integer, Integer> targets = new HashMap<>();
@@ -184,86 +166,66 @@ public class Ability extends Technique implements Component, IAbilitySubSys
         }
         return targets;
     }
-
-    @Override
     public void setTargetedLocation(Coord targetLocation) {
 
     }
 
-    @Override
     public Coord getTargetedLocation() {
         return null;
     }
 
-    @Override
     public ItemEvt genItemEvent(Entity performer, Entity target) {
         return null;
     }
 
-    @Override
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display) {
         return null;
     }
 
-    @Override
     public TextCellFactory.Glyph getGlyph() {
         return glyph;
     }
 
-    @Override
     public void spawnGlyph(MySparseLayers display, LightHandler lightingHandler, Entity performer) {
 
     }
 
-    @Override
     public HashMap<StatusEffect, SEParameters> getStatusEffects() {
         return null;
     }
 
-    @Override
     public void addStatusEffect(StatusEffect statusEffect, SEParameters seParameters) {
 
     }
 
-    @Override
     public void removeStatusEffect(StatusEffect statusEffect) {
 
     }
 
-    @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect) {
         return null;
     }
 
-    @Override
     public float getDmgReduction(StatsCmp statsCmp) {
         return 0;
     }
 
-    @Override
     public TargetType getTargetType() {
         return null;
     }
 
-
-    @Override
     public int getDamage(Entity performer) {
         return 0;
     }
 
-
-    @Override
     public DamageType getDmgType(Entity performer) {
-        return null;
+        return DamageType.NONE;
     }
 
-
-    @Override
     public int getTTPerform(Entity performer) {
         return 0;
     }
 
-    @Override
     public double getNoiseLvl(Entity performer) {
         return 0;
     }
@@ -283,7 +245,7 @@ public class Ability extends Technique implements Component, IAbilitySubSys
      * @param aimAt A target Coord typically obtained from idealLocations that determines how to position the AOE.
      * @return a HashMap of Coord keys to Double values from 1.0 (fully affected) to 0.0 (unaffected).
      */
-    @Override
+
     public OrderedMap<Coord, Double> apply(Coord user, Coord aimAt) {
         return super.apply(user, aimAt);
     }
@@ -382,7 +344,8 @@ public class Ability extends Technique implements Component, IAbilitySubSys
 
         IColoredString.Impl<SColor> line3 = new IColoredString.Impl<SColor>();
         line3.append("Damage: ");
-        line3.append(((Integer)getDamage(performer)).toString(), schoolColor);
+        line3.append(((Integer)getDamage(performer)).toString()+" ", schoolColor);
+
         line3.append(getDmgType(performer).name(), schoolColor);
         ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line3);
 

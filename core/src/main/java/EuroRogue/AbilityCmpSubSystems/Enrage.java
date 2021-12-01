@@ -13,7 +13,6 @@ import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
-import EuroRogue.DamageType;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -131,15 +130,6 @@ public class Enrage extends Ability
     public TargetType getTargetType()
     {
         return TargetType.SELF;
-    }
-    @Override
-    public int getDamage(Entity performer) {
-        return 0;
-    }
-
-    @Override
-    public DamageType getDmgType(Entity performer) {
-        return null;
     }
 
     @Override
