@@ -26,6 +26,7 @@ import squidpony.squidgrid.gui.gdx.SColor;
 public class WinSysLog extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
+    public int scrollIndex = 0;
 
     public WinSysLog()
     {
@@ -80,14 +81,15 @@ public class WinSysLog extends MyEntitySystem
         display.put(34, 0, "Visible Level = " + statsCmp.getLightDetectionLvl(), SColor.WHITE);
         display.put(1, 18, currentTick.toString(),SColor.WHITE);
 
-        for(int i=0;i<Math.min(logCmp.logEntries.size(),16);i++)
+        for(int i=0;i<Math.min(logCmp.logEntries.size()-scrollIndex,16);i++)
         {
-            IColoredString.Impl<SColor> entry = logCmp.logEntries.get(logCmp.logEntries.size()-1-i);
+            int yOffset = 17-i;
+            if(logCmp.logEntries.size()-1-i+scrollIndex < 0
+                || logCmp.logEntries.size()-1-i+scrollIndex > logCmp.logEntries.size()-1)
+                continue;
 
-
-            display.put(1, 17-i, logCmp.logEntries.get(logCmp.logEntries.size()-1-i));
+            display.put(1, yOffset, logCmp.logEntries.get(logCmp.logEntries.size()-1-i+scrollIndex));
         }
-
         stage.getViewport().apply(false);
         stage.act();
         stage.draw();

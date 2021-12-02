@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.EquipmentSlot;
@@ -40,7 +41,7 @@ public class QuickStrike extends Ability
 
     public QuickStrike()
     {
-        super("Quick Strike", new PointAOE(Coord.get(-1,-1),1,1));
+        super("Quick Strike", new PointAOE(Coord.get(-1,-1),1,1), AOEType.POINT);
     }
 
     public Skill getSkill() {

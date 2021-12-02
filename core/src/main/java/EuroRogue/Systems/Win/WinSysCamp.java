@@ -21,21 +21,21 @@ public class WinSysCamp extends MyEntitySystem
     private String[] headerText =  new String[]
             {       "                   Camp Menu",
                     " ",
-                    "Codex: ?) Prepare/Un-prepare Abilities",
-                    "       [SHIFT] + ?) Displays Ability Details in Log",
+                    "• Codex: ?) Prepare/Un-prepare Abilities",
+                    "  [SHIFT] + ?) Displays Ability Details in Log",
                     " ",
-                    "Stat Increases:  ?) - Pay mana cost to increase stat",
+                    "• Stat Increases:  ?) - Pay mana cost to increase stat",
                     " ",
-                    "Eat Food: ?) - Consume food ration",
-                    " - Removes Hungry(-25% MaxHP) and Starving(-50% MaxHP)",
-                    " - Eat 2 rations to gain Well Fed(+25% MaxHP)",
+                    "• Eat Food: ?) - Consume food ration",
+                    "  - Removes Hungry(-25% MaxHP) and Starving(-50% MaxHP)",
+                    "  - Eat 2 rations to gain Well Fed(+25% MaxHP)",
                     " ",
-                    "Codex                    Stat Increases"
+                    "Codex                  Stat Increases"
             };
 
     public WinSysCamp()
     {
-        super.priority=100;
+        super.priority = 100;
     }
 
     @Override

@@ -6,13 +6,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.IColoredString;
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -39,7 +43,7 @@ public class ArcaneTouch extends Ability
 
     public ArcaneTouch()
     {
-        super("Arcane Touch", new PointAOE(Coord.get(-1,-1), 1, 1));
+        super("Arcane Touch", new PointAOE(Coord.get(-1,-1), 1, 1), AOEType.POINT);
     }
 
     public Skill getSkill() {
@@ -136,5 +140,17 @@ public class ArcaneTouch extends Ability
         return statsCmp.getSpellPower()*15;
     }
 
+    @Override
+    public void postToLog(Entity performer, EuroRogue game) {
+        super.postToLog(performer, game);
+        SColor schoolColor = getSkill().school.color;
 
+        IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+        lineText.append("Testing additional text here", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
+    }
 }

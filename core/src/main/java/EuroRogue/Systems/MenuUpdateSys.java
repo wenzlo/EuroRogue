@@ -100,7 +100,6 @@ public class MenuUpdateSys extends MyEntitySystem {
                     updateStartMenu(entity);
             }
         }
-
     }
     private void updateFocusHotBar(Entity entity)
     {
@@ -626,6 +625,7 @@ public class MenuUpdateSys extends MyEntitySystem {
                     StatusEffectEvt statusEffectEvt = new StatusEffectEvt(getGame().getGameTick(), null, StatusEffect.WELL_FED, null, getGame().getFocus().hashCode(), getGame().getFocus().hashCode(), null );
                     eventEntity.add(statusEffectEvt);
                     getEngine().addEntity(eventEntity);
+                    statsCmp.rl = statsCmp.getMaxRestLvl();
                 }
             };
             eatFood.addPrimaryAction(primaryAction);

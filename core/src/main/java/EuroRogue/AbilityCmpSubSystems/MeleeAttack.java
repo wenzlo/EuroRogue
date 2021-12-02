@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -36,7 +37,7 @@ public class MeleeAttack extends Ability
 
     public MeleeAttack()
     {
-        super("Melee Attack", new PointAOE(Coord.get(-1,-1), 1, 1));
+        super("Melee Attack", new PointAOE(Coord.get(-1,-1), 1, 1), AOEType.POINT);
         //super.aimable=true;
     }
 

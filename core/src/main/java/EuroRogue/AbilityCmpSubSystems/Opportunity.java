@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AI.AICmp;
@@ -40,7 +41,7 @@ public class Opportunity extends Ability
 
     public Opportunity()
     {
-        super("Opportunity", new PointAOE(Coord.get(-1,-1), 1, 1));
+        super("Opportunity", new PointAOE(Coord.get(-1,-1), 1, 1), AOEType.POINT);
     }
 
     public Skill getSkill() {

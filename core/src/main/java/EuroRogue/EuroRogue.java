@@ -379,7 +379,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         Stage campWinStage = buildStage(48,27,59,30,59,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
         campWindow.add(new WindowCmp( (MySparseLayers)campWinStage.getActors().get(0),campWinStage, false));
-        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{1,25,40, 65};
+        ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{2,25,40, 65};
         campWindow.add(new MenuCmp());
         engine.addEntity(campWindow);
 
@@ -608,8 +608,6 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new DeathSys());
         engine.addSystem(new NoiseSys());
         engine.addSystem(new MakeCampSys());
-
-
 
     }
     @Override
@@ -988,10 +986,33 @@ public class EuroRogue extends ApplicationAdapter {
                 }
                 case SquidInput.CENTER_ARROW:
                 case ' ':
-
                 {
                     engine.getSystem(AISys.class).scheduleRestEvt(getFocus());
                     return;
+                }
+                case SquidInput.PAGE_UP:
+                {
+                    engine.getSystem(WinSysLog.class).scrollIndex++;
+                    engine.getSystem(WinSysLog.class).scrollIndex++;
+                    break;
+                }
+                case SquidInput.PAGE_DOWN:
+                {
+                    engine.getSystem(WinSysLog.class).scrollIndex--;
+                    engine.getSystem(WinSysLog.class).scrollIndex--;
+
+                    break;
+                }
+                case SquidInput.END:
+                {
+                    engine.getSystem(WinSysLog.class).scrollIndex = 0;
+                    break;
+                }
+                case SquidInput.HOME:
+                {
+                    LogCmp logCmp = (LogCmp)CmpMapper.getComp(CmpType.LOG, logWindow);
+                    engine.getSystem(WinSysLog.class).scrollIndex = -(logCmp.logEntries.size()-16);
+                    break;
                 }
 
 
@@ -1296,6 +1317,8 @@ public class EuroRogue extends ApplicationAdapter {
 
         input.setRepeatGap(160);
         campInput.setRepeatGap(240);
+        shrineInput.setRepeatGap(240);
+        saveBuildInput.setRepeatGap(240);
         inputProcessor = new InputMultiplexer(dungeonWindow.getComponent(WindowCmp.class).stage, input, shrineInput, startInput, saveBuildInput, campInput, aimInput);
         campInput.setIgnoreInput(true);
         Gdx.input.setInputProcessor(inputProcessor);

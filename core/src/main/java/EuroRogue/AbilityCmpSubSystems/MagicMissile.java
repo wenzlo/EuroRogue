@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -42,7 +43,7 @@ public class MagicMissile extends Ability
 
     public MagicMissile()
     {
-        super("Magic Missile", new PointAOE(Coord.get(-1,-1),1,1));
+        super("Magic Missile", new PointAOE(Coord.get(-1,-1),1,1), AOEType.POINT);
     }
 
     public Skill getSkill() {

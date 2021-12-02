@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AI.AICmp;
@@ -47,7 +48,7 @@ public class ConeOfCold extends Ability
     public ConeOfCold()
     {
 
-        super("Cone of Cold", new ConeAOE(Coord.get(0,0),1, 0, 90, Radius.CIRCLE));
+        super("Cone of Cold", new ConeAOE(Coord.get(0,0),1, 0, 90, Radius.CIRCLE), AOEType.CONE);
         aoe.getReach().limit = AimLimit.FREE;
         statusEffects.put(StatusEffect.CHILLED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
         //super.aimable = true;

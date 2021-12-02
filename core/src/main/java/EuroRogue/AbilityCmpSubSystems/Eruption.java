@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -43,7 +44,7 @@ public class Eruption extends Ability
 
     public Eruption()
     {
-        super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 1));
+        super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 1), AOEType.BLAST);
         super.aimable = true;
         statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
 

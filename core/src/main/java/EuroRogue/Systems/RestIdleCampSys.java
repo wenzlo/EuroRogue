@@ -25,12 +25,14 @@ import EuroRogue.EventComponents.FrozenEvt;
 import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.EventComponents.MakeCampEvt;
 import EuroRogue.EventComponents.RestEvt;
 import EuroRogue.EventComponents.StatusEffectEvt;
 import EuroRogue.GameState;
 import EuroRogue.IColoredString;
 import EuroRogue.ItemEvtType;
 import EuroRogue.MyEntitySystem;
+import EuroRogue.ScheduledEvt;
 import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
@@ -110,6 +112,7 @@ public class RestIdleCampSys extends MyEntitySystem
             CampEvt campEvt = (CampEvt) CmpMapper.getComp(CmpType.CAMP_EVT, entity);
 
             Entity actorEntity = getGame().getEntity(campEvt.actorID);
+            actorEntity.remove(MakeCampEvt.class);
             ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, actorEntity);
             List<School> cost = new ArrayList<>(manaPoolCmp.active);
             manaPoolCmp.spendMana(cost);
@@ -120,6 +123,7 @@ public class RestIdleCampSys extends MyEntitySystem
             getEngine().addEntity(statusEffectEntity);
 
             InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, actorEntity);
+
             for(Integer equipmentID : inventoryCmp.getEquippedIDs())
             {
                 Entity eventEntity = new Entity();
@@ -154,8 +158,13 @@ public class RestIdleCampSys extends MyEntitySystem
                 eventEntity.add(gameStateEvt);
                 getEngine().addEntity(eventEntity);
             }
-
-
+            TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
+            for(Integer id : campEvt.equippedIDs)
+            {
+                ItemEvt itemEvt = new ItemEvt(id, entity.hashCode(), ItemEvtType.EQUIP);
+                ScheduledEvt scheduledEvt = new ScheduledEvt(tickerCmp.tick+1, entity.hashCode(), itemEvt );
+                tickerCmp.actionQueue.add(scheduledEvt);
+            }
         }
     }
     private void activateAbilities(Entity entity)

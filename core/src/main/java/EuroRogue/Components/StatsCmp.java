@@ -120,7 +120,7 @@ public class StatsCmp implements Component
     }
     public int getMaxRestLvl()
     {
-        return 90 + getCon()*10;
+        return 140 + getCon()*15;
     }
     public int getRestLvl()
     {

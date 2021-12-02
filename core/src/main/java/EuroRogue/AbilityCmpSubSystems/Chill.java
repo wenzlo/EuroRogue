@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -40,7 +41,7 @@ public class Chill extends Ability
 
     public Chill()
     {
-        super("Chilled", new PointAOE(Coord.get(-1,-1), 1, 1));
+        super("Chilled", new PointAOE(Coord.get(-1,-1), 1, 1), AOEType.POINT);
         statusEffects.put(StatusEffect.CHILLED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
     }
 

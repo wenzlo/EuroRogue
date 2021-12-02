@@ -51,6 +51,7 @@ import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.FrozenEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.EventComponents.MakeCampEvt;
 import EuroRogue.EventComponents.MoveEvt;
 import EuroRogue.EventComponents.RestEvt;
 import EuroRogue.GameState;
@@ -554,13 +555,13 @@ public class AISys extends MyEntitySystem
             {
                 Entity alertedActor = getGame().getEntity(levelCmp.actors.get(position));
                 StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, alertedActor);
-                AICmp alertedAI = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, alertedActor);
+                AICmp alertedAI = CmpMapper.getAIComp(statsCmp.mobType.aiType, alertedActor);
                 alertedAI.alerts.put(entity.hashCode(),positionCmp.coord);
 
 
             }
         }
-        getEngine().getSystem(MakeCampSys.class).setProcessing(true);
+        entity.add(new MakeCampEvt(entity.hashCode()));
 
 
 

@@ -240,6 +240,4 @@ public class AISysSnake extends AISys
             else if(!manaPool.spent.isEmpty())scheduleRestEvt(entity);
         }
     }
-
-
 }

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AI.AICmp;
@@ -45,7 +46,7 @@ public class Charge extends Ability
 
     public Charge()
     {
-        super("Charge", new PointAOE(Coord.get(-1,-1),2,2));
+        super("Charge", new PointAOE(Coord.get(-1,-1),2,2), AOEType.POINT);
         statusEffects.put(StatusEffect.STAGGERED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
     }
     @Override

@@ -7,12 +7,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
+import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WindowCmp;
@@ -27,10 +29,13 @@ import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
 import EuroRogue.School;
 import EuroRogue.StatusEffectCmps.SEParameters;
+import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.Stalking;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
+import squidpony.squidai.BlastAOE;
+import squidpony.squidai.ConeAOE;
 import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
@@ -39,6 +44,7 @@ import squidpony.squidmath.OrderedMap;
 
 public class Ability extends Technique implements Component
 {
+    public AOEType aoeType;
     public boolean aimable = false;
     public boolean aimed = false;
     public boolean available = false;
@@ -47,7 +53,11 @@ public class Ability extends Technique implements Component
     private boolean scroll = false;
     private Integer scrollID = null;
 
-    public Ability(String name, AOE aoe) { super(name, aoe); }
+    public Ability(String name, AOE aoe, AOEType aoeType)
+    {
+        super(name, aoe);
+        this.aoeType = aoeType;
+    }
 
     public void perform(Entity targetEntity, ActionEvt action, EuroRogue game)
     {
@@ -340,8 +350,18 @@ public class Ability extends Technique implements Component
         line2.append(((Integer)aoe.getMaxRange()).toString(), schoolColor);
         line2.append("   MinRange: ");
         line2.append(((Integer)aoe.getMinRange()).toString(), schoolColor);
-        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line2);
 
+        try {
+            BlastAOE blastAOE = (BlastAOE) aoe;
+            line2.append("   Blast Radius: ");
+            line2.append(((Integer)blastAOE.getRadius()).toString(), schoolColor);
+        } catch (Exception e) {
+            try{
+                ConeAOE coneAOE = (ConeAOE) aoe;
+                line2.append("   Cone: "+coneAOE.getSpan());
+            }catch(Exception f){}
+        }
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line2);
         IColoredString.Impl<SColor> line3 = new IColoredString.Impl<SColor>();
         line3.append("Damage: ");
         line3.append(((Integer)getDamage(performer)).toString()+" ", schoolColor);
@@ -355,16 +375,45 @@ public class Ability extends Technique implements Component
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         for(StatusEffect statusEffect : getStatusEffects().keySet())
         {
-            IColoredString.Impl<SColor> effectLine = new IColoredString.Impl<SColor>("   "+statusEffect.name+"  ", SColor.LIGHT_YELLOW_DYE);
-            effectLine.append(getStatusEffectDuration(statsCmp, statusEffect)+" ticks", SColor.WHITE);
+            IColoredString.Impl<SColor> effectLine = new IColoredString.Impl<SColor>("   "+statusEffect.name+"  ", schoolColor);
+            SERemovalType seRemovalType = getStatusEffects().get(statusEffect).seRemovalType;
+            if(seRemovalType == SERemovalType.TIMED)
+                effectLine.append(getStatusEffectDuration(statsCmp, statusEffect)+" ticks", SColor.WHITE);
+            else
+                effectLine.append(seRemovalType.name());
             ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(effectLine);
         }
 
+        LevelCmp levelCmp = (LevelCmp)CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
+        IColoredString.Impl<SColor> lineTargets = new IColoredString.Impl<SColor>();
+        lineTargets.append("Available Targets:");
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineTargets);
+        if(getSkill()==Skill.SHATTER)
+        {
+            for(Integer id : getAOEtargetsDmg(performer, levelCmp, game).keySet())
+            {
+                Entity targetEntity = game.getEntity(id);
+                if(targetEntity != null)
+                {
+                    NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, targetEntity);
+                    IColoredString.Impl<SColor> targetLine = new IColoredString.Impl<SColor>("   "+nameCmp.name+"  ", SColor.LIGHT_YELLOW_DYE);
+                    ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(targetLine);
+                }
+            }
 
-        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
-        lineLast.append("-----------------------------------------------------", schoolColor);
-        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
+        } else {
 
+            for(Coord coord : getIdealLocations(performer, levelCmp).keySet())
+            {
+                Entity targetEntity = game.getEntity(levelCmp.actors.get(coord));
+                if(targetEntity != null)
+                {
+                    NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, targetEntity);
+                    IColoredString.Impl<SColor> targetLine = new IColoredString.Impl<SColor>("   "+nameCmp.name+"  ", SColor.LIGHT_YELLOW_DYE);
+                    ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(targetLine);
+                }
+            }
+        }
 
     }
 }

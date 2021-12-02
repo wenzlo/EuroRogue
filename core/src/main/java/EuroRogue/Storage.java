@@ -44,6 +44,7 @@ public class Storage extends SquidStorage
     {
         Entity character = game.getFocus();
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, character);
+        statsCmp.rl = statsCmp.getMaxRestLvl();
 
         CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, character);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, character);

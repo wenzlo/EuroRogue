@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AI.AICmp;
@@ -26,7 +27,9 @@ import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
+import squidpony.squidai.AOE;
 import squidpony.squidai.BlastAOE;
+import squidpony.squidai.BurstAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -41,13 +44,12 @@ public class Shatter extends Ability
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public TextCellFactory.Glyph glyph;
 
-
     public Shatter()
     {
-        super("Shatter", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 0));
+        super("Shatter", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 0), AOEType.BLAST);
     }
     /**
-     * -Need to override this for any Ability with a non-Point AOE to set targetedLocation-ER
+     * -Need to override this for any Ability with a non-Point AOE for setTargetedLocation(aimAt)-ER
      *
      * This does one last validation of the location aimAt (checking that it is within the valid range for this
      * Technique) before getting the area affected by the AOE targeting that cell. It considers the origin of the AOE
@@ -77,13 +79,12 @@ public class Shatter extends Ability
     }
 
     public List<Skill> getReactions() {
-        return Arrays.asList(Skill.BLINK);
+        return Arrays.asList();
     }
 
     @Override
     public void setAvailable(Entity performer, EuroRogue game)
     {
-        //super.setAvailable(performer, game);
         StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, performer);
         AICmp aiCmp = (AICmp) CmpMapper.getAIComp(statsCmp.mobType.aiType, performer);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL,performer);
@@ -101,7 +102,6 @@ public class Shatter extends Ability
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         BlastAOE blastAOE = (BlastAOE) aoe;
-
         blastAOE.setRadius(statsCmp.getIntel());
         blastAOE.setOrigin(positionCmp.coord);
         blastAOE.setCenter(positionCmp.coord);
@@ -122,10 +122,11 @@ public class Shatter extends Ability
                 int dmg = getDamage(performerEntity);
                 if(CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, aoeTarEnt)!=null)
                     targets.put(levelCmp.actors.get(coord), dmg);
-                if(CmpMapper.getStatusEffectComp(StatusEffect.CHILLED, aoeTarEnt)!=null)
+                else if(CmpMapper.getStatusEffectComp(StatusEffect.CHILLED, aoeTarEnt)!=null)
                     targets.put(levelCmp.actors.get(coord), Math.round(dmg/2f));
             }
         }
+        System.out.println(targets);
         return targets;
 
     }
@@ -135,7 +136,6 @@ public class Shatter extends Ability
 
     @Override
     public Coord getTargetedLocation() { return targetedLocation; }
-
 
     @Override
     public float getDmgReduction(StatsCmp statsCmp) {

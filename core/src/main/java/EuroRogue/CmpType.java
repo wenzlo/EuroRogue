@@ -48,6 +48,7 @@ import EuroRogue.EventComponents.GameStateEvt;
 import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.EventComponents.LevelEvt;
 import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.EventComponents.MakeCampEvt;
 import EuroRogue.EventComponents.MoveEvt;
 import EuroRogue.EventComponents.RestEvt;
 import EuroRogue.EventComponents.ShrineEvt;
@@ -89,6 +90,7 @@ public enum CmpType
     LOG(LogCmp.class),
     LOG_EVT(LogEvt.class),
     MAGIC_MISSILE(MagicMissile.class),
+    MAKE_CAMP_EVT(MakeCampEvt.class),
     MANA(ManaCmp.class),
     MANA_POOL(ManaPoolCmp.class),
     MELEE(MeleeAttack.class),

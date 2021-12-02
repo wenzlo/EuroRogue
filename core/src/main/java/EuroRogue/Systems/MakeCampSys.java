@@ -5,35 +5,30 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-import javax.print.attribute.standard.MediaSize;
-
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
+import EuroRogue.Components.AI.AICmp;
+import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.FOVCmp;
-import EuroRogue.Components.FocusCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
+import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.LogEvt;
+import EuroRogue.EventComponents.MakeCampEvt;
 import EuroRogue.IColoredString;
 import EuroRogue.MyEntitySystem;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.Coord;
-import squidpony.squidmath.OrderedSet;
+
 
 
 public class MakeCampSys extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
-
-    public MakeCampSys(){
-        this.setProcessing(false);
-    }
-
-
 
     /**
      * Called when this EntitySystem is added to an {@link Engine}.
@@ -42,7 +37,7 @@ public class MakeCampSys extends MyEntitySystem
      */
     @Override
     public void addedToEngine(Engine engine) {
-        entities = engine.getEntitiesFor(Family.all(CampEvt.class).get());
+        entities = engine.getEntitiesFor(Family.all(MakeCampEvt.class).get());
     }
 
     /**
@@ -53,25 +48,29 @@ public class MakeCampSys extends MyEntitySystem
     @Override
     public void update(float deltaTime)
     {
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
-
 
         for(Entity entity:entities)
         {
-            FOVCmp fovCmp = (FOVCmp) CmpMapper.getComp(CmpType.FOV, entity);
-            PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
-            NameCmp nameCmp = (NameCmp) CmpMapper.getComp(CmpType.NAME, entity);
+            StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, entity);
+            AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, entity);
 
-            for(Coord coord : levelCmp.actors.positions())
+            if(!aiCmp.visibleEnemies.isEmpty())
             {
-                if(coord==positionCmp.coord)continue;
-                if(fovCmp.visible.contains(coord))
+                System.out.println(tickerCmp.getScheduledActions(entity));
+                tickerCmp.actionQueue.removeAll(tickerCmp.getScheduledActions(entity));
+                entity.remove(MakeCampEvt.class);
+                PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity);
+
+                ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateCampLogEvt().entry);
+                for(Integer id : aiCmp.visibleEnemies)
                 {
-                    tickerCmp.actionQueue.removeAll(tickerCmp.getScheduledActions(entity));
-                    ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateCampLogEvt().entry);
-                    break;
+                    Entity enemy = getGame().getEntity(id);
+                    StatsCmp enemyStats = (StatsCmp)CmpMapper.getComp(CmpType.STATS, enemy);
+                    AICmp enemyAI = CmpMapper.getAIComp(enemyStats.mobType.aiType, enemy);
+                    enemyAI.alerts.put(entity.hashCode(), positionCmp.coord);
                 }
+                break;
             }
         }
     }

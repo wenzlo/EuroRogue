@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.FOVCmp;
@@ -50,13 +51,13 @@ public class Blink extends Ability
 
     public Blink()
     {
-        super("Blink", new PointAOE(Coord.get(-1,-1),0,10));
+        super("Blink", new PointAOE(Coord.get(-1,-1),0,10), AOEType.POINT);
     }
 
     @Override
     public void perform(Entity targetEntity, ActionEvt action, EuroRogue game)
     {
-        //TODO refund mana if targetEntiity is dead
+        //TODO refund mana if targetEntity is dead
         if(targetEntity==null) return;
         inactivate();
 
@@ -85,13 +86,19 @@ public class Blink extends Ability
             if(!levelCmp.isBlocked(coord))
             {
                 char chr = levelCmp.decoDungeon[coord.x][coord.y];
-                if(chr!='#' && chr!='~' && chr!='§' && chr!='+' && chr!='/')
+                if(chr!='#' && chr!='~' && chr!='§' && chr!='+')
                 {
 
                     destination = coord;
                     break;
                 }
             }
+        }
+        if(destination==null)
+        {
+            System.out.println("Blink Dest Bug");
+            System.out.println(blastArea);
+            destination = positionCmp.coord;
         }
 
         glyph = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, performerEntity)).glyph;

@@ -103,15 +103,9 @@ public class WinSysShrineUiBg extends MyEntitySystem
 
         lightHandler.resistances = MyDungeonUtility.generateUIResistances3x3(uiBgLightingCmp.map);
 
-
         Noise.Noise3D flicker = new WhirlingNoise();
 
-
-        //lightHandler.calculateFOV(Coord.get(8, 10));
-
         lightHandler.updateAll();
-
-
 
         lightHandler.draw(uiBgLightingCmp.bgLighting);
 
@@ -123,11 +117,6 @@ public class WinSysShrineUiBg extends MyEntitySystem
         }
 
         uiBgWindowCmp.display.put(uiBgLightingCmp.bgLighting);
-
-
-
-
-
         uiBgWindowCmp.stage.act();
         uiBgWindowCmp.stage.getViewport().apply(false);
         uiBgWindowCmp.stage.draw();
@@ -159,20 +148,4 @@ public class WinSysShrineUiBg extends MyEntitySystem
         lightHandler.addLight(light.hashCode(), light);
 
     }
-    private void clearRect(int x, int y, int w, int h, char[][]map)
-    {
-        WindowCmp windowCmp = (WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().uiBackgrounds);
-
-        int x0=x/36;
-        int y0 = map[0].length-1-(y/36);
-        int x1 = x0 + (w/36);
-        int y1 = Math.max(0, y0-(h/36));
-        for(int cx=x0; cx<x1; cx++)
-            for(int cy=y1; cy>y0; y--)
-                windowCmp.display.clear(cx,cy);
-
-    }
-
-
-
 }

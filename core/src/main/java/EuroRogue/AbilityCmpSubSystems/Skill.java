@@ -28,7 +28,7 @@ public enum Skill
     ARCANE_TOUCH(         "Arcane Touch", ArcaneTouch.class,      SkillType.ACTION,  School.ARC, new School[]{School.ARC},      new School[]{School.ARC}, null, null,    null,  0, 0, 0, 0, 2),
     BLINK(                       "Blink", Blink.class,            SkillType.REACTION,  School.ARC, new School[]{School.ARC, School.ARC},      new School[]{School.ARC}, null,   null,   null,  0, 0, 0, 0, 3),
 
-    ICE_SHIELD(               "Ice Shield", IceShield.class,         SkillType.REACTION,  School.ICE, new School[]{School.ICE, School.WAR},      new School[]{School.ICE}, null,   null,        StatusEffect.CHILLED,  0, 0, 1, 2, 1),
+    ICE_SHIELD(               "Ice Shield", IceShield.class,         SkillType.REACTION,  School.ICE, new School[]{School.ICE, School.WAR},      new School[]{School.ICE}, null,   null,        StatusEffect.CHILLED,  0, 0, 0, 2, 2),
     CHILL(            "Chill", Chill.class,  SkillType.ACTION,  School.ICE, new School[]{School.ICE},      new School[]{School.ICE}, null,     null,         StatusEffect.CHILLED,  0, 0, 0, 0, 2),
     CONE_OF_COLD(        "Cone Of Cold", ConeOfCold.class,       SkillType.ACTION,  School.ICE, new School[]{School.ICE},      new School[]{School.ICE}, null,  null,null,  0, 0, 0, 2, 2),
     SHATTER(                 "Shatter", Shatter.class,       SkillType.ACTION,  School.ICE, new School[]{School.ICE, School.ICE, School.ICE},      new School[]{School.ICE, School.ICE, School.ICE}, null,  null,null,  0, 0, 0, 0, 3),

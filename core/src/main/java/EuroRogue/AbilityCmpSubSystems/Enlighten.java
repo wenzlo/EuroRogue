@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -38,7 +39,7 @@ public class Enlighten extends Ability
 
     public Enlighten()
     {
-        super("Enlighten", new PointAOE(Coord.get(-1,-1),0,0));
+        super("Enlighten", new PointAOE(Coord.get(-1,-1),0,0), AOEType.POINT);
         statusEffects.put(StatusEffect.ENLIGHTENED, new SEParameters(TargetType.SELF, SERemovalType.SHORT_REST));
     }
 
@@ -138,7 +139,7 @@ public class Enlighten extends Ability
 
     @Override
     public DamageType getDmgType(Entity performer) {
-        return null;
+        return DamageType.NONE;
     }
 
     @Override

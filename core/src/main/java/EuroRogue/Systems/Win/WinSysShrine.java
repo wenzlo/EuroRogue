@@ -143,15 +143,11 @@ public class WinSysShrine extends MyEntitySystem
             return;
         }
         School school = shrineCmp.school;
-        TickerCmp tickerCmp = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
         Entity focusEntity = getGame().getFocus();
         MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, windowEntity);
-        WindowCmp window = (WindowCmp) CmpMapper.getComp(CmpType.WINDOW, windowEntity);
-        CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focusEntity);
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, focusEntity);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, focusEntity);
 
-        LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp) CmpMapper.getComp(CmpType.MANA_POOL, focusEntity);
         menuCmp.menuMap.put(Coord.get(0,1), null, new MenuItem(new IColoredString.Impl( school.name+" Shrine", school.color )));
 

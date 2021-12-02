@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -39,7 +40,7 @@ public class Immolate extends Ability
 
     public Immolate()
     {
-        super("Immolate", new PointAOE(Coord.get(-1,-1), 1, 1));
+        super("Immolate", new PointAOE(Coord.get(-1,-1), 1, 1), AOEType.BLAST);
         statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
     }
 

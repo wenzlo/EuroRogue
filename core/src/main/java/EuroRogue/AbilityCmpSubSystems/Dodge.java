@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -27,15 +28,14 @@ import squidpony.squidmath.GWTRNG;
 
 public class Dodge extends Ability
 {
-
     private Skill skill = Skill.DODGE;
     private  Coord targetedLocation;
     public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private GWTRNG rng = new GWTRNG();
 
-    public Dodge()
-    {
-        super("Dodge", new PointAOE(Coord.get(-1,-1),0,10));
+    public Dodge() {
+
+        super("Dodge", new PointAOE(Coord.get(-1,-1),0,10), AOEType.POINT);
     }
 
 

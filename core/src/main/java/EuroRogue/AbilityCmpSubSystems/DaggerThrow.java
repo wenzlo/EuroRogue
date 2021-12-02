@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.EquipmentSlot;
@@ -42,7 +43,7 @@ public class DaggerThrow extends Ability
 
     public DaggerThrow()
     {
-        super("Dagger Throw", new PointAOE(Coord.get(-1,-1),1,1));
+        super("Dagger Throw", new PointAOE(Coord.get(-1,-1),1,1), AOEType.POINT);
     }
 
     public Skill getSkill() {

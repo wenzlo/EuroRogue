@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
@@ -40,7 +41,7 @@ public class Stalk extends Ability
 
     public Stalk()
     {
-        super("Stalk", new PointAOE(Coord.get(-1,-1),0,0));
+        super("Stalk", new PointAOE(Coord.get(-1,-1),0,0), AOEType.POINT);
         statusEffects.put(StatusEffect.STALKING, new SEParameters(TargetType.SELF, SERemovalType.SHORT_REST));
     }
 
@@ -153,7 +154,7 @@ public class Stalk extends Ability
 
     @Override
     public DamageType getDmgType(Entity performer) {
-        return null;
+        return DamageType.NONE;
     }
 
     @Override
