@@ -2,19 +2,21 @@ package EuroRogue;
 
 public enum DamageType
 {
-    PIERCING(DamageClass.PHYSICAL),
-    BLUDGEONING(DamageClass.PHYSICAL),
-    SLASHING(DamageClass.PHYSICAL),
-    ARCANE(DamageClass.MAGICAL),
-    FIRE(DamageClass.MAGICAL),
-    ICE(DamageClass.MAGICAL),
-    NONE(DamageClass.NONE);
+    PIERCING(DamageClass.PHYSICAL, "Piercing"),
+    BLUDGEONING(DamageClass.PHYSICAL, "Bludgeoning"),
+    SLASHING(DamageClass.PHYSICAL, "Slashing"),
+    ARCANE(DamageClass.MAGICAL, "Arcane"),
+    FIRE(DamageClass.MAGICAL, "Fire"),
+    ICE(DamageClass.MAGICAL, "Ice"),
+    NONE(DamageClass.NONE, "None");
 
-    DamageClass damageClass;
+    public DamageClass damageClass;
+    public String name;
 
-    DamageType(DamageClass damageClass)
+    DamageType(DamageClass damageClass, String name)
     {
         this.damageClass=damageClass;
+        this.name = name;
     }
 
     public enum DamageClass

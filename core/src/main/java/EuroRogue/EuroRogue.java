@@ -38,12 +38,14 @@ import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.ItemCmp;
 import EuroRogue.Components.ItemType;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LightCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.MenuCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.ObjectCmp;
+import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.ScrollCmp;
 import EuroRogue.Components.ShrineCmp;
@@ -137,6 +139,7 @@ import EuroRogue.Systems.StorageSys;
 import EuroRogue.Systems.TickerSys;
 import EuroRogue.Systems.Win.WinSysCamp;
 import EuroRogue.Systems.Win.WinSysCampUiBg;
+import EuroRogue.Systems.Win.WinSysDunOverlay;
 import EuroRogue.Systems.Win.WinSysDungeon;
 import EuroRogue.Systems.Win.WinSysGameOver;
 import EuroRogue.Systems.Win.WinSysHotBar;
@@ -175,15 +178,15 @@ public class EuroRogue extends ApplicationAdapter {
     public Integer globalMenuIndex = 0;
     public char[] globalMenuSelectionKeys = "1234567890-=qwertuiop[]asdf".toCharArray();
     public HashMap<Character, MenuCmp> keyLookup = new HashMap<>();
-    public Entity saveBuildWindow, uiBackgrounds, worldMapWindow, shrineWindow, shrineWinBG, gameOverWindow, startWindow, player, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, campWInBg, ticker, logWindow, currentLevel;
+    public Entity saveBuildWindow, uiBackgrounds, worldMapWindow, shrineWindow, shrineWinBG, gameOverWindow, startWindow, player, dungeonWindow, dungeonOverlayWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, campWInBg, ticker, logWindow, currentLevel;
     public  List<Entity> playingWindows, campingWindows, allWindows, uiBgWindows, startWindows, gameOverWindows, shrineWindows, saveBuildWindows;
     public float lastFrameTime;
     public GameState gameState;
-    public String playerName = "Stilgar";
+    public String playerName = "Eddard";
     public int depth = 1;
 
     // FilterBatch is almost the same as SpriteBatch, but is a bit faster with SquidLib and allows color filtering
-    private FilterBatch filterBatch;
+    public FilterBatch filterBatch;
     // a type of random number generator, see below
     public GWTRNG rng, characterGenRng;
 
@@ -197,13 +200,14 @@ public class EuroRogue extends ApplicationAdapter {
     public static final int bigWidth = gridWidth ;
     /** In number of cells */
     public static final int bigHeight = gridHeight ;
-    private static final int cellWidth = 9;
+    public static final int cellWidth = 9;
     /** The pixel height of a cell */
-    private static final int cellHeight = 9;
+    public static final int cellHeight = 9;
     public SquidInput input, aimInput, campInput, startInput, shrineInput, saveBuildInput;
     public InputMultiplexer inputProcessor;
     private final Color bgColor=Color.BLACK;
-    public Storage storage;
+    public Storage buildStorage;
+
 
     public static final String outlineFragmentShader = "#ifdef GL_ES\n"
             + "precision mediump float;\n"
@@ -251,7 +255,7 @@ public class EuroRogue extends ApplicationAdapter {
             + "                 smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, min(sample3.x, sample3.y)) +\n"
             + "                 smoothstep(0.5 - u_smoothing, 0.5 + u_smoothing, min(sample4.x, sample4.y))),\n"*/
 //            + "                 char = step(distance, 0.35);\n"
-            + "                 fancy = step(0.475, distance);\n"//line thickness original 0.55
+            + "                 fancy = step(0.480, distance);\n"//line thickness original 0.55
 //            + "                 outline = clamp((distance * 0.8 - 0.415) * 18.0, 0.0, 1.0);\n"
             + "	   gl_FragColor = vec4(v_color.rgb * fancy, (asum + step(0.3, distance)) * v_color.a);\n"
             + "  }\n"
@@ -294,7 +298,7 @@ public class EuroRogue extends ApplicationAdapter {
     {
         ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, outlineFragmentShader);
         shrineWindow = new Entity();
-        Stage shrineStage = buildStage(52, 51,28,18,27,17 ,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
+        Stage shrineStage = buildStage(21, 43,28,18,27,17 ,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
         shrineWindow.add(new WindowCmp((MySparseLayers) shrineStage.getActors().get(0),shrineStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, shrineWindow)).columnIndexes = new int[]{3,25};
         WindowCmp windowCmp = new WindowCmp((MySparseLayers)shrineStage.getActors().get(0),shrineStage, true);
@@ -324,7 +328,7 @@ public class EuroRogue extends ApplicationAdapter {
         dungeonWindow = new Entity();
 
         font = DefaultResources.getStretchableSquareFont();
-        Stage dungeonStage = buildStage(44,23,17,17,42,42,cellWidth*4,cellHeight*4, font, SColor.BLACK.toFloatBits());
+        Stage dungeonStage = buildStage(4,4,20,20,42,42,cellWidth*4,cellHeight*4, font, SColor.BLACK.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)dungeonStage.getActors().get(0),dungeonStage, true);
         windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*3+9 * 1.15f).initBySize();
         //windowCmp.display.put();
@@ -334,12 +338,28 @@ public class EuroRogue extends ApplicationAdapter {
         dungeonWindow.add(windowCmp);
         engine.addEntity(dungeonWindow);
 
+        dungeonOverlayWindow = new Entity();
+
+        font = DefaultResources.getStretchableCodeFont();
+        Stage dungeonOlStage = buildStage(4,4,80,40,80,40,cellWidth,cellHeight*2, font, SColor.BLACK.toFloatBits());
+        windowCmp = new WindowCmp((MySparseLayers)dungeonOlStage.getActors().get(0),dungeonOlStage, true);
+        windowCmp.display.font.tweakWidth(cellWidth*1.25f ).tweakHeight(cellHeight*2.5f).initBySize();
+        dungeonOverlayWindow.add(new ParticleEffectsCmp());
+        windowCmp.display.addLayer();
+        dungeonOverlayWindow.add(new MenuCmp());
+        //windowCmp.display.put();
+        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
+
+        windowCmp.display.font.shader = outlineShader;
+        dungeonOverlayWindow.add(windowCmp);
+        engine.addEntity(dungeonOverlayWindow);
+
         shrineWinBG = new Entity();
 
         font = DefaultResources.getStretchableSquareFont();
         int width = ((MySparseLayers) shrineStage.getActors().get(0)).gridWidth/4;
         int height = ((MySparseLayers) shrineStage.getActors().get(0)).gridHeight/2;
-        Stage shrineBgStage = buildStage(52, 52, width, height, width, height ,cellWidth*4,cellHeight*4, font, SColor.WHITE.toFloatBits());
+        Stage shrineBgStage = buildStage(20, 44, width, height, width, height ,cellWidth*4,cellHeight*4, font, SColor.WHITE.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)shrineBgStage.getActors().get(0),shrineBgStage, true);
         windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*4 * 1.15f).initBySize();
         //windowCmp.display.put();
@@ -361,7 +381,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         startWindow = new Entity();
 
-        Stage startWinStage = buildStage(50,29,56,30,56,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
+        Stage startWinStage = buildStage(17,17,56,30,56,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
         startWindow.add(new WindowCmp((MySparseLayers)startWinStage.getActors().get(0),startWinStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, startWindow)).columnIndexes = new int[]{2,35,40};
         startWindow.add(new MenuCmp());
@@ -369,7 +389,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         gameOverWindow = new Entity();
 
-        Stage gameOverStage = buildStage(46,26,60,30,60,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
+        Stage gameOverStage = buildStage(17,17,60,30,60,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
         gameOverWindow.add(new WindowCmp((MySparseLayers)gameOverStage.getActors().get(0),gameOverStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, gameOverWindow)).columnIndexes = new int[]{1,25,40};
         //gameOverWindow.add(new MenuCmp());
@@ -377,7 +397,7 @@ public class EuroRogue extends ApplicationAdapter {
 
         campWindow = new Entity();
 
-        Stage campWinStage = buildStage(48,27,59,30,59,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        Stage campWinStage = buildStage(17,17,59,30,59,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
         campWindow.add(new WindowCmp( (MySparseLayers)campWinStage.getActors().get(0),campWinStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, campWindow)).columnIndexes = new int[]{2,25,40, 65};
         campWindow.add(new MenuCmp());
@@ -388,7 +408,7 @@ public class EuroRogue extends ApplicationAdapter {
         font = DefaultResources.getStretchableSquareFont();
         width = ((MySparseLayers) campWinStage.getActors().get(0)).gridWidth/4+2;
         height = ((MySparseLayers) campWinStage.getActors().get(0)).gridHeight/2+1;
-        Stage campBgStage = buildStage(46, 26, width, height, width, height ,cellWidth*4,cellHeight*4, font, SColor.WHITE.toFloatBits());
+        Stage campBgStage = buildStage(4, 4, width, height, width, height ,cellWidth*4,cellHeight*4, font, SColor.WHITE.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)campBgStage.getActors().get(0), campBgStage, true);
         windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*4 * 1.15f).initBySize();
         //windowCmp.display.put();
@@ -400,29 +420,28 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addEntity(campWInBg);
 
 
-        Stage fmStage = buildStage(51,1,10,10,10,10,cellWidth*2,cellHeight*2, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
+        Stage fmStage = buildStage(3,2,10,10,10,10,cellWidth+3,cellHeight+3, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
 
         focusManaWindow = new Entity();
 
         windowCmp = new WindowCmp( (MySparseLayers)fmStage.getActors().get(0), fmStage, true);
-        windowCmp.display.font.tweakHeight(cellHeight*2*1.755f).tweakWidth(cellWidth*2*1.75f).initBySize();
+        windowCmp.display.font.tweakHeight(cellHeight*2.70f).tweakWidth(cellWidth*2.65f).initBySize();
         windowCmp.display.font.shader = outlineShader;
 
         focusManaWindow.add(windowCmp);
         //engine.addEntity(focusManaWindow);
 
-        Stage tmStage = buildStage(2,92,10,10,10,10,cellWidth*2,cellHeight*2, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
+        Stage tmStage = buildStage(3,71,10,10,10,10,cellWidth+3,cellHeight+3, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
 
         targetManaWindow = new Entity();
 
         windowCmp = new WindowCmp( (MySparseLayers)tmStage.getActors().get(0), tmStage, true);
-        windowCmp.display.font.tweakHeight(cellHeight*2*1.755f).tweakWidth(cellWidth*2*1.75f).initBySize();
+        windowCmp.display.font.tweakHeight(cellHeight*2.70f).tweakWidth(cellWidth*2.65f).initBySize();
         targetManaWindow.add(windowCmp);
         windowCmp.display.font.shader = outlineShader;
 
 
-        Stage fsStage = buildStage(2,22,40,18,40,18,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
-
+        /*Stage fsStage = buildStage(2,22,40,18,40,18,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
         focusStatsWindow = new Entity();
 
         focusStatsWindow.add(new WindowCmp( (MySparseLayers)fsStage.getActors().get(0), fsStage, true));
@@ -433,16 +452,16 @@ public class EuroRogue extends ApplicationAdapter {
 
         targetStatsWindow = new Entity();
 
-        targetStatsWindow.add(new WindowCmp( (MySparseLayers)tsStage.getActors().get(0), tsStage, true));
+        targetStatsWindow.add(new WindowCmp( (MySparseLayers)tsStage.getActors().get(0), tsStage, true));*/
 
-        Stage logStage = buildStage(115,53,66,20,66,20,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        Stage logStage = buildStage(86,33,66,26,66,26,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         logWindow = new Entity();
 
         logWindow.add(new WindowCmp((MySparseLayers)logStage.getActors().get(0), logStage, true));
         logWindow.add(new LogCmp());
 
-        Stage faStage = buildStage(70,1,108,10,108,10, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+       /* Stage faStage = buildStage(70,1,108,10,108,10, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         focusHotBar = new Entity();
 
@@ -450,33 +469,33 @@ public class EuroRogue extends ApplicationAdapter {
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, focusHotBar)).columnIndexes = new int[]{1,28, 55,82};
         focusHotBar.add(new MenuCmp());
         engine.addEntity(focusHotBar);
-
+*/
         inventoryWindow = new Entity();
 
         engine.addEntity(inventoryWindow);
-        Stage invStage = buildStage(114,21,66,16,66,16, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
+        Stage invStage = buildStage(86,1,66,16,66,16, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
         inventoryWindow.add(new WindowCmp((MySparseLayers)invStage.getActors().get(0), invStage, true));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, inventoryWindow)).columnIndexes = new int[]{1,32, 66};
         inventoryWindow.add(new MenuCmp());
 
 
-        targetHotBar = new Entity();
+       /* targetHotBar = new Entity();
         Stage taStage = buildStage(22,93,110,10,110,10, cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.BLACK.toFloatBits());
 
         targetHotBar.add(new WindowCmp((MySparseLayers)taStage.getActors().get(0), taStage, true));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, targetHotBar)).columnIndexes = new int[]{1,28, 55,82};
         targetHotBar.add(new MenuCmp());
-        engine.addEntity(targetHotBar);
+        engine.addEntity(targetHotBar);*/
 
-        allWindows = Arrays.asList(saveBuildWindow, shrineWinBG, shrineWindow, gameOverWindow, startWindow, dungeonWindow, campWindow, campWInBg, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
-        uiBgWindows = Arrays.asList(startWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
+        allWindows = Arrays.asList(dungeonOverlayWindow, saveBuildWindow, shrineWinBG, shrineWindow, gameOverWindow, startWindow, dungeonWindow, campWindow, campWInBg, /*focusHotBar, targetHotBar,*/ focusManaWindow, inventoryWindow, targetManaWindow, /*focusStatsWindow, targetStatsWindow,*/ logWindow);
+        uiBgWindows = Arrays.asList(saveBuildWindow, dungeonOverlayWindow,/*startWindow,*/ dungeonWindow, /*focusHotBar, targetHotBar,*/ /*focusManaWindow,*/ inventoryWindow, /*targetManaWindow,*/ /*focusStatsWindow, targetStatsWindow,*/ logWindow);
 
-        playingWindows = Arrays.asList(dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
-        shrineWindows = Arrays.asList(shrineWinBG, shrineWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
-        campingWindows = Arrays.asList(campWInBg, campWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
-        startWindows = Arrays.asList(focusManaWindow, inventoryWindow, focusHotBar, focusStatsWindow, startWindow);
-        gameOverWindows = Arrays.asList(gameOverWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow );
-        saveBuildWindows = Arrays.asList(focusManaWindow, inventoryWindow, focusHotBar, focusStatsWindow, saveBuildWindow);
+        playingWindows = Arrays.asList(dungeonOverlayWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, /*focusStatsWindow, targetStatsWindow,*/ logWindow);
+        shrineWindows = Arrays.asList(shrineWinBG, shrineWindow, dungeonWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, /*focusStatsWindow, targetStatsWindow,*/ logWindow);
+        campingWindows = Arrays.asList(dungeonOverlayWindow, /*campWInBg,*/ campWindow, /*dungeonWindow,*/ /*focusHotBar, targetHotBar,*/ focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, logWindow);
+        startWindows = Arrays.asList(focusManaWindow, /*inventoryWindow,*/ dungeonOverlayWindow,/*focusHotBar, focusStatsWindow,*/ startWindow);
+        gameOverWindows = Arrays.asList(gameOverWindow, dungeonWindow, /*focusHotBar, targetHotBar,*/ focusManaWindow, inventoryWindow, targetManaWindow, /*focusStatsWindow, targetStatsWindow,*/ logWindow );
+        saveBuildWindows = Arrays.asList(focusManaWindow, inventoryWindow, /*focusHotBar, focusStatsWindow,*/ saveBuildWindow);
 
 
         for(Entity windowEntity : allWindows)
@@ -569,6 +588,7 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new DungeonLightingSys());
         engine.addSystem(new ParticleSys());
         engine.addSystem(new WinSysDungeon());
+        engine.addSystem(new WinSysDunOverlay());
         engine.addSystem(new WinSysUiBg());
         engine.addSystem(new WinSysShrineUiBg());
         engine.addSystem(new WinSysCampUiBg());
@@ -580,12 +600,12 @@ public class EuroRogue extends ApplicationAdapter {
         engine.addSystem(new CodexSys());
         engine.addSystem(new EventCleanUpSys());
         engine.addSystem(new WinSysLog());
-        engine.addSystem(new WinSysStats());
+        //engine.addSystem(new WinSysStats());
         engine.addSystem(new ActionSys());
         engine.addSystem(new ReactionSys());
         engine.addSystem(new AnimationsSys());
         engine.addSystem(new RestIdleCampSys());
-        engine.addSystem(new WinSysHotBar());
+        //engine.addSystem(new WinSysHotBar());
         engine.addSystem(new WinSysSaveBuild());
         engine.addSystem(new WinSysStart());
         engine.addSystem(new WinSysInventory());
@@ -616,7 +636,19 @@ public class EuroRogue extends ApplicationAdapter {
         Gdx.graphics.setVSync(false);
         Gdx.graphics.setForegroundFPS(0);
         Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Crosshair);
-        storage = new Storage();
+
+       /* System.out.println(Gdx.app.getPreferences("PLayer1"));
+        Preferences prefs = Gdx.app.getPreferences( "Player1" );
+
+        // Clears the values
+        prefs.clear();
+
+        // Saves the change
+        prefs.flush();
+        System.out.println(Gdx.app.getPreferences("PLayer1").get());*/
+
+
+        buildStorage = new Storage("EuroRogue");
         ticker = new Entity();
         ticker.add(new TickerCmp());
         currentLevel = new Entity();
@@ -654,6 +686,9 @@ public class EuroRogue extends ApplicationAdapter {
                 case SquidInput.BACKSPACE:
                     system.buildName = StringKit.safeSubstring(system.buildName, 0, system.buildName.length()-1);
                     ((NameCmp) CmpMapper.getComp(CmpType.NAME, player)).name = playerName;
+                    return;
+
+                case '>':
                     return;
 
             }
@@ -891,11 +926,13 @@ public class EuroRogue extends ApplicationAdapter {
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
             CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focus);
             if(!tickerCmp.getScheduledActions(getFocus()).isEmpty()) return;
-
+            System.out.println(keyLookup.containsKey(key)+" "+keyLookup.containsKey(getUnshiftedChar(key)));
             if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
             {
+
                 if(shift) keyLookup.get(getUnshiftedChar(key)).menuMap.get(getUnshiftedChar(key)).runSecondaryAction();
-                else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
+                else
+                    keyLookup.get(key).menuMap.get(key).runPrimaryAction();
                 return;
             }
 
@@ -1012,6 +1049,12 @@ public class EuroRogue extends ApplicationAdapter {
                 {
                     LogCmp logCmp = (LogCmp)CmpMapper.getComp(CmpType.LOG, logWindow);
                     engine.getSystem(WinSysLog.class).scrollIndex = -(logCmp.logEntries.size()-16);
+                    break;
+                }
+                case 'S':
+                {
+                    StatsCmp focusStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, focus);
+                    focusStats.postToLog(this);
                     break;
                 }
 
@@ -1418,6 +1461,7 @@ public class EuroRogue extends ApplicationAdapter {
         manaItem.add(new ItemCmp(ItemType.MANA));
         manaItem.add(new CharCmp('■', school.color));
         manaItem.add(new ManaCmp(school));
+        manaItem.add(new LightCmp(1, school.color.toFloatBits(), 0.4f, 0f));
         return manaItem;
 
     }

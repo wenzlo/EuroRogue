@@ -65,7 +65,7 @@ public class MobFactory
         mob.add(new FocusCmp());
         mob.add(new ParticleEffectsCmp());
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, mob);
-        Collections.addAll(manaPoolCmp.spent, new School[]{School.WAR, School.WAR, School.WAR});
+        //Collections.addAll(manaPoolCmp.spent, new School[]{School.WAR, School.WAR, School.WAR});
 
         setRandomSkillSet(mob, MobType.PLAYER);
 
@@ -161,7 +161,7 @@ public class MobFactory
         }
 
         stats.setSpirit(manaPool.unattunedMana().size());
-        stats.hp= stats.getMaxHP();
+        stats.setHp(stats.getMaxHP());
         stats.rl = stats.getMaxRestLvl();
     }
 
@@ -191,7 +191,7 @@ public class MobFactory
         statsCmp.setCon(stats.get(StatType.CON));
         statsCmp.setPerc(stats.get(StatType.PERC));
         statsCmp.setIntel(stats.get(StatType.INTEL));
-        statsCmp.hp=statsCmp.getMaxHP();
+        statsCmp.setHp(statsCmp.getMaxHP());
         statsCmp.mobType=MobType.DEFAULT;
 
         return statsCmp;

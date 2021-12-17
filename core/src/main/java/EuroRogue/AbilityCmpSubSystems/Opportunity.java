@@ -33,15 +33,12 @@ import squidpony.squidmath.OrderedMap;
 
 public class Opportunity extends Ability
 {
-    //private Skill skill = Skill.OPPORTUNITY;
-    private Skill skill = null;
-    private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
-    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
 
     public Opportunity()
     {
         super("Opportunity", new PointAOE(Coord.get(-1,-1), 1, 1), AOEType.POINT);
+        //super.skill = OPPORTUNITY;
     }
 
     public Skill getSkill() {
@@ -131,7 +128,7 @@ public class Opportunity extends Ability
 
     @Override
     public TextCellFactory.Glyph getGlyph() {
-        return null;
+        return glyph;
     }
 
     @Override
@@ -140,7 +137,7 @@ public class Opportunity extends Ability
     }
 
     @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects() {
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer) {
 
         return statusEffects;
     }

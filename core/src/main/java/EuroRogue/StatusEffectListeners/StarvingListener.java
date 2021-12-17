@@ -20,7 +20,7 @@ public class StarvingListener extends StatusEffectListener
     {
         super.entityAdded(entity);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
-        statsCmp.hp=statsCmp.getMaxHP();
+        statsCmp.setHp(statsCmp.getMaxHP());
 
     }
 
@@ -29,7 +29,7 @@ public class StarvingListener extends StatusEffectListener
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
         super.entityRemoved(entity);
-        statsCmp.hp = statsCmp.getMaxHP();
+        statsCmp.setHp(statsCmp.getMaxHP());
 
     }
 }

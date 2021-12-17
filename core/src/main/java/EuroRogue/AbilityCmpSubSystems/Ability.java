@@ -4,9 +4,12 @@ import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 
 import java.util.ArrayList;
+
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.StatType;
 import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
@@ -32,6 +35,7 @@ import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.Stalking;
 import EuroRogue.StatusEffectCmps.StatusEffect;
+import EuroRogue.StatusEffectCmps.StatusEffectCmp;
 import EuroRogue.TargetType;
 import squidpony.squidai.AOE;
 import squidpony.squidai.BlastAOE;
@@ -44,6 +48,7 @@ import squidpony.squidmath.OrderedMap;
 
 public class Ability extends Technique implements Component
 {
+    public Skill skill;
     public AOEType aoeType;
     public boolean aimable = false;
     public boolean aimed = false;
@@ -52,6 +57,9 @@ public class Ability extends Technique implements Component
     public TextCellFactory.Glyph glyph;
     private boolean scroll = false;
     private Integer scrollID = null;
+    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
+    //TODO remove reacts to
+    public List<Skill> reactsTo = Collections.emptyList();
 
     public Ability(String name, AOE aoe, AOEType aoeType)
     {
@@ -76,7 +84,7 @@ public class Ability extends Technique implements Component
     }
 
     public Skill getSkill() {
-        return null;
+        return skill;
     }
 
     public List<Skill> getReactions() {
@@ -200,16 +208,18 @@ public class Ability extends Technique implements Component
 
     }
 
-    public HashMap<StatusEffect, SEParameters> getStatusEffects() {
-        return null;
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer) {
+        return statusEffects;
     }
 
-    public void addStatusEffect(StatusEffect statusEffect, SEParameters seParameters) {
-
+    public void addStatusEffect(StatusEffect statusEffect, SEParameters seParameters)
+    {
+        statusEffects.put(statusEffect, seParameters);
     }
 
-    public void removeStatusEffect(StatusEffect statusEffect) {
-
+    public void removeStatusEffect(StatusEffect statusEffect)
+    {
+        statusEffects.remove(statusEffect);
     }
 
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect) {
@@ -366,17 +376,17 @@ public class Ability extends Technique implements Component
         line3.append("Damage: ");
         line3.append(((Integer)getDamage(performer)).toString()+" ", schoolColor);
 
-        line3.append(getDmgType(performer).name(), schoolColor);
+        line3.append(getDmgType(performer).name, schoolColor);
         ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line3);
 
         IColoredString.Impl<SColor> line4 = new IColoredString.Impl<SColor>();
         line4.append("Status Effects Applied: ");
         ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(line4);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        for(StatusEffect statusEffect : getStatusEffects().keySet())
+        for(StatusEffect statusEffect : getStatusEffects(performer).keySet())
         {
             IColoredString.Impl<SColor> effectLine = new IColoredString.Impl<SColor>("   "+statusEffect.name+"  ", schoolColor);
-            SERemovalType seRemovalType = getStatusEffects().get(statusEffect).seRemovalType;
+            SERemovalType seRemovalType = getStatusEffects(performer).get(statusEffect).seRemovalType;
             if(seRemovalType == SERemovalType.TIMED)
                 effectLine.append(getStatusEffectDuration(statsCmp, statusEffect)+" ticks", SColor.WHITE);
             else
@@ -385,35 +395,56 @@ public class Ability extends Technique implements Component
         }
 
         LevelCmp levelCmp = (LevelCmp)CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
-        IColoredString.Impl<SColor> lineTargets = new IColoredString.Impl<SColor>();
-        lineTargets.append("Available Targets:");
-        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineTargets);
-        if(getSkill()==Skill.SHATTER)
+
+        switch (skill.skillType)
         {
-            for(Integer id : getAOEtargetsDmg(performer, levelCmp, game).keySet())
+            case ACTION:
+            case BUFF:
             {
-                Entity targetEntity = game.getEntity(id);
-                if(targetEntity != null)
+                IColoredString.Impl<SColor> lineTargets = new IColoredString.Impl<SColor>();
+                lineTargets.append("Available Targets:");
+                ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineTargets);
+                if(getSkill()==Skill.SHATTER)
                 {
-                    NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, targetEntity);
-                    IColoredString.Impl<SColor> targetLine = new IColoredString.Impl<SColor>("   "+nameCmp.name+"  ", SColor.LIGHT_YELLOW_DYE);
-                    ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(targetLine);
+                    for(Integer id : getAOEtargetsDmg(performer, levelCmp, game).keySet())
+                    {
+                        Entity targetEntity = game.getEntity(id);
+                        if(targetEntity != null)
+                        {
+                            NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, targetEntity);
+                            IColoredString.Impl<SColor> targetLine = new IColoredString.Impl<SColor>("   "+nameCmp.name+"  ", SColor.LIGHT_YELLOW_DYE);
+                            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(targetLine);
+                        }
+                    }
+
+                } else {
+
+                    for(Coord coord : getIdealLocations(performer, levelCmp).keySet())
+                    {
+                        Entity targetEntity = game.getEntity(levelCmp.actors.get(coord));
+                        if(targetEntity != null)
+                        {
+                            NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, targetEntity);
+                            IColoredString.Impl<SColor> targetLine = new IColoredString.Impl<SColor>("   "+nameCmp.name+"  ", SColor.LIGHT_YELLOW_DYE);
+                            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(targetLine);
+                        }
+                    }
                 }
+                break;
             }
 
-        } else {
-
-            for(Coord coord : getIdealLocations(performer, levelCmp).keySet())
+            case REACTION:
             {
-                Entity targetEntity = game.getEntity(levelCmp.actors.get(coord));
-                if(targetEntity != null)
+                IColoredString.Impl<SColor> lineReactsTo = new IColoredString.Impl<SColor>();
+                lineReactsTo.append("Triggered By:");
+                ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineReactsTo);
+                for(Skill skill : reactsTo)
                 {
-                    NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, targetEntity);
-                    IColoredString.Impl<SColor> targetLine = new IColoredString.Impl<SColor>("   "+nameCmp.name+"  ", SColor.LIGHT_YELLOW_DYE);
-                    ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(targetLine);
+                    IColoredString.Impl<SColor> skillLine = new IColoredString.Impl<SColor>("   "+skill.name+"  ", skill.school.color);
+                    ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(skillLine);
                 }
+                break;
             }
         }
-
     }
 }

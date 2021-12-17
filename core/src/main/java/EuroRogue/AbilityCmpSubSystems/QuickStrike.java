@@ -6,12 +6,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.IColoredString;
 import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.EquipmentSlot;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.InventoryCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.WeaponCmp;
@@ -26,15 +28,14 @@ import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
 import EuroRogue.WeaponType;
+import squidpony.StringKit;
 import squidpony.squidai.PointAOE;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 
 public class QuickStrike extends Ability
 {
-    private Skill skill = Skill.QUICK_STRIKE;
-    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    private TextCellFactory.Glyph glyph;
     public int itemID;
     public char chr;
     private Coord targetedLocation;
@@ -42,6 +43,7 @@ public class QuickStrike extends Ability
     public QuickStrike()
     {
         super("Quick Strike", new PointAOE(Coord.get(-1,-1),1,1), AOEType.POINT);
+        super.skill = Skill.QUICK_STRIKE;
     }
 
     public Skill getSkill() {
@@ -68,7 +70,7 @@ public class QuickStrike extends Ability
         {
             itemID = weaponEntity.hashCode();
             chr = weaponType.chr;
-            statusEffects = CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, performer).getStatusEffects();
+            statusEffects = CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, performer).getStatusEffects(performer);
         }
     }
 
@@ -104,7 +106,7 @@ public class QuickStrike extends Ability
 
 
     @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects() {
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer) {
 
         return statusEffects;
     }
@@ -167,5 +169,31 @@ public class QuickStrike extends Ability
                 break;
         }
         return noiseLvl * statsCmp.getStatMultiplier(StatType.MELEE_SND_LVL);
+    }
+
+    @Override
+    public void postToLog(Entity performer, EuroRogue game) {
+        super.postToLog(performer, game);
+        SColor schoolColor = getSkill().school.color;
+        List<String> description = StringKit.wrap(
+                "A fast melee range attack dealing "+ getDmgType(performer).name()+" damage equal to 1/2 Weapon Damage. Can not be Dodged or Shielded"
+                , 40);
+
+        IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
+        desc.append("Description:", SColor.WHITE);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(desc);
+
+        for(String line : description)
+        {
+            IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+            lineText.append(line, SColor.LIGHT_YELLOW_DYE);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+            System.out.println(lineText.present());
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
     }
 }

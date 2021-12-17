@@ -14,6 +14,7 @@ public class StatusEffectCmp implements Component
     public String name = "default";
     public SERemovalType seRemovalType;
     public Integer lastTick;
+    public boolean display = true;
     public boolean lightChange = false;
     public Integer lightLevel = null;
     public Float lightColor = null;

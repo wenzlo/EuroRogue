@@ -10,12 +10,14 @@ import EuroRogue.CmpType;
 import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.AimingCmp;
 import EuroRogue.Components.FOVCmp;
+import EuroRogue.Components.InventoryCmp;
 import EuroRogue.Components.LevelCmp;
 import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.NameCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.Components.TickerCmp;
+import EuroRogue.Components.WindowCmp;
 import EuroRogue.EventComponents.CampEvt;
 import EuroRogue.EventComponents.LogEvt;
 import EuroRogue.EventComponents.MakeCampEvt;
@@ -52,24 +54,24 @@ public class MakeCampSys extends MyEntitySystem
 
         for(Entity entity:entities)
         {
+            if(entity == getGame().getFocus())
+            {
+                ((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().campWindow)).display.setVisible(true);
+                ((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, getGame().campWInBg)).display.setVisible(true);
+            }
+
             StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, entity);
             AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, entity);
-
-            if(!aiCmp.visibleEnemies.isEmpty())
+            MakeCampEvt makeCampEvt = (MakeCampEvt) CmpMapper.getComp(CmpType.MAKE_CAMP_EVT, entity);
+            System.out.println(tickerCmp.tick);
+            if(!aiCmp.visibleEnemies.isEmpty() )
             {
-                System.out.println(tickerCmp.getScheduledActions(entity));
-                tickerCmp.actionQueue.removeAll(tickerCmp.getScheduledActions(entity));
+                InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
+                CampEvt campEvt = new CampEvt(entity.hashCode(), inventoryCmp.getEquippedIDs());
                 entity.remove(MakeCampEvt.class);
-                PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, entity);
+                entity.add(campEvt);
+                tickerCmp.actionQueue.removeAll(tickerCmp.getScheduledActions(entity));
 
-                ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateCampLogEvt().entry);
-                for(Integer id : aiCmp.visibleEnemies)
-                {
-                    Entity enemy = getGame().getEntity(id);
-                    StatsCmp enemyStats = (StatsCmp)CmpMapper.getComp(CmpType.STATS, enemy);
-                    AICmp enemyAI = CmpMapper.getAIComp(enemyStats.mobType.aiType, enemy);
-                    enemyAI.alerts.put(entity.hashCode(), positionCmp.coord);
-                }
                 break;
             }
         }

@@ -14,6 +14,7 @@ import EuroRogue.EuroRogue;
 import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import squidpony.squidgrid.gui.gdx.Radiance;
+import squidpony.squidmath.Coord;
 
 public class ItemListener implements EntityListener {
     EuroRogue game;
@@ -22,6 +23,7 @@ public class ItemListener implements EntityListener {
     public void entityAdded(Entity entity)
     {
         NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
+        System.out.println("Added "+nameCmp.name+" "+entity.hashCode());
 
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL,game.currentLevel);
         if(levelCmp==null) return;
@@ -31,8 +33,9 @@ public class ItemListener implements EntityListener {
         LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, entity);
         if(lightCmp!=null )
         {
-            Light light = new Light(positionCmp.coord, new Radiance(lightCmp.level, lightCmp.color, lightCmp.flicker, lightCmp.strobe) );
-            lightHandler.addLight(light.hashCode(), light);
+
+            Light light = new Light(Coord.get(positionCmp.coord.x*3+1, positionCmp.coord.y*3+1), new Radiance(lightCmp.level, lightCmp.color, lightCmp.flicker, lightCmp.strobe) );
+            lightHandler.addLight(entity.hashCode(), light);
         }
 
     }
@@ -41,12 +44,12 @@ public class ItemListener implements EntityListener {
     public void entityRemoved(Entity entity)
     {
         NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, entity);
-
+        System.out.println("Removing "+nameCmp.name+" "+entity.hashCode());
         LevelCmp level = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, game.currentLevel);
         level.items.remove(entity.hashCode());
 
         LightHandler lightHandler = ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, game.dungeonWindow)).lightingHandler;
+        System.out.println(lightHandler.lightList.get(entity.hashCode()));
         lightHandler.removeLight(entity.hashCode());
-
     }
 }

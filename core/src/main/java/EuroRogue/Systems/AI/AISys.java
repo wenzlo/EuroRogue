@@ -478,7 +478,7 @@ public class AISys extends MyEntitySystem
         targets.put(targetID, ability.getDamage(entity));
         if(ability.getTargetType()==AOE) targets.clear();
 
-        ActionEvt actionEvt = new ActionEvt(entity.hashCode(), ability.getScrollID(), ability.getSkill(), targets, ability.getStatusEffects());
+        ActionEvt actionEvt = new ActionEvt(entity.hashCode(), ability.getScrollID(), ability.getSkill(), targets, ability.getStatusEffects(entity));
         ScheduledEvt scheduledEvt = new ScheduledEvt(scheduledTick,entity.hashCode(),actionEvt);
         ticker.actionQueue.add(scheduledEvt);
 
@@ -531,14 +531,16 @@ public class AISys extends MyEntitySystem
     public int scheduleCampEvt (Entity entity)
     {
         TickerCmp ticker = (TickerCmp) CmpMapper.getComp(CmpType.TICKER, getGame().ticker);
-        InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
+
 
         int scheduledTick = ticker.tick + 50;
 
+        InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);
         CampEvt campEvt = new CampEvt(entity.hashCode(), inventoryCmp.getEquippedIDs());
-        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
         ScheduledEvt scheduledEvt = new ScheduledEvt(scheduledTick,entity.hashCode(),campEvt);
         ticker.actionQueue.add(scheduledEvt);
+
+        PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, entity);
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         NoiseMapCmp noiseMapCmp = (NoiseMapCmp) CmpMapper.getComp(CmpType.NOISE_MAP, entity);
         noiseMapCmp.noiseMap.clearSounds();
@@ -561,7 +563,7 @@ public class AISys extends MyEntitySystem
 
             }
         }
-        entity.add(new MakeCampEvt(entity.hashCode()));
+        entity.add(new MakeCampEvt(entity.hashCode(), scheduledTick));
 
 
 

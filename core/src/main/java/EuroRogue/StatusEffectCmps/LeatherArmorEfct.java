@@ -19,6 +19,7 @@ public class LeatherArmorEfct extends StatusEffectCmp
         name = statusEffect.name;
         seRemovalType = SERemovalType.OTHER;
         lightChange = false;
+        display = false;
     }
 
 }

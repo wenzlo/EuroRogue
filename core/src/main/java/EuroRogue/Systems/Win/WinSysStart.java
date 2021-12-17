@@ -22,7 +22,7 @@ public class WinSysStart extends MyEntitySystem
 {
     private ImmutableArray<Entity> entities;
     private String[] welcomeText =  new String[]
-            {"         Welcome to EuroRogue.",
+            {"             Welcome to EuroRogue.",
              " ",
              "• Roll new builds until you get one you like.",
              "• Start the tutorial level.",

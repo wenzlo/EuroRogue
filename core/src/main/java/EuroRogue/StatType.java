@@ -1,5 +1,9 @@
 package EuroRogue;
 
+import java.util.List;
+
+import squidpony.StringKit;
+
 public enum StatType
 {
     STR,
@@ -33,6 +37,18 @@ public enum StatType
     StatType () { }
 
     public static StatType[] CORE_STATS = new StatType[] {STR, DEX, CON, PERC, INTEL};
+
+    public static List<String>  getDescription(StatType stat, int wrapWidth){
+
+        String description = "";
+        switch (stat)
+        {
+
+        }
+
+        return StringKit.wrap(description, wrapWidth);
+
+    }
 
 
 

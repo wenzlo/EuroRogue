@@ -21,6 +21,7 @@ public class MailArmorEfct extends StatusEffectCmp
         name = statusEffect.name;
         seRemovalType = SERemovalType.OTHER;
         lightChange = false;
+        display = false;
     }
 
 }

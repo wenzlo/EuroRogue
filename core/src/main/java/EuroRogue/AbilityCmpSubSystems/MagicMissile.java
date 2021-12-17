@@ -8,14 +8,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.IColoredString;
 import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -26,6 +29,7 @@ import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
+import squidpony.StringKit;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.Radiance;
@@ -35,15 +39,14 @@ import squidpony.squidmath.Coord;
 
 public class MagicMissile extends Ability
 {
-    private Skill skill = Skill.MAGIC_MISSILE;
-    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    public TextCellFactory.Glyph glyph;
+
     private Coord targetedLocation;
     public ParticleEffectActor particleEffect = new ParticleEffectActor(Gdx.files.internal("ParticleEmitters/magicMissile" ),Gdx.files.internal("" ));
 
     public MagicMissile()
     {
         super("Magic Missile", new PointAOE(Coord.get(-1,-1),1,1), AOEType.POINT);
+        super.skill = Skill.MAGIC_MISSILE;
     }
 
     public Skill getSkill() {
@@ -61,7 +64,7 @@ public class MagicMissile extends Ability
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         aoe.setOrigin(positionCmp.coord);
-        aoe.setMaxRange(1+statsCmp.getIntel()/2);
+        aoe.setMaxRange(1+statsCmp.getPerc()/2);
     }
 
     @Override
@@ -83,10 +86,8 @@ public class MagicMissile extends Ability
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
     {
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
-        //TextCellFactory.Glyph glyph = display.glyph('°',getSkill().school.color, startPos.x, startPos.y);
 
-
-        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.PROJ_MAGIC, startPos, targetCoord, eventCmp, particleEffect);
+        return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.PROJ_MAGIC, startPos, targetCoord, eventCmp);
     }
 
     @Override
@@ -111,7 +112,7 @@ public class MagicMissile extends Ability
     }
 
     @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects() {
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer) {
 
         return statusEffects;
     }
@@ -166,5 +167,31 @@ public class MagicMissile extends Ability
     @Override
     public double getNoiseLvl(Entity performer) {
         return 15;
+    }
+
+    @Override
+    public void postToLog(Entity performer, EuroRogue game) {
+        super.postToLog(performer, game);
+        SColor schoolColor = getSkill().school.color;
+        List<String> description = StringKit.wrap(
+                "A ranged spell attack dealing " + getDmgType(performer) + " damage equal to Spell Power. Range scales with Perception (1+Per/2)."
+                , 40);
+
+        IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
+        desc.append("Description:", SColor.WHITE);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(desc);
+
+        for(String line : description)
+        {
+            IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+            lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+            System.out.println(lineText.present());
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
     }
 }

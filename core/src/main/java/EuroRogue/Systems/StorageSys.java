@@ -6,17 +6,9 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
-import EuroRogue.Components.InventoryCmp;
-import EuroRogue.EventComponents.CampEvt;
-import EuroRogue.EventComponents.LevelEvt;
 import EuroRogue.EventComponents.StorageEvt;
-import EuroRogue.LevelType;
 import EuroRogue.MyEntitySystem;
 import EuroRogue.Storage;
 
@@ -48,7 +40,7 @@ public class StorageSys extends MyEntitySystem
     @Override
     public void update(float deltaTime)
     {
-        Storage storage = getGame().storage;
+        Storage storage = getGame().buildStorage;
         for(Entity entity : entities)
         {
             StorageEvt storageEvt = (StorageEvt) CmpMapper.getComp(CmpType.STORAGE_EVT, entity);
@@ -59,25 +51,13 @@ public class StorageSys extends MyEntitySystem
             {
 
                 case SAVE_BUILD:
+                    System.out.println(storageEvt);
+                    System.out.println(storageEvt.buildName);
                     storage.storeCharBuild(storageEvt.buildName, getGame());
-
-                    getGame().depth++;
-                    InventoryCmp inventoryCmp = ( InventoryCmp)CmpMapper.getComp(CmpType.INVENTORY, getGame().getFocus());
-                    Entity evtEntity = new Entity();
-                    List<LevelType> levelTypes = new ArrayList<>();
-                    Collections.addAll(levelTypes, LevelType.values());
-
-                    levelTypes.remove(LevelType.START);
-                    //TODO move rng level tye selection to level sys
-                    LevelEvt levelEvt = new LevelEvt(getGame().rng.getRandomElement(levelTypes));
-                    CampEvt campEvt = new CampEvt(getGame().getFocus().hashCode(), inventoryCmp.getEquippedIDs());
-                    evtEntity.add(levelEvt);
-                    getGame().getFocus().add(campEvt);
-                    getGame().engine.addEntity(evtEntity);
 
                     break;
                 case LOAD_BUILD:
-                    storage.loadCharBuild(storageEvt.buildName, getGame());
+                    storage.loadCharBuild(storageEvt.buildName,getGame());
                     break;
                 case DELETE_BUILD:
                     storage.deleteBuild(storageEvt.buildName);

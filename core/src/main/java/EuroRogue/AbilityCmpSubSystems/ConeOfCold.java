@@ -8,15 +8,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import EuroRogue.IColoredString;
 import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -28,6 +31,7 @@ import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
+import squidpony.StringKit;
 import squidpony.squidai.AimLimit;
 import squidpony.squidai.ConeAOE;
 import squidpony.squidgrid.Radius;
@@ -39,11 +43,7 @@ import squidpony.squidmath.OrderedMap;
 
 public class ConeOfCold extends Ability
 {
-    private Skill skill = Skill.CONE_OF_COLD;
     private Coord targetedLocation;
-    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    public TextCellFactory.Glyph glyph;
-
 
     public ConeOfCold()
     {
@@ -51,7 +51,7 @@ public class ConeOfCold extends Ability
         super("Cone of Cold", new ConeAOE(Coord.get(0,0),1, 0, 90, Radius.CIRCLE), AOEType.CONE);
         aoe.getReach().limit = AimLimit.FREE;
         statusEffects.put(StatusEffect.CHILLED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
-        //super.aimable = true;
+        super.skill = Skill.CONE_OF_COLD;
     }
 
 
@@ -197,7 +197,7 @@ public class ConeOfCold extends Ability
     }
 
     @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects()
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer)
     {
         return statusEffects;
     }
@@ -218,6 +218,33 @@ public class ConeOfCold extends Ability
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
         return statsCmp.getSpellPower()*2;
+    }
+
+    @Override
+    public void postToLog(Entity performer, EuroRogue game) {
+        super.postToLog(performer, game);
+        SColor schoolColor = getSkill().school.color;
+        List<String> description = StringKit.wrap(
+                "A Cone AOE spell attack that deals no Damage. Applies Chilled status effect to all targets within the cone." +
+                        "Applies Frozen status effect if the target is already Chilled."
+                , 40);
+
+        IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
+        desc.append("Description:", SColor.WHITE);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(desc);
+
+        for(String line : description)
+        {
+            IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+            lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+            System.out.println(lineText.present());
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
     }
 
 

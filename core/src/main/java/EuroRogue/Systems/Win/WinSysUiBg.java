@@ -87,18 +87,35 @@ public class WinSysUiBg extends MyEntitySystem
                 int y = windowCmp.stage.getViewport().getScreenY();
                 int w = windowCmp.stage.getViewport().getScreenWidth();
                 int h = windowCmp.stage.getViewport().getScreenHeight();
+                if(windowEntity == getGame().dungeonOverlayWindow)
+                {
+                    x=0; y=0; w=w+36; h=h+36;
+                }
+
 
 
                 rectangle(x, y, w, h, uiBgLightingCmp.map);
             }
+
+            /*Light light = new Light(Coord.get(43, 55),new Radiance(15, SColor.darkenFloat(SColor.COSMIC_LATTE.toFloatBits(), 0.7f)));
+            lightHandler.addLight(light.hashCode(), light);
+            light = new Light(Coord.get(72, 30),new Radiance(15, SColor.darkenFloat(SColor.COSMIC_LATTE.toFloatBits(), 0.7f)));
+            lightHandler.addLight(light.hashCode(), light);
+            light = new Light(Coord.get(43, 30),new Radiance(15, SColor.darkenFloat(SColor.SLATE_GRAY.toFloatBits(), 0.4f)));
+            lightHandler.addLight(light.hashCode(), light);
+            light = new Light(Coord.get(72, 55),new Radiance(15, SColor.darkenFloat(SColor.SLATE_GRAY.toFloatBits(), 0.4f)));
+            lightHandler.addLight(light.hashCode(), light);*/
+
+
+
             uiBgLightingCmp.bgLighting=new float[(uiBgLightingCmp.map.length)*3][(uiBgLightingCmp.map[0].length)*3];
 
             uiBgLightingCmp.fgResistances = MyDungeonUtility.generateSimpleResistances(uiBgLightingCmp.map);
             double[][] tempFov = new double[uiBgLightingCmp.map.length][uiBgLightingCmp.map[0].length];
-            for(Light light : lightHandler.lightList.values())
+            for(Light light1 : lightHandler.lightList.values())
             {
-                Radiance radiance = light.radiance;
-                Coord location = light.position;
+                Radiance radiance = light1.radiance;
+                Coord location = light1.position;
                 MyFOV.addFOVsInto(uiBgLightingCmp.fgLightLevel, MyFOV.reuseFOV(uiBgLightingCmp.fgResistances, tempFov, location.x/3, location.y/3, radiance.range/3));
             }
 
@@ -120,7 +137,7 @@ public class WinSysUiBg extends MyEntitySystem
         }
         char[][] map = DungeonUtility.hashesToLines(uiBgLightingCmp.map);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
-        float healthColor = SColor.lerpFloatColors(SColor.RED.toFloatBits(), SColor.LIMITED_PALETTE[2].toFloatBits(), statsCmp.hp/(float)statsCmp.getMaxHP());
+        float healthColor = SColor.lerpFloatColors(SColor.RED.toFloatBits(), SColor.LIMITED_PALETTE[2].toFloatBits(), statsCmp.getHp()/(float)statsCmp.getMaxHP());
 
         for(float[] line : uiBgLightingCmp.fgColors)
             Arrays.fill(line,  healthColor);

@@ -6,12 +6,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.IColoredString;
 import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.AI.AICmp;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ManaPoolCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
@@ -19,34 +21,28 @@ import EuroRogue.DamageType;
 import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
-import EuroRogue.EventComponents.ItemEvt;
 import EuroRogue.Light;
 import EuroRogue.LightHandler;
 import EuroRogue.MySparseLayers;
-import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
-import squidpony.squidai.AOE;
+import squidpony.StringKit;
 import squidpony.squidai.BlastAOE;
-import squidpony.squidai.BurstAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
-import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
 public class Shatter extends Ability
 {
-    private Skill skill = Skill.SHATTER;
     private Coord targetedLocation;
-    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    public TextCellFactory.Glyph glyph;
 
     public Shatter()
     {
         super("Shatter", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 0), AOEType.BLAST);
+        super.skill = Skill.SHATTER;
     }
     /**
      * -Need to override this for any Ability with a non-Point AOE for setTargetedLocation(aimAt)-ER
@@ -171,8 +167,6 @@ public class Shatter extends Ability
         return 10;
     }
 
-    @Override
-    public ItemEvt genItemEvent(Entity performer, Entity target) { return null; }
 
     @Override
     public AnimateGlyphEvt genAnimateGlyphEvt(Entity performer, Coord targetCoord, IEventComponent eventCmp, MySparseLayers display)
@@ -180,11 +174,6 @@ public class Shatter extends Ability
         Coord startPos = ((PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer)).coord;
 
         return new AnimateGlyphEvt(glyph, AnimationsSys.AnimationType.SHATTER, startPos, targetCoord, eventCmp);
-    }
-
-    @Override
-    public TextCellFactory.Glyph getGlyph() {
-        return glyph;
     }
 
     @Override
@@ -199,23 +188,6 @@ public class Shatter extends Ability
         lightingHandler.addLight(light.hashCode(), light);
     }
 
-    @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects()
-    {
-        return statusEffects;
-    }
-
-    @Override
-    public void addStatusEffect(StatusEffect statusEffect, SEParameters seParameters)
-    {
-        statusEffects.put(statusEffect, seParameters);
-    }
-
-    @Override
-    public void removeStatusEffect(StatusEffect statusEffect)
-    {
-        statusEffects.remove(statusEffect);
-    }
 
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
@@ -223,5 +195,29 @@ public class Shatter extends Ability
         return statsCmp.getSpellPower()*3;
     }
 
+    @Override
+    public void postToLog(Entity performer, EuroRogue game) {
+        super.postToLog(performer, game);
+        SColor schoolColor = getSkill().school.color;
+        List<String> description = StringKit.wrap(
+                "A Blast AOE spell, centered on the caster, that deals "+getDmgType(performer)+" damage equal to Spell Power to Frozen targets and 1/2 Spell Power to Chilled targets."
+                , 40);
 
+        IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
+        desc.append("Description:", SColor.WHITE);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(desc);
+
+        for(String line : description)
+        {
+            IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+            lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+            System.out.println(lineText.present());
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
+    }
 }

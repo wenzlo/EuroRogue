@@ -102,7 +102,6 @@ public class LevelSys extends MyEntitySystem
     public void addedToEngine(Engine engine)
     {
         entities = engine.getEntitiesFor(Family.all(LevelEvt.class).get());
-
     }
 
     /**
@@ -149,9 +148,7 @@ public class LevelSys extends MyEntitySystem
                     {
                         peCmp.removeEffect(glyph, effect, display);
                     }
-
                 }
-
 
                 getEngine().removeEntity(entity);
             }
@@ -163,8 +160,6 @@ public class LevelSys extends MyEntitySystem
             {
                 getEngine().removeEntity(getGame().getEntity(id));
             }
-
-
         }
 
         LevelEvt levelEvt = (LevelEvt) CmpMapper.getComp(CmpType.LEVEL_EVT, entities.get(0));
@@ -173,30 +168,19 @@ public class LevelSys extends MyEntitySystem
         Entity newLevel = null;
         if(levelEvt.type== LevelType.START)
         {
-
             while(newLevel == null)
-            {
                 newLevel=newTutorialLevel();
-
-            }
         }
         else if(getGame().depth==2)
         {
             while(newLevel == null)
-            {
                 newLevel=newLevel(LevelType.CAVES);
-
-            }
         }
         else
         {
             while(newLevel == null)
-            {
                 newLevel=newLevel(levelEvt.type);
-            }
         }
-
-        //LevelCmp newLevelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, newLevel);
 
         TickerCmp newTickerCmp = new TickerCmp();
         getGame().ticker.remove(TickerCmp.class);
@@ -213,14 +197,12 @@ public class LevelSys extends MyEntitySystem
         dungeonWindowCmp.lightingHandler.lightList.clear();
 
         for(Entity entity : itemsToAdd)
-        {
             getEngine().addEntity(entity);
-        }
+
 
         for(Entity entity : actorsToAdd)
-        {
             getEngine().addEntity(entity);
-        }
+
         Entity player = getGame().player;
         addPlayer(player);
        /* System.out.println("Final new Levl");
@@ -445,16 +427,16 @@ public class LevelSys extends MyEntitySystem
         }
         for(int i=0;i<4;i++)
         {
-            Coord loc = rng.getRandomElement(new GreasedRegion(levelCmp.decoDungeon, '.'));
+            Coord loc = rng.getRandomElement(spwnCrds);
+            spwnCrds.remove(loc);
 
-            //GreasedRegion deadZone = new GreasedRegion(fov.calculateFOV(levelCmp.resistance, loc.x, loc.y, 8, Radius.CIRCLE), 0.0).not();
-
-            //spwnCrds.andNot(deadZone);
             if(loc==null) break;
+
             Entity mob = mobFactory.generateMob(MobType.RAT, loc, levelCmp, getGame().depth);
             actorsToAdd.add(mob);
 
         }
+
         for(int i=0;i<4;i++)
         {
             Coord loc = rng.getRandomElement(new GreasedRegion(levelCmp.decoDungeon, '"'));
@@ -599,6 +581,17 @@ public class LevelSys extends MyEntitySystem
             Coord itemLoc = rng.getRandomElement(spwnCrds);
             spwnCrds.remove(itemLoc);
             itemsToAdd.add(getGame().foodFactory.generateFoodITem(itemLoc));
+        }
+        for(School school : School.values())
+        {
+            Coord loc = rng.getRandomElement(spwnCrds);
+            spwnCrds.remove(loc);
+
+            if (loc == null) break;
+
+            Entity mana = getGame().generateManaITem(loc, school);
+            actorsToAdd.add(mana);
+
         }
 
         return newLevel;

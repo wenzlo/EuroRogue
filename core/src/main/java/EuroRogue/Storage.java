@@ -1,6 +1,7 @@
 package EuroRogue;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,18 +27,20 @@ import squidpony.SquidStorage;
 
 public class Storage extends SquidStorage
 {
-    public ArrayList<String> buildKeys = new ArrayList<>();
-    public Storage()
+    public List<String> buildKeys = new ArrayList<>();
+
+    public Storage(String fileName)
     {
-        super("EuroRogue");
+        super(fileName);
         try {
-
-            this.buildKeys = this.get("EuroRogue", "buildKeys", buildKeys.getClass());
-            if(this.buildKeys == null) this.buildKeys =  new ArrayList<>();
-
+            buildKeys = get("BuildKeys", "Keys", buildKeys.getClass());
         } catch (Exception e) {
-
+            buildKeys = new ArrayList<>();
         }
+
+        System.out.println(buildKeys);
+
+
     }
 
     public void storeCharBuild(String buildName, EuroRogue game)
@@ -51,46 +54,48 @@ public class Storage extends SquidStorage
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, character);
         LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, character);
 
-        put(buildName + CmpType.STATS.toString(), statsCmp );
-        put(buildName + CmpType.CODEX.toString(), codexCmp );
-        put(buildName + CmpType.MANA_POOL.toString(), manaPoolCmp );
-        put(buildName + CmpType.INVENTORY.toString(), inventoryCmp );
-        put(buildName + CmpType.LIGHT.toString(), lightCmp );
-
-        buildKeys.add(buildName);
-        put("buildKeys" , this.buildKeys );
-
-
+        put(CmpType.STATS.toString(), statsCmp );
+        put(CmpType.CODEX.toString(), codexCmp );
+        put(CmpType.MANA_POOL.toString(), manaPoolCmp );
+        put(CmpType.INVENTORY.toString(), inventoryCmp );
+        put(CmpType.LIGHT.toString(), lightCmp );
 
         for(Integer id : inventoryCmp.getItemIDs())
         {
             Entity item = game.getEntity(id);
             ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, item);
-            put(buildName + id + CmpType.ITEM.toString(), itemCmp);
+            put(id + CmpType.ITEM.toString(), itemCmp);
 
             WeaponCmp weaponCmp = (WeaponCmp) CmpMapper.getComp(CmpType.WEAPON, item);
-            put(buildName + id + CmpType.WEAPON.toString(), weaponCmp);
+            put(id + CmpType.WEAPON.toString(), weaponCmp);
 
             ArmorCmp armorCmp = (ArmorCmp)CmpMapper.getComp(CmpType.ARMOR, item);
-            put(buildName + id + CmpType.ARMOR.toString(), armorCmp);
+            put(id + CmpType.ARMOR.toString(), armorCmp);
 
             EquipmentCmp equipmentCmp = (EquipmentCmp)CmpMapper.getComp(CmpType.EQUIPMENT, item);
-            put(buildName + id + CmpType.EQUIPMENT.toString(), equipmentCmp);
+            put(id + CmpType.EQUIPMENT.toString(), equipmentCmp);
 
             NameCmp nameCmp = (NameCmp)CmpMapper.getComp(CmpType.NAME, item);
-            put(buildName + id + CmpType.NAME.toString(), nameCmp);
+            put(id + CmpType.NAME.toString(), nameCmp);
 
             CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, item);
-            put(buildName + id + CmpType.CHAR.toString(), charCmp);
+            put(id + CmpType.CHAR.toString(), charCmp);
 
             lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, item);
-            put(buildName + id + CmpType.LIGHT.toString(), lightCmp);
-
+            put(id + CmpType.LIGHT.toString(), lightCmp);
 
         }
 
 
-        store("EuroRogue");
+        store(buildName);
+        clear();
+        buildKeys.add(buildName);
+        put("Keys", buildKeys);
+        store("BuildKeys");
+        System.out.println(get("buildKeys", CmpType.CODEX.toString(), CodexCmp.class));
+        clear();
+
+
 
     }
 
@@ -99,16 +104,17 @@ public class Storage extends SquidStorage
 
         Entity character = game.getFocus();
 
-        ManaPoolCmp manaPoolCmp = get("EuroRogue", buildName + CmpType.MANA_POOL.toString(), ManaPoolCmp.class);
+        ManaPoolCmp manaPoolCmp = get(buildName, CmpType.MANA_POOL.toString(), ManaPoolCmp.class);
+        System.out.println(get(buildName, CmpType.MANA_POOL.toString(), ManaPoolCmp.class));
 
-        CodexCmp codexCmp = get("EuroRogue", buildName + CmpType.CODEX.toString(), CodexCmp.class);
+        CodexCmp codexCmp = get(buildName, CmpType.CODEX.toString(), CodexCmp.class);
         for(Skill skill : codexCmp.prepared)
         {
             Ability ability = Ability.newAbilityCmp(skill, true);
             character.add(ability);
         }
 
-        StatsCmp statsCmp = get("EuroRogue", buildName + CmpType.STATS.toString(), StatsCmp.class);
+        StatsCmp statsCmp = get(buildName, CmpType.STATS.toString(), StatsCmp.class);
         HashMap<StatType, List<School>> newStatCosts = new HashMap<>();
         for(StatType statType : StatType.CORE_STATS)
         {
@@ -116,7 +122,7 @@ public class Storage extends SquidStorage
         }
         statsCmp.statCosts = newStatCosts;
 
-        InventoryCmp inventoryCmp = get("EuroRogue", buildName + CmpType.INVENTORY.toString(), InventoryCmp.class);
+        InventoryCmp inventoryCmp = get(buildName, CmpType.INVENTORY.toString(), InventoryCmp.class);
         HashMap<EquipmentSlot, Integer> equipmentSlots= new HashMap<>();
         for(Object slotKey : inventoryCmp.equipmentSlots.keySet())
         {
@@ -132,21 +138,21 @@ public class Storage extends SquidStorage
             game.engine.addEntity(itemEntity);
             inventory.add(itemEntity.hashCode());
 
-            ItemCmp itemCmp = get("EuroRogue", buildName + id + CmpType.ITEM.toString(), ItemCmp.class);
+            ItemCmp itemCmp = get(buildName, id + CmpType.ITEM.toString(), ItemCmp.class);
             itemCmp.ownerID = character.hashCode();
             itemEntity.add(itemCmp);
 
-            NameCmp nameCmp =  get("EuroRogue", buildName + id + CmpType.NAME.toString(), NameCmp.class);
+            NameCmp nameCmp =  get(buildName, id + CmpType.NAME.toString(), NameCmp.class);
             itemEntity.add(nameCmp);
 
-            CharCmp charCmp = get("EuroRogue", buildName + id + CmpType.CHAR.toString(), CharCmp.class);
+            CharCmp charCmp = get(buildName, id + CmpType.CHAR.toString(), CharCmp.class);
             itemEntity.add(charCmp);
 
-            LightCmp lightCmp = get("EuroRogue", buildName + id+CmpType.LIGHT.toString(), LightCmp.class);
+            LightCmp lightCmp = get(buildName, id+CmpType.LIGHT.toString(), LightCmp.class);
             itemEntity.add(lightCmp);
 
 
-            WeaponCmp weaponCmp =  get("EuroRogue", buildName + id + CmpType.WEAPON.toString(), WeaponCmp.class);
+            WeaponCmp weaponCmp =  get(buildName, id + CmpType.WEAPON.toString(), WeaponCmp.class);
             if(weaponCmp!=null)
             {
                 HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
@@ -160,11 +166,11 @@ public class Storage extends SquidStorage
             }
 
 
-            ArmorCmp armorCmp =  get("EuroRogue", buildName + id + CmpType.ARMOR.toString(), ArmorCmp.class);
+            ArmorCmp armorCmp =  get(buildName, id + CmpType.ARMOR.toString(), ArmorCmp.class);
             if(armorCmp!=null)
                 itemEntity.add(armorCmp);
 
-            EquipmentCmp equipmentCmp =  get("EuroRogue", buildName + id + CmpType.EQUIPMENT.toString(), EquipmentCmp.class);
+            EquipmentCmp equipmentCmp =  get(buildName, id + CmpType.EQUIPMENT.toString(), EquipmentCmp.class);
             if(equipmentCmp!=null)
             {
                 HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
@@ -176,14 +182,10 @@ public class Storage extends SquidStorage
                 equipmentCmp.statusEffects=statusEffects;
                 itemEntity.add(equipmentCmp);
             }
-
-
         }
         inventoryCmp.inventory = inventory;
 
-        LightCmp lightCmp = get("EuroRogue", buildName + CmpType.LIGHT.toString(), LightCmp.class);
-
-
+        LightCmp lightCmp = get(buildName, CmpType.LIGHT.toString(), LightCmp.class);
 
         character.remove(StatsCmp.class);
         character.remove(CodexCmp.class);
@@ -201,14 +203,13 @@ public class Storage extends SquidStorage
 
     public void deleteBuild(String buildName)
     {
-
-        remove(buildName);
+        clear();
         buildKeys.remove(buildName);
-        put("buildKeys" , this.buildKeys );
-        store("EuroRogue");
+        put("Keys", buildKeys);
+        store("BuildKeys");
 
-
-
+        clear();
+        store(buildName);
     }
 
 }

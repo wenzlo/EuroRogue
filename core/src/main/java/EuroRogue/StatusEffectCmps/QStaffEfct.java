@@ -12,6 +12,7 @@ public class QStaffEfct extends StatusEffectCmp
         statusEffect = StatusEffect.QSTAFF_EFCT;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;
+        display = false;
     }
     public QStaffEfct(float ttMeleeMult, float attackPwrMult)
     {
@@ -21,5 +22,6 @@ public class QStaffEfct extends StatusEffectCmp
         name = statusEffect.name;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;
+        display = false;
     }
 }

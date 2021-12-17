@@ -128,9 +128,9 @@ public class DamageApplicationSys extends MyEntitySystem
 
 
             }
-            targetStats.hp = targetStats.hp-actionEvt.targetsDmg.get(targetID);
+            targetStats.setHp(targetStats.getHp()-actionEvt.targetsDmg.get(targetID));
 
-            if(targetStats.hp<=0)
+            if(targetStats.getHp()<=0)
             {
                 if(performerEntity!=targetEntity && actionEvt.skill.skillType != Skill.SkillType.REACTION && ability.getDamage(performerEntity)>0)
                     ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateActionLogEvt(targetEntity, actionEvt, ability).entry);
@@ -148,11 +148,11 @@ public class DamageApplicationSys extends MyEntitySystem
 
         StatsCmp targetStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, targetEntity);
 
-        targetStats.hp = targetStats.hp-damageEvt.damage;
+        targetStats.setHp(targetStats.getHp()-damageEvt.damage);
 
         ((LogCmp) CmpMapper.getComp(CmpType.LOG, getGame().logWindow)).logEntries.add(generateDamageLogEvt(damageEvt).entry);
         if(entity.getComponents().size()==0)getEngine().removeEntity(entity);
-        if(targetStats.hp<=0 )
+        if(targetStats.getHp()<=0 )
         {
 
             targetEntity.add(new DeathEvt(targetEntity.hashCode()));

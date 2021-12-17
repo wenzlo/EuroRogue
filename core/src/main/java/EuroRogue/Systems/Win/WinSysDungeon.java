@@ -62,7 +62,21 @@ public class WinSysDungeon extends MyEntitySystem
         if(!windowCmp.display.isVisible()) return;
         putMap(getGame().currentLevel);
 
+        Stage stage = windowCmp.stage;
 
+        TextCellFactory.Glyph pg = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, getGame().getFocus())).glyph;
+
+        stage.getCamera().position.x = pg.getX();
+        stage.getCamera().position.y =  pg.getY();
+
+        stage.act();
+        stage.getViewport().apply(false);
+
+        getGame().filterBatch.begin();
+        getGame().filterBatch.end();
+
+        stage.draw();
+        
     }
 
     private void putMap(Entity levelEntity)
@@ -153,15 +167,7 @@ public class WinSysDungeon extends MyEntitySystem
         applyStalkingFilter(lightingCmp, levelCmp);
 
 
-        Stage stage = windowCmp.stage;
 
-        TextCellFactory.Glyph pg = ((GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, getGame().getFocus())).glyph;
-
-        stage.getCamera().position.x = pg.getX();
-        stage.getCamera().position.y =  pg.getY();
-        stage.act();
-        stage.getViewport().apply(false);
-        stage.draw();
 
     }
 

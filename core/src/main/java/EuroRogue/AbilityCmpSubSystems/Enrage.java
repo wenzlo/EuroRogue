@@ -7,13 +7,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.IColoredString;
 import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -23,23 +26,23 @@ import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
+import squidpony.StringKit;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.OrderedMap;
 
 public class Enrage extends Ability
 {
-    private Skill skill = Skill.ENRAGE;
     private Coord targetedLocation;
-    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-
 
     public Enrage()
     {
         super("Enrage", new PointAOE(Coord.get(-1,-1),0,0), AOEType.POINT);
         statusEffects.put(StatusEffect.ENRAGED, new SEParameters(TargetType.SELF, SERemovalType.SHORT_REST));
+        super.skill = Skill.ENRAGE;
     }
 
     @Override
@@ -100,7 +103,7 @@ public class Enrage extends Ability
 
 
     @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects() {
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer) {
 
         return statusEffects;
     }
@@ -142,5 +145,32 @@ public class Enrage extends Ability
     @Override
     public double getNoiseLvl(Entity performer) {
         return 10;
+    }
+
+    @Override
+    public void postToLog(Entity performer, EuroRogue game) {
+        super.postToLog(performer, game);
+
+        SColor schoolColor = getSkill().school.color;
+        List<String> description = StringKit.wrap(
+                "Applies Enraged status effect to the caster. Enrage is maintained until the next Short Rest." +
+                        " Increases Attack Power (10% * Strength), ttCast(2x), and ttRest(2x)"
+                , 40);
+
+        IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
+        desc.append("Description:", SColor.WHITE);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(desc);
+
+        for (String line : description) {
+            IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+            lineText.append("    " + line, SColor.LIGHT_GRAY);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+            System.out.println(lineText.present());
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
     }
 }

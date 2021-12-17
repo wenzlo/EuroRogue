@@ -11,6 +11,7 @@ public class StaffEfct extends StatusEffectCmp
         name = statusEffect.name;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;
+        display = false;
     }
     public StaffEfct(float ttMeleeMult, float attackPwrMult)
     {
@@ -21,5 +22,6 @@ public class StaffEfct extends StatusEffectCmp
         name = statusEffect.name;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;
+        display = false;
     }
 }

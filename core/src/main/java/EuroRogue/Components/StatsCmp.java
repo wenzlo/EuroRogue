@@ -9,10 +9,15 @@ import java.util.HashMap;
 import java.util.List;
 
 import EuroRogue.DamageType;
+import EuroRogue.IColoredString;
+import EuroRogue.CmpType;
+import EuroRogue.EuroRogue;
 import EuroRogue.MobType;
+import EuroRogue.CmpMapper;
 import EuroRogue.School;
 import EuroRogue.SortManaBySchool;
 import EuroRogue.StatType;
+import squidpony.StringKit;
 import squidpony.squidgrid.Direction;
 import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidmath.GWTRNG;
@@ -20,7 +25,7 @@ import squidpony.squidmath.GWTRNG;
 
 public class StatsCmp implements Component
 {
-    public int hp;
+    private int hp;
     public int rl;
     public MobType mobType;
     private int str = 0;
@@ -114,6 +119,15 @@ public class StatsCmp implements Component
         }
 
     }
+    public int getHp()
+    {
+        return hp;
+    }
+    public void setHp(int hp)
+    {
+        this.hp = Math.max(0,hp);
+    }
+
     public int getMaxHP()
     {
         return Math.round((Arrays.stream(new int[]{str, con, dex, intel, perc}).sum()*4+8 * con)*getStatMultiplier(StatType.MAX_HP));
@@ -416,7 +430,7 @@ public class StatsCmp implements Component
     {
         StringBuilder sb = new StringBuilder();
         sb.append("CORE STATS" +"\n");
-        sb.append("HP = "+hp+"/"+getMaxHP() +"\n");
+        sb.append("HP = "+hp+"/"+getMaxHP() +" ");
         sb.append("Rest Lvl = "+ getRestLvl()+"\n");
         sb.append("strength     = "+ str +"\n");
         sb.append("dexterity    = "+ dex +"\n");
@@ -441,10 +455,10 @@ public class StatsCmp implements Component
         sb.append("Weapon Damage = "+ getWeaponDamage()+"\n");
         sb.append("Attack Power  = "+ getAttackPower()+"\n");
         sb.append("Spell Power   = "+getSpellPower()+"\n");
-        float dpt = ((float) getWeaponDamage()/(float)getTTMelee());
+        /*float dpt = ((float) getWeaponDamage()/(float)getTTMelee());
         sb.append("Melee DPT = "+dpt+"\n");
         dpt = ((float)getSpellPower()/(float)getTTCast());
-        sb.append("Spell DPT = "+dpt+"\n");
+        sb.append("Spell DPT = "+dpt+"\n");*/
 
         return sb.toString();
     }
@@ -452,4 +466,20 @@ public class StatsCmp implements Component
     {
         return statCosts.get(statType);
     }
+
+    public void postToLog(EuroRogue game)
+    {
+       String[] statLines = StringKit.split(toString(), "\n");
+       System.out.println(statLines.length);
+
+       for(String line : statLines)
+       {
+           System.out.println(line);
+           IColoredString.Impl<SColor> logLine = new IColoredString.Impl<SColor>();
+           logLine.append(line, SColor.LIGHT_YELLOW_DYE);
+
+           ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(logLine);
+       }
+    }
+
 }

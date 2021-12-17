@@ -13,6 +13,7 @@ public class SwordEfct extends StatusEffectCmp
         seRemovalType = SERemovalType.TIMED;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;
+        display = false;
     }
     public SwordEfct(float ttMeleeMult, float attackPwrMult)
     {
@@ -22,5 +23,6 @@ public class SwordEfct extends StatusEffectCmp
         name = statusEffect.name;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;
+        display = false;
     }
 }

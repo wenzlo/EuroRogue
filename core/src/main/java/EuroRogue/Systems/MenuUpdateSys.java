@@ -47,6 +47,7 @@ import EuroRogue.SortAbilityBySkillType;
 import EuroRogue.StatType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.StatusEffectCmps.StatusEffectCmp;
+import EuroRogue.Storage;
 import EuroRogue.Systems.AI.AISys;
 import squidpony.squidai.Technique;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -58,7 +59,7 @@ public class MenuUpdateSys extends MyEntitySystem {
 
     public MenuUpdateSys()
     {
-        super.priority = 10;
+        super.priority = 12;
     }
 
     /**
@@ -77,18 +78,23 @@ public class MenuUpdateSys extends MyEntitySystem {
     @Override
     public void update(float deltaTime)
     {
-        getGame().globalMenuIndex = 0;
-        getGame().keyLookup.clear();
+
+        if(getGame().gameState == GameState.STARTING)
+        {
+            getGame().globalMenuIndex = 0;
+            getGame().keyLookup.clear();
+        }
         for (Entity entity : entities)
         {
             if(!((WindowCmp)CmpMapper.getComp(CmpType.WINDOW, entity)).display.isVisible()) continue;
+            if(entity == getGame().dungeonOverlayWindow) continue;
             MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, entity);
 
             menuCmp.menuMap.clear();
-            if (entity == getGame().focusHotBar) updateFocusHotBar(entity);
-            if (entity == getGame().targetHotBar)
-                if(getGame().getFocusTarget()!=null) updateTargetHotBar(entity);
-            if(entity == getGame().inventoryWindow) updateInventory(entity);
+            //if (entity == getGame().focusHotBar) updateFocusHotBar(entity);
+            //if (entity == getGame().targetHotBar)
+                //if(getGame().getFocusTarget()!=null) updateTargetHotBar(entity);
+            if(entity == getGame().inventoryWindow && getGame().gameState!= GameState.STARTING) updateInventory(entity);
             if(entity == getGame().campWindow) updateCampMenu(entity);
             if(entity == getGame().startWindow)
             {
@@ -681,7 +687,7 @@ public class MenuUpdateSys extends MyEntitySystem {
         y++;
 
 
-        for(String key : getGame().storage.buildKeys)
+        for(String key : getGame().buildStorage.buildKeys)
         {
             primaryAction = new Runnable() {
                 @Override
@@ -712,8 +718,11 @@ public class MenuUpdateSys extends MyEntitySystem {
             getGame().globalMenuIndex++;
             y++;
             //System.out.println("build choice added");
-
         }
+
+
+
+
         y++;
         x++;
         y=12;
@@ -743,6 +752,7 @@ public class MenuUpdateSys extends MyEntitySystem {
 
     private IColoredString.Impl getActionLabel(Entity performer, Ability abilityCmp, Character selectionKey, int totalLength)
     {
+
         Skill skill = abilityCmp.getSkill();
         float abilityColor = skill.school.color.toFloatBits();
         if (!abilityCmp.isAvailable())
@@ -761,6 +771,7 @@ public class MenuUpdateSys extends MyEntitySystem {
     }
     private IColoredString.Impl getScrollLabel(Entity scrollEntity, Ability abilityCmp, Character selectionKey, int totalLength)
     {
+
         Skill skill = abilityCmp.getSkill();
         float abilityColor = skill.school.color.toFloatBits();
         if (!abilityCmp.isAvailable())

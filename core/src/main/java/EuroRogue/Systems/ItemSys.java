@@ -142,30 +142,26 @@ public class ItemSys extends MyEntitySystem
             eventEntity.add(statusEffectEvt);
             getEngine().addEntity(eventEntity);
         }
-        MeleeAttack meleeAttack = (MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, actorEntity);
-        if(weaponCmp!=null && meleeAttack != null)
+
+        if(weaponCmp!=null )
         {
+            MeleeAttack meleeAttack = (MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, actorEntity);
 
             meleeAttack.chr = weaponCmp.weaponType.chr;
-            for(StatusEffect statusEffect : weaponCmp.statusEffects.keySet())
-            {
-                SEParameters seParameters = weaponCmp.statusEffects.get(statusEffect);
-                meleeAttack.addStatusEffect(statusEffect, weaponCmp.statusEffects.get(statusEffect));
-                meleeAttack.damageType = weaponCmp.weaponType.damageType;
+            meleeAttack.damageType = weaponCmp.weaponType.damageType;
 
-            }
+            for(StatusEffect statusEffect : weaponCmp.statusEffects.keySet())
+                meleeAttack.addStatusEffect(statusEffect, weaponCmp.statusEffects.get(statusEffect));
         }
         if(Arrays.asList(equipmentCmp.slotsOccupied).contains(EquipmentSlot.CHEST))
         {
             CharCmp itemCharCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntity);
             CharCmp actorCharCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, actorEntity);
             actorCharCmp.armorColor =  itemCharCmp.color;
-            actorCharCmp.armorChr = Character.valueOf(itemCharCmp.chr);
-
+            actorCharCmp.armorChr = itemCharCmp.chr;
         }
-
-
-        if(equipmentCmp.lightLevel > 0) lightCmp.level = equipmentCmp.lightLevel; lightCmp.color = equipmentCmp.lightColor;
+        if(equipmentCmp.lightLevel > 0)
+            lightCmp.level = equipmentCmp.lightLevel; lightCmp.color = equipmentCmp.lightColor;
         if(itemCmp.type== ItemType.TORCH) {
             peCmp.addEffect(glyphsCmp.leftGlyph, ParticleEffectsCmp.ParticleEffect.TORCH_P, windowCmp.display);
         }
@@ -294,7 +290,7 @@ public class ItemSys extends MyEntitySystem
                 if(getGame().getFocus() == actorEntity && ability.aimable)
                     ability.aimable=true;
                 StatsCmp ownerStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
-                if(!codexCmp.known.contains(scrollCmp.skill) )
+                /*if(!codexCmp.known.contains(scrollCmp.skill) )
                 {
                     Entity eventEntity = new Entity();
                     eventEntity.add(new CodexEvt(actorEntity.hashCode(), Arrays.asList(scrollCmp.skill), null, null));
@@ -302,7 +298,7 @@ public class ItemSys extends MyEntitySystem
                     getEngine().removeEntity(itemEntity);
                     return;
 
-                }
+                }*/
                 StatsCmp scrollStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, itemEntity);
                 scrollStats.mergeWith(ownerStats);
                 itemCmp.ownerID= actorEntity.hashCode();

@@ -13,5 +13,6 @@ public class DaggerEfct extends StatusEffectCmp
         name = statusEffect.name;
         seRemovalType = SERemovalType.TIMED;
         lightChange = false;
+        display = false;
     }
 }

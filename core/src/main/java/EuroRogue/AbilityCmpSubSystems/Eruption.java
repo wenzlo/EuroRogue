@@ -7,14 +7,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.IColoredString;
 import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
 import EuroRogue.Components.LevelCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -26,6 +29,7 @@ import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
+import squidpony.StringKit;
 import squidpony.squidai.BlastAOE;
 import squidpony.squidgrid.Radius;
 import squidpony.squidgrid.gui.gdx.Radiance;
@@ -36,17 +40,14 @@ import squidpony.squidmath.OrderedMap;
 
 public class Eruption extends Ability
 {
-    private Skill skill = Skill.ERUPTION;
     private Coord targetedLocation;
-    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    public TextCellFactory.Glyph glyph;
-
 
     public Eruption()
     {
         super("Eruption", new BlastAOE(Coord.get(0,0),1, Radius.CIRCLE, 0, 1), AOEType.BLAST);
         super.aimable = true;
         statusEffects.put(StatusEffect.CALESCENT, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
+        super.skill = Skill.ERUPTION;
 
     }
 
@@ -175,7 +176,7 @@ public class Eruption extends Ability
     }
 
     @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects()
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer)
     {
         return statusEffects;
     }
@@ -196,6 +197,32 @@ public class Eruption extends Ability
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
         return statsCmp.getSpellPower()*3;
+    }
+    @Override
+    public void postToLog(Entity performer, EuroRogue game) {
+        super.postToLog(performer, game);
+        SColor schoolColor = getSkill().school.color;
+        List<String> description = StringKit.wrap(
+                "A Blast AOE spell attack that deals "+getDmgType(performer)+" damage at the center and decreases with distance . Applies Calescent status effect to all targets within the AOE." +
+                        "Applies Burning status effect if the target is already Calescent."
+                , 40);
+
+        IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
+        desc.append("Description:", SColor.WHITE);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(desc);
+
+        for(String line : description)
+        {
+            IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+            lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+            System.out.println(lineText.present());
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
     }
 
 

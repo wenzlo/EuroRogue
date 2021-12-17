@@ -6,14 +6,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.IColoredString;
 import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.ParticleEffectsCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.EventComponents.ItemEvt;
@@ -25,6 +28,7 @@ import EuroRogue.StatusEffectCmps.SERemovalType;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
+import squidpony.StringKit;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.Radiance;
@@ -35,16 +39,15 @@ import squidpony.squidmath.GWTRNG;
 
 public class IceShield extends Ability
 {
-    private Skill skill = Skill.ICE_SHIELD;
-    private PointAOE aoe = new PointAOE(Coord.get(-1,-1), 1, 1);
     private Coord targetedLocation;
-    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     private GWTRNG rng = new GWTRNG();
 
     public IceShield()
     {
         super("Ice Shield", new PointAOE(Coord.get(-1,-1), 0, 2), AOEType.POINT);
         statusEffects.put(StatusEffect.CHILLED, new SEParameters(TargetType.ENEMY, SERemovalType.TIMED));
+        super.skill = Skill.ICE_SHIELD;
+        super.reactsTo = Arrays.asList(Skill.MELEE_ATTACK, Skill.DAGGER_THROW, Skill.CHARGE);
     }
 
 
@@ -111,7 +114,7 @@ public class IceShield extends Ability
     }
 
     @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects() {
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer) {
 
         return statusEffects;
     }
@@ -162,5 +165,31 @@ public class IceShield extends Ability
     @Override
     public double getNoiseLvl(Entity performer) {
         return 10;
+    }
+
+    @Override
+    public void postToLog(Entity performer, EuroRogue game) {
+        super.postToLog(performer, game);
+
+        SColor schoolColor = getSkill().school.color;
+        List<String> description = StringKit.wrap(
+                "Attempt to Shield an incoming physical attack. Negates 50% damage with a chance to negate 100% damage (10% * Perc). Applies Frozen status effect if the target is already Chilled."
+                , 40);
+
+        IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
+        desc.append("Description:", SColor.WHITE);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(desc);
+
+        for (String line : description) {
+            IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+            lineText.append("    " + line, SColor.LIGHT_GRAY);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+            System.out.println(lineText.present());
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
     }
 }

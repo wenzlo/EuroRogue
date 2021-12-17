@@ -22,7 +22,7 @@ public class WellFedListener extends StatusEffectListener
 
         super.entityAdded(entity);
 
-        statsCmp.hp = statsCmp.getMaxHP();
+        statsCmp.setHp(statsCmp.getMaxHP());
 
     }
 
@@ -32,7 +32,7 @@ public class WellFedListener extends StatusEffectListener
 
         super.entityRemoved(entity);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, entity);
-        if(statsCmp.hp>statsCmp.getMaxHP()) statsCmp.hp=statsCmp.getMaxHP();
+        if(statsCmp.getHp()>statsCmp.getMaxHP()) statsCmp.setHp(statsCmp.getMaxHP());;
 
     }
 }

@@ -53,7 +53,7 @@ public class GameStateSys extends MyEntitySystem
             if(newGameState==GameState.PLAYING && getGame().gameState==GameState.CAMPING && CmpMapper.getStatusEffectComp(StatusEffect.STARVING, getGame().getFocus())==null)
             {
                 StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, getGame().getFocus());
-                statsCmp.hp=statsCmp.getMaxHP();
+                statsCmp.setHp(statsCmp.getMaxHP());
 
             }
 

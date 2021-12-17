@@ -6,13 +6,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import EuroRogue.IColoredString;
 import EuroRogue.AOEType;
 import EuroRogue.CmpMapper;
 import EuroRogue.CmpType;
 import EuroRogue.Components.GlyphsCmp;
+import EuroRogue.Components.LogCmp;
 import EuroRogue.Components.PositionCmp;
 import EuroRogue.Components.StatsCmp;
 import EuroRogue.DamageType;
+import EuroRogue.EuroRogue;
 import EuroRogue.EventComponents.AnimateGlyphEvt;
 import EuroRogue.EventComponents.IEventComponent;
 import EuroRogue.MySparseLayers;
@@ -21,23 +24,25 @@ import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
+import squidpony.StringKit;
 import squidpony.squidai.AOE;
 import squidpony.squidai.PointAOE;
+import squidpony.squidgrid.gui.gdx.SColor;
 import squidpony.squidgrid.gui.gdx.TextCellFactory;
 import squidpony.squidmath.Coord;
 
 public class MeleeAttack extends Ability
 {
-    private Skill skill = Skill.MELEE_ATTACK;
+
     private Coord targetedLocation;
     public DamageType damageType =  DamageType.BLUDGEONING;
-    private HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
     public char chr = '•';
-    public TextCellFactory.Glyph glyph;
+
 
     public MeleeAttack()
     {
         super("Melee Attack", new PointAOE(Coord.get(-1,-1), 1, 1), AOEType.POINT);
+        super.skill = Skill.MELEE_ATTACK;
         //super.aimable=true;
     }
 
@@ -132,24 +137,39 @@ public class MeleeAttack extends Ability
 
 
     @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects() { return statusEffects; }
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer) { return statusEffects; }
 
-    @Override
-    public void addStatusEffect(StatusEffect statusEffect, SEParameters seParameters)
-    {
-        statusEffects.put(statusEffect, seParameters);
-    }
-
-    @Override
-    public void removeStatusEffect(StatusEffect statusEffect)
-    {
-        statusEffects.remove(statusEffect);
-    }
 
     @Override
     public Integer getStatusEffectDuration(StatsCmp statsCmp, StatusEffect statusEffect)
     {
         return statsCmp.getWeaponDamage();
+    }
+
+    @Override
+    public void postToLog(Entity performer, EuroRogue game) {
+        super.postToLog(performer, game);
+        SColor schoolColor = getSkill().school.color;
+        List<String> description = StringKit.wrap(
+                "Melee attack dealing " + getDmgType(performer) + " damage equal to Weapon Damage."
+                , 40);
+
+        IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
+        desc.append("Description:", SColor.WHITE);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(desc);
+
+        for(String line : description)
+        {
+            IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+            lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+            System.out.println(lineText.present());
+        }
+
+
+        IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
+        lineLast.append("-----------------------------------------------------", schoolColor);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
     }
 
 

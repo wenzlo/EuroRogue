@@ -30,7 +30,7 @@ public class WinSysLog extends MyEntitySystem
 
     public WinSysLog()
     {
-        super.priority = 11;
+        super.priority = 9;
     }
 
 
@@ -79,11 +79,11 @@ public class WinSysLog extends MyEntitySystem
 
         display.put(12, 0, "Ambient light = "+lightingCmp.ambientLightLvl, SColor.WHITE);
         display.put(34, 0, "Visible Level = " + statsCmp.getLightDetectionLvl(), SColor.WHITE);
-        display.put(1, 18, currentTick.toString(),SColor.WHITE);
+        display.put(1, 24, currentTick.toString(),SColor.WHITE);
 
-        for(int i=0;i<Math.min(logCmp.logEntries.size()-scrollIndex,16);i++)
+        for(int i=0;i<Math.min(logCmp.logEntries.size()-scrollIndex,23);i++)
         {
-            int yOffset = 17-i;
+            int yOffset = 22-i;
             if(logCmp.logEntries.size()-1-i+scrollIndex < 0
                 || logCmp.logEntries.size()-1-i+scrollIndex > logCmp.logEntries.size()-1)
                 continue;

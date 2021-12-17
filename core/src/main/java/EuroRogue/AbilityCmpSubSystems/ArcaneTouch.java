@@ -27,6 +27,7 @@ import EuroRogue.StatusEffectCmps.SEParameters;
 import EuroRogue.StatusEffectCmps.StatusEffect;
 import EuroRogue.Systems.AnimationsSys;
 import EuroRogue.TargetType;
+import squidpony.StringKit;
 import squidpony.squidai.PointAOE;
 import squidpony.squidgrid.gui.gdx.Radiance;
 import squidpony.squidgrid.gui.gdx.SColor;
@@ -35,15 +36,12 @@ import squidpony.squidmath.Coord;
 
 public class ArcaneTouch extends Ability
 {
-    private Skill skill = Skill.ARCANE_TOUCH;
     private Coord targetedLocation;
-
-    public HashMap<StatusEffect, SEParameters> statusEffects = new HashMap<>();
-    private TextCellFactory.Glyph glyph;
 
     public ArcaneTouch()
     {
         super("Arcane Touch", new PointAOE(Coord.get(-1,-1), 1, 1), AOEType.POINT);
+        super.skill = Skill.ARCANE_TOUCH;
     }
 
     public Skill getSkill() {
@@ -120,7 +118,7 @@ public class ArcaneTouch extends Ability
 
     }
     @Override
-    public HashMap<StatusEffect, SEParameters> getStatusEffects()
+    public HashMap<StatusEffect, SEParameters> getStatusEffects(Entity performer)
     {
         return statusEffects;
     }
@@ -144,13 +142,26 @@ public class ArcaneTouch extends Ability
     public void postToLog(Entity performer, EuroRogue game) {
         super.postToLog(performer, game);
         SColor schoolColor = getSkill().school.color;
+        List<String> description = StringKit.wrap(
+                "A melee attack dealing " + getDmgType(performer) + " damage equal to 2 * Weapon Damage. Requires an equipped dagger and Stalking status effect"
+                , 40);
 
-        IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
-        lineText.append("Testing additional text here", schoolColor);
-        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+        IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
+        desc.append("Description:", SColor.WHITE);
+        ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(desc);
+
+        for(String line : description)
+        {
+            IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
+            lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
+            ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
+            System.out.println(lineText.present());
+        }
+
 
         IColoredString.Impl<SColor> lineLast = new IColoredString.Impl<SColor>();
         lineLast.append("-----------------------------------------------------", schoolColor);
         ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineLast);
     }
+
 }
