@@ -429,36 +429,21 @@ public class StatsCmp implements Component
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("CORE STATS" +"\n");
-        sb.append("HP = "+hp+"/"+getMaxHP() +" ");
-        sb.append("Rest Lvl = "+ getRestLvl()+"\n");
-        sb.append("strength     = "+ str +"\n");
-        sb.append("dexterity    = "+ dex +"\n");
-        sb.append("constitution = "+ con +"\n");
-        sb.append("perception   = "+ perc +"\n");
+        sb.append("CORE STATS" +"            "+ "RESISTS"+"\n"+"\n");
+        sb.append("HP       = "+hp+"/"+getMaxHP() +"      Bludgeon = "+(Math.round((-(1-getResistMultiplier(DamageType.BLUDGEONING)))*100))+"%"+"\n");
+        sb.append("Rest Lvl   = "+ getRestLvl()+"      Piercing = "+(Math.round((-(1-getResistMultiplier(DamageType.PIERCING)))*100))+"%"+"\n");
+        sb.append("strength     = "+ str +"      Slashing = "+(Math.round((-(1-getResistMultiplier(DamageType.SLASHING)))*100))+"%"+"\n");
+        sb.append("dexterity    = "+ dex +"      Fire     = "+(Math.round((-(1-getResistMultiplier(DamageType.FIRE)))*100))+"%"+"\n");
+        sb.append("constitution = "+ con +"      Ice      = "+(Math.round((-(1-getResistMultiplier(DamageType.ICE)))*100))+"%"+"\n");
+        sb.append("perception   = "+ perc +"      Arcane   = "+(Math.round((-(1-getResistMultiplier(DamageType.ARCANE)))*100))+"%"+"\n");
         sb.append("intelligence = "+ intel +"\n");
-        sb.append("Spirit = "+ spirit +"\n"+"\n");
-        sb.append("SPEED STATS" +"\n");
-        sb.append("ttMove  = "+getTTMoveBase()+"\n");
-        sb.append("ttMelee = "+getTTMelee()+"\n");
-        sb.append("ttCast  = "+getTTCast()+"\n");
+        sb.append("Spirit       = "+ spirit +"\n"+"\n");
+        sb.append("SPEED STATS" +"            DAMAGE STATS"+"\n"+"\n");
+        sb.append("ttMove  = "+getTTMoveBase()+"            Weapon Damage = "+ getWeaponDamage()+"\n");
+        sb.append("ttMelee = "+getTTMelee()+"            Attack Power  = "+ getAttackPower()+"\n");
+        sb.append("ttCast  = "+getTTCast()+"            Spell Power   = "+getSpellPower()+"\n");
         sb.append("ttRest  = "+getTTRest()+"\n"+"\n");
 
-        sb.append("RESISTS"+"\n"+"\n");
-        sb.append("Bludgeon = "+(Math.round((-(1-getResistMultiplier(DamageType.BLUDGEONING)))*100))+"%"+"\n");
-        sb.append("Piercing = "+(Math.round((-(1-getResistMultiplier(DamageType.PIERCING)))*100))+"%"+"\n");
-        sb.append("Slashing = "+(Math.round((-(1-getResistMultiplier(DamageType.SLASHING)))*100))+"%"+"\n");
-        sb.append("Fire     = "+(Math.round((-(1-getResistMultiplier(DamageType.FIRE)))*100))+"%"+"\n");
-        sb.append("Ice      = "+(Math.round((-(1-getResistMultiplier(DamageType.ICE)))*100))+"%"+"\n");
-        sb.append("Arcane   = "+(Math.round((-(1-getResistMultiplier(DamageType.ARCANE)))*100))+"%"+"\n"+"\n");
-        sb.append("DAMAGE STATS"+"\n");
-        sb.append("Weapon Damage = "+ getWeaponDamage()+"\n");
-        sb.append("Attack Power  = "+ getAttackPower()+"\n");
-        sb.append("Spell Power   = "+getSpellPower()+"\n");
-        /*float dpt = ((float) getWeaponDamage()/(float)getTTMelee());
-        sb.append("Melee DPT = "+dpt+"\n");
-        dpt = ((float)getSpellPower()/(float)getTTCast());
-        sb.append("Spell DPT = "+dpt+"\n");*/
 
         return sb.toString();
     }
@@ -470,11 +455,11 @@ public class StatsCmp implements Component
     public void postToLog(EuroRogue game)
     {
        String[] statLines = StringKit.split(toString(), "\n");
-       System.out.println(statLines.length);
+
 
        for(String line : statLines)
        {
-           System.out.println(line);
+
            IColoredString.Impl<SColor> logLine = new IColoredString.Impl<SColor>();
            logLine.append(line, SColor.LIGHT_YELLOW_DYE);
 

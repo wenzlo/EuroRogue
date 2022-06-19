@@ -64,7 +64,8 @@ public class MagicMissile extends Ability
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         aoe.setOrigin(positionCmp.coord);
-        aoe.setMaxRange(1+statsCmp.getPerc()/2);
+        int intel = Math.max(statsCmp.getIntel(), skill.intReq);
+        aoe.setMaxRange(2+intel/2);
     }
 
     @Override
@@ -186,7 +187,7 @@ public class MagicMissile extends Ability
             IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
             lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
             ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
-            System.out.println(lineText.present());
+
         }
 
 

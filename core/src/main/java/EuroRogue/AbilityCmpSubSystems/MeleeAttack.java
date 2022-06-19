@@ -163,7 +163,7 @@ public class MeleeAttack extends Ability
             IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
             lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
             ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
-            System.out.println(lineText.present());
+
         }
 
 

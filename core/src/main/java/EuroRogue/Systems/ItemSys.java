@@ -215,8 +215,8 @@ public class ItemSys extends MyEntitySystem
         LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
         Coord actorPosition = levelCmp.actors.getPosition(actorEntity.hashCode());
         LightCmp lightCmp = (LightCmp)CmpMapper.getComp(CmpType.LIGHT, itemEntity);
-
-        lightCmp.level=0;
+        if(lightCmp!=null)
+                lightCmp.level=0;
         if(equipmentCmp!=null && inventoryCmp!=null )
             if(equipmentCmp.equipped)
             {
@@ -271,39 +271,37 @@ public class ItemSys extends MyEntitySystem
         ItemCmp itemCmp = (ItemCmp) CmpMapper.getComp(CmpType.ITEM, itemEntity);
         ManaPoolCmp manaPoolCmp = (ManaPoolCmp)CmpMapper.getComp(CmpType.MANA_POOL, actorEntity);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
-        itemEntity.remove(PositionCmp.class);
+
         switch (itemCmp.type)
         {
             case FOOD:
                 itemCmp.ownerID= actorEntity.hashCode();
                 itemEntity.remove(PositionCmp.class);
                 inventoryCmp.putFood(itemEntity.hashCode());
+                itemEntity.remove(PositionCmp.class);
                 return;
+
             case MANA:
                 manaPoolCmp.addMana(new School[]{((ManaCmp)CmpMapper.getComp(CmpType.MANA, itemEntity)).school}, statsCmp);
                 getEngine().removeEntity(itemEntity);
+                itemEntity.remove(PositionCmp.class);
                 return;
 
             case SCROLL:
-                ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
-                Ability ability = CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
-                if(getGame().getFocus() == actorEntity && ability.aimable)
-                    ability.aimable=true;
-                StatsCmp ownerStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, actorEntity);
-                /*if(!codexCmp.known.contains(scrollCmp.skill) )
+                if(inventoryCmp.getScrollsIDs().size()<inventoryCmp.scrollCapacity)
                 {
-                    Entity eventEntity = new Entity();
-                    eventEntity.add(new CodexEvt(actorEntity.hashCode(), Arrays.asList(scrollCmp.skill), null, null));
-                    getGame().engine.addEntity(eventEntity);
-                    getEngine().removeEntity(itemEntity);
-                    return;
+                    ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, itemEntity);
+                    Ability ability = CmpMapper.getAbilityComp(scrollCmp.skill, itemEntity);
+                    LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, getGame().currentLevel);
+                    ability.aoe.setMap(levelCmp.decoDungeon);
+                    if(getGame().getFocus() == actorEntity && ability.aimable)
+                        ability.aimable=true;
 
-                }*/
-                StatsCmp scrollStats = (StatsCmp) CmpMapper.getComp(CmpType.STATS, itemEntity);
-                scrollStats.mergeWith(ownerStats);
-                itemCmp.ownerID= actorEntity.hashCode();
-                itemEntity.remove(PositionCmp.class);
-                inventoryCmp.putScroll(itemEntity.hashCode());
+                    itemCmp.ownerID= actorEntity.hashCode();
+                    itemEntity.remove(PositionCmp.class);
+                    inventoryCmp.putScroll(itemEntity.hashCode());
+                }
+
                 return;
 
             case TORCH:
@@ -331,49 +329,46 @@ public class ItemSys extends MyEntitySystem
     }
     private void updateGlyphsCmp(Entity actorEntity)
     {
-
         InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, actorEntity);
 
         GlyphsCmp glyphsCmp = (GlyphsCmp) CmpMapper.getComp(CmpType.GLYPH, actorEntity);
 
         Integer idR = inventoryCmp.getSlotEquippedID(EquipmentSlot.RIGHT_HAND_WEAP);
         Integer idL = inventoryCmp.getSlotEquippedID(EquipmentSlot.LEFT_HAND_WEAP);
-        if(idR==null)
+        Entity itemEntityR = getGame().getEntity(idR);
+        Entity itemEntityL = getGame().getEntity(idL);
+        if(itemEntityR==null)
         {
             glyphsCmp.rightGlyph.shown = '•';
             glyphsCmp.rightGlyph.setColor(glyphsCmp.glyph.getColor());
         }
-        if(idL==null)
+        if(itemEntityL==null)
         {
             glyphsCmp.leftGlyph.shown = '•';
-            glyphsCmp.rightGlyph.setColor(glyphsCmp.glyph.getColor());
+            glyphsCmp.leftGlyph.setColor(glyphsCmp.glyph.getColor());
         }
 
-        if(idL!=null)
+        if(itemEntityL!=null)
         {
-            Entity itemEntity = getGame().getEntity(idL);
-            CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntity);
+            CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntityL);
 
             glyphsCmp.leftGlyph.shown = charCmp.chr;
             glyphsCmp.leftGlyph.setColor(charCmp.color);
+
         }
-        if(idR!=null)
+        if(itemEntityR!=null)
         {
-            Entity itemEntity = getGame().getEntity(idR);
-            CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntity);
+            CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntityR);
 
             glyphsCmp.rightGlyph.shown = charCmp.chr;
             glyphsCmp.rightGlyph.setColor(charCmp.color);
         }
-        if(idR==idL && idR != null)
+        if(itemEntityR==itemEntityL && itemEntityR != null)
         {
-            Entity itemEntity = getGame().getEntity(idR);
-            CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntity);
+            CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, itemEntityR);
             glyphsCmp.leftGlyph.shown = ' ';
             glyphsCmp.rightGlyph.shown = charCmp.chr;
             glyphsCmp.rightGlyph.setColor(charCmp.color);
         }
-
     }
-
 }

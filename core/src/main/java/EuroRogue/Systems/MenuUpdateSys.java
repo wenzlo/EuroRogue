@@ -238,7 +238,6 @@ public class MenuUpdateSys extends MyEntitySystem {
                                 GameStateEvt gameStateEvt = new GameStateEvt(GameState.AIMING);
                                 eventEntity.add(gameStateEvt);
                                 getEngine().addEntity(eventEntity);
-
                             }
                         }
                     };
@@ -494,6 +493,50 @@ public class MenuUpdateSys extends MyEntitySystem {
                 menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
                 y++;
             }
+            for(Integer id : inventoryCmp.getScrollsIDs())
+            {
+                Entity scrollEntity = getGame().getEntity(id);
+                if(scrollEntity==null) continue;
+                String name = ((NameCmp)CmpMapper.getComp(CmpType.NAME, scrollEntity)).name;
+                Coord coord = Coord.get(x, y);
+                IColoredString.Impl scrollLabel;
+                Character chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+                CharCmp charCmp = (CharCmp) CmpMapper.getComp(CmpType.CHAR, scrollEntity);
+                if(getGame().gameState==GameState.PLAYING)
+                {
+                    scrollLabel = new IColoredString.Impl(chr+") ", SColor.WHITE);
+                    scrollLabel.append(charCmp.chr,charCmp.color);
+                    scrollLabel.append(" "+name,charCmp.color);
+                    getGame().globalMenuIndex++;
+                }
+                else {
+
+                    scrollLabel = new IColoredString.Impl();
+                    scrollLabel.append(charCmp.chr,charCmp.color);
+                    scrollLabel.append(" "+name,charCmp.color);
+                }
+                Runnable secondaryAction = new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Entity finalItemEntity = scrollEntity;
+                        Entity eventEntity = new Entity();
+                        ItemEvt itemEvt = new ItemEvt(finalItemEntity.hashCode(), focusEntity.hashCode(), ItemEvtType.DROP);
+                        eventEntity.add(itemEvt);
+                        getGame().engine.addEntity(eventEntity);
+                    }
+                };
+                getGame().keyLookup.put(chr, menuCmp);
+
+                menuItem = new MenuItem(scrollLabel);
+                menuItem.addPrimaryAction(secondaryAction);
+                menuItem.addSecondaryAction(secondaryAction);
+                menuCmp.menuMap.put(coord, chr, menuItem);
+                getGame().keyLookup.put(chr, menuCmp);
+                y++;
+
+            }
         }
     }
     private void updateCampMenu(Entity entity)
@@ -686,39 +729,42 @@ public class MenuUpdateSys extends MyEntitySystem {
         getGame().globalMenuIndex++;
         y++;
 
-
-        for(String key : getGame().buildStorage.buildKeys)
+        if(getGame().buildStorage.buildKeys!=null)
         {
-            primaryAction = new Runnable() {
-                @Override
-                public void run()
-                {
-                    StorageEvt storageEvt = new StorageEvt(key, StorageEvtType.LOAD_BUILD);
-                    player.add(storageEvt);
-                    getGame().depth = 2;
+            for(String key : getGame().buildStorage.buildKeys)
+            {
+                primaryAction = new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                        StorageEvt storageEvt = new StorageEvt(key, StorageEvtType.LOAD_BUILD);
+                        player.add(storageEvt);
+                        getGame().depth = 2;
 
-                }
-            };
-            Runnable secondaryAction = new Runnable() {
-                @Override
-                public void run()
-                {
-                    StorageEvt storageEvt = new StorageEvt(key, StorageEvtType.DELETE_BUILD);
-                    player.add(storageEvt);
-                    getGame().depth = 1;
+                    }
+                };
+                Runnable secondaryAction = new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                        StorageEvt storageEvt = new StorageEvt(key, StorageEvtType.DELETE_BUILD);
+                        player.add(storageEvt);
+                        getGame().depth = 1;
 
-                }
-            };
-            chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
-            menuItem = new MenuItem(new IColoredString.Impl(chr+") Load Build: "+ key, SColor.WHITE));
-            menuItem.addPrimaryAction(primaryAction);
-            menuItem.addSecondaryAction(secondaryAction);
-            menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
-            getGame().keyLookup.put(chr, menuCmp);;
-            getGame().globalMenuIndex++;
-            y++;
-            //System.out.println("build choice added");
+                    }
+                };
+                chr = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];
+                menuItem = new MenuItem(new IColoredString.Impl(chr+") Load Build: "+ key, SColor.WHITE));
+                menuItem.addPrimaryAction(primaryAction);
+                menuItem.addSecondaryAction(secondaryAction);
+                menuCmp.menuMap.put(Coord.get(x,y), chr, menuItem );
+                getGame().keyLookup.put(chr, menuCmp);;
+                getGame().globalMenuIndex++;
+                y++;
+                //System.out.println("build choice added");
+            }
         }
+
 
 
 

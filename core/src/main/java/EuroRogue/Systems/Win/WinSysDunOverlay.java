@@ -127,6 +127,66 @@ public class WinSysDunOverlay extends MyEntitySystem
             IColoredString.Impl al = getActionLabel(abilityCmp, key, 10);
             display.put(x, y, al);
 
+            MenuItem menuItem = new MenuItem(al);
+            Runnable primaryAction = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    if(abilityCmp.isAvailable())
+                        getEngine().getSystem(AISys.class).scheduleActionEvt(focus, abilityCmp);
+                }
+            };
+            if(abilityCmp.aimable )
+            {
+
+                PositionCmp positionCmp = (PositionCmp)CmpMapper.getComp(CmpType.POSITION, focus);
+                primaryAction = new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                        if(abilityCmp.isAvailable())
+                        {
+                            abilityCmp.apply(positionCmp.coord, positionCmp.coord);
+
+                            getGame().getFocus().add(new AimingCmp(abilityCmp.getSkill(), abilityCmp.scroll()));
+                            Entity eventEntity = new Entity();
+                            GameStateEvt gameStateEvt = new GameStateEvt(GameState.AIMING);
+                            eventEntity.add(gameStateEvt);
+                            getEngine().addEntity(eventEntity);
+
+                        }
+                    }
+                };
+            }
+            Runnable postDescription = new Runnable() {
+                @Override
+                public void run() {
+                    abilityCmp.postToLog(focus, getGame());
+                }
+            };
+            Coord coord = Coord.get(x,y);
+            menuItem.addPrimaryAction(primaryAction);
+            menuItem.addSecondaryAction(postDescription);
+            menuCmp.menuMap.put(coord, key, menuItem);
+            getGame().keyLookup.put(key, menuCmp);
+
+
+            if(skill.skillType != Skill.SkillType.REACTION || game.gameState == GameState.CAMPING || game.gameState == GameState.STARTING) game.globalMenuIndex++;
+            x=x+al.length()+1;
+
+        }
+
+
+        for(Integer scrollID : getGame().getScrollIDs(focus))
+        {
+            Entity scrollEnt = getGame().getEntity(scrollID);
+            ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL, scrollEnt);
+            Ability abilityCmp = CmpMapper.getAbilityComp(scrollCmp.skill, scrollEnt);
+            Character key = getGame().globalMenuSelectionKeys[game.globalMenuIndex];
+            if(scrollCmp.skill.skillType == Skill.SkillType.REACTION || game.gameState == GameState.CAMPING || game.gameState == GameState.STARTING) key = null;
+            IColoredString.Impl al = getActionLabel(abilityCmp, key, 10);
+            display.put(x, y, al);
 
             MenuItem menuItem = new MenuItem(al);
             Runnable primaryAction = new Runnable()
@@ -171,13 +231,10 @@ public class WinSysDunOverlay extends MyEntitySystem
             menuItem.addSecondaryAction(postDescription);
             menuCmp.menuMap.put(coord, key, menuItem);
             getGame().keyLookup.put(key, menuCmp);
-            //System.out.println(key);
 
-            if(skill.skillType != Skill.SkillType.REACTION || game.gameState == GameState.CAMPING || game.gameState == GameState.STARTING) game.globalMenuIndex++;
+            if(scrollCmp.skill.skillType != Skill.SkillType.REACTION || game.gameState == GameState.CAMPING || game.gameState == GameState.STARTING) game.globalMenuIndex++;
             x=x+al.length()+1;
-
         }
-
 
         //System.out.println(game.keyLookup.keySet());
         y = 33;
@@ -221,9 +278,13 @@ public class WinSysDunOverlay extends MyEntitySystem
         coloredString.append(nameTag+" ", SColor.colorFromFloat(abilityColor));
         for (int i = 0; i < (totalLength-skill.name.length()-9); i++)
             coloredString.append(' ', SColor.TRANSPARENT);
-        for (School mana : skill.castingCost) {
-            coloredString.append('■', mana.color);
-        }
+
+        if(abilityCmp.scroll())
+            coloredString.append('%', abilityCmp.skill.school.color);
+        else
+            for (School mana : skill.castingCost) {
+                coloredString.append('■', mana.color);
+            }
         //coloredString.append(" " + (abilityCmp).aoe.getMaxRange() + " " + abilityCmp.getDamage(performer));
         return coloredString;
     }
@@ -354,7 +415,6 @@ public class WinSysDunOverlay extends MyEntitySystem
             }
         }
 
-
         List<Ability> preparedReactions = new ArrayList<>();
         for (Skill skill : codexCmp.getPreparedReactions()) {
             Ability ability = CmpMapper.getAbilityComp(skill, focusEntity);
@@ -388,7 +448,6 @@ public class WinSysDunOverlay extends MyEntitySystem
     }
     private IColoredString.Impl getScrollLabel(Entity scrollEntity, Ability abilityCmp, Character selectionKey, int totalLength)
     {
-
         Skill skill = abilityCmp.getSkill();
         float abilityColor = skill.school.color.toFloatBits();
         if (!abilityCmp.isAvailable())
@@ -412,12 +471,12 @@ public class WinSysDunOverlay extends MyEntitySystem
 
         StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, focus);
 
-        float percentage = (float)statsCmp.getRestLvl()/(float)statsCmp.getMaxRestLvl();
+        float percentage = Math.min(1,(float)statsCmp.getRestLvl()/(float)statsCmp.getMaxRestLvl());
         int maxLength = restBar.length();
 
         String rb = restBar.substring(0, Math.round(maxLength*percentage));
 
-        percentage = (float)statsCmp.getHp()/(float)statsCmp.getMaxHP();
+        percentage = Math.min(1, (float)statsCmp.getHp()/(float)statsCmp.getMaxHP());
         maxLength = healthBar.length();
         String hb = healthBar.substring(0, Math.round(maxLength*percentage));
         float hbColor = SColor.lerpFloatColors(SColor.RED.toFloatBits(), SColor.GREEN.toFloatBits(),  percentage);
@@ -427,7 +486,6 @@ public class WinSysDunOverlay extends MyEntitySystem
 
     private void putTargetHealthEnergyBars(MySparseLayers display, Entity target)
     {
-
         StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, target);
 
         float percentage = (float)statsCmp.getRestLvl()/(float)statsCmp.getMaxRestLvl();

@@ -70,7 +70,8 @@ public class ArcaneTouch extends Ability
     public int getDamage(Entity performer)
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        return statsCmp.getSpellPower();
+        int dmg = Math.round(statsCmp.getSpellPower()*1f);
+        return Math.max(dmg, Math.round((1+(skill.intReq/2f))*4));
     }
     @Override
     public DamageType getDmgType(Entity performer)
@@ -155,7 +156,7 @@ public class ArcaneTouch extends Ability
             IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
             lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
             ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
-            System.out.println(lineText.present());
+
         }
 
 

@@ -13,6 +13,7 @@ public class InventoryCmp implements Component
     private ArrayList<Integer> food = new ArrayList<>();
     private ArrayList<Integer> scrolls = new ArrayList<>();
     private int capacity = 10;
+    public int scrollCapacity = 3;
 
     public InventoryCmp(){}
     public InventoryCmp(EquipmentSlot[] slots)

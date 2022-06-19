@@ -97,11 +97,13 @@ public class ConeOfCold extends Ability
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
 
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        ConeAOE coneAOE = (ConeAOE) aoe;
 
-        coneAOE.setRadius(statsCmp.getIntel());
+        ConeAOE coneAOE = (ConeAOE) aoe;
+        int intel = Math.max(statsCmp.getIntel(), skill.intReq);
+
+        coneAOE.setRadius(intel);
         coneAOE.setOrigin(positionCmp.coord);
-        coneAOE.setMaxRange(statsCmp.getIntel());
+        //coneAOE.setMaxRange(intel);
     }
 
     @Override
@@ -124,7 +126,8 @@ public class ConeOfCold extends Ability
             otherTargets.remove(priorityTargetPos);
         }
 
-        return idealLocations(positionCmp.coord, aiCmp.getEnemyLocations(levelCmp), aiCmp.getFriendLocations(levelCmp));
+        OrderedMap<Coord, ArrayList<Coord>> idealLocations = idealLocations(positionCmp.coord, aiCmp.getEnemyLocations(levelCmp), aiCmp.getFriendLocations(levelCmp));
+        return idealLocations;
     }
 
     @Override
@@ -238,7 +241,7 @@ public class ConeOfCold extends Ability
             IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
             lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
             ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
-            System.out.println(lineText.present());
+
         }
 
 

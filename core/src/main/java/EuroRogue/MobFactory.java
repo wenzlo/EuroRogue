@@ -81,7 +81,7 @@ public class MobFactory
         mob.add(codexCmp);
         mob.add(new PositionCmp(loc));
         mob.add(new CharCmp('ß', SColor.RED_BIRCH));
-        StatsCmp statsCmp = getRandomStats(4+(depth*2), MobType.DEFAULT);
+        StatsCmp statsCmp = getRandomStats(3+game.depth, MobType.DEFAULT);
         mob.add(statsCmp);
         mob.add(new InventoryCmp(new EquipmentSlot[]{EquipmentSlot.RIGHT_HAND_WEAP, EquipmentSlot.LEFT_HAND_WEAP, EquipmentSlot.CHEST}, statsCmp.getStr()+4));
         AICmp aiCmp = new AICmp(new ArrayList(Arrays.asList(TerrainType.STONE, TerrainType.MOSS, TerrainType.SHALLOW_WATER, TerrainType.BRIDGE)));
@@ -92,8 +92,7 @@ public class MobFactory
         setRandomSkillSet(mob, MobType.DEFAULT);
 
         mob.add(new ParticleEffectsCmp());
-
-
+        
         return mob;
     }
 

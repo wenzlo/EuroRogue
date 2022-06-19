@@ -54,6 +54,7 @@ import EuroRogue.MyEntitySystem;
 import EuroRogue.MySparseLayers;
 import EuroRogue.ObjectFactory;
 import EuroRogue.School;
+import EuroRogue.ScrollFactory;
 import EuroRogue.WeaponFactory;
 import EuroRogue.WeaponType;
 import squidpony.squidai.DijkstraMap;
@@ -80,16 +81,18 @@ public class LevelSys extends MyEntitySystem
     private WeaponFactory weaponFactory;
     private ArmorFactory armorFactory;
     private ObjectFactory objectFactory;
+    private ScrollFactory scrollFactory;
     private ArrayList<Entity> actorsToAdd = new ArrayList<>();
     private ArrayList<Entity> itemsToAdd = new ArrayList<>();
 
-    public LevelSys(int seed, MobFactory mobFactory, WeaponFactory weaponFactory, ArmorFactory armorFactory, ObjectFactory objectFactory)
+    public LevelSys(int seed, MobFactory mobFactory, WeaponFactory weaponFactory, ArmorFactory armorFactory, ObjectFactory objectFactory, ScrollFactory scrollFactory)
     {
         this.rng = new GWTRNG(seed);
         this.mobFactory = mobFactory;
         this.weaponFactory = weaponFactory;
         this.armorFactory = armorFactory;
         this.objectFactory = objectFactory;
+        this.scrollFactory = scrollFactory;
 
     }
 
@@ -226,10 +229,8 @@ public class LevelSys extends MyEntitySystem
         double minAmbientLight = 0f;
         double maxAmbientLightLvl = 0.8f;
 
-
         switch (levelType)
         {
-
             case START:
                 //return newTutorialLevel();
             case CAVES:
@@ -246,8 +247,6 @@ public class LevelSys extends MyEntitySystem
                 ambientLightLvl = 0f;
                 maxAmbientLightLvl = 0f;
                 minAmbientLight = 0f;
-
-
 
                 break;
             case ROOMS:
@@ -392,7 +391,7 @@ public class LevelSys extends MyEntitySystem
 
         }
         FOV fov = new FOV();
-        for(int i=0;i<10;i++)
+        for(int i=0; i < getGame().depth*2+4; i++)
         {
             Coord loc = rng.getRandomElement(spwnCrds);
 
@@ -527,6 +526,10 @@ public class LevelSys extends MyEntitySystem
 
         //spwnCrds.andNot(stairsUpFOV);
 
+        for(int i=0;i<3;i++)
+        {
+
+        }
         for(int i=0;i<10;i++)
         {
            /* Coord itemLoc = rng.getRandomElement(spwnCrds);
@@ -579,8 +582,13 @@ public class LevelSys extends MyEntitySystem
         for(int i=0;i<3;i++)
         {
             Coord itemLoc = rng.getRandomElement(spwnCrds);
+
             spwnCrds.remove(itemLoc);
+            Coord scrollLoc = rng.getRandomElement(spwnCrds);
+            spwnCrds.remove(scrollLoc);
             itemsToAdd.add(getGame().foodFactory.generateFoodITem(itemLoc));
+            itemsToAdd.add(getGame().scrollFactory.generateScrollITem(rng.getRandomElement(Skill.values()), scrollLoc));
+
         }
         for(School school : School.values())
         {

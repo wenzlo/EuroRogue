@@ -88,7 +88,7 @@ public class Shatter extends Ability
 
         boolean canAfford = manaPoolCmp.canAfford(getSkill());
         if(scroll()) canAfford = true;
-        this.available = ( aiCmp.target!=null && canAfford && getActive() &! getAOEtargetsDmg(performer, levelCmp, game).isEmpty());
+        this.available = ( /*aiCmp.target!=null &&*/ canAfford && getActive() &! getAOEtargetsDmg(performer, levelCmp, game).isEmpty());
     }
 
     @Override
@@ -107,14 +107,14 @@ public class Shatter extends Ability
     public HashMap<Integer, Integer> getAOEtargetsDmg(Entity performerEntity, LevelCmp levelCmp, EuroRogue game)
     {
         HashMap<Integer, Integer> targets = new HashMap<>();
-        Integer performerID = levelCmp.actors.get(aoe.getOrigin());
-        System.out.println("Shatter getDmg bug");
         for(Coord coord : aoe.findArea().keySet())
         {
             if(levelCmp.actors.positions().contains(coord))
             {
+
                 Integer targetID = levelCmp.actors.get(coord);
                 Entity aoeTarEnt = game.getEntity(targetID);
+                if(aoeTarEnt == game.getFocus()) continue;
                 int dmg = getDamage(performerEntity);
                 if(CmpMapper.getStatusEffectComp(StatusEffect.FROZEN, aoeTarEnt)!=null)
                     targets.put(levelCmp.actors.get(coord), dmg);
@@ -122,7 +122,7 @@ public class Shatter extends Ability
                     targets.put(levelCmp.actors.get(coord), Math.round(dmg/2f));
             }
         }
-        System.out.println(targets);
+
         return targets;
 
     }
@@ -147,7 +147,8 @@ public class Shatter extends Ability
     public int getDamage(Entity performer)
     {
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
-        return Math.round(statsCmp.getSpellPower()*1f);
+        int dmg = Math.round(statsCmp.getSpellPower()*1f);
+        return Math.max(dmg, Math.round((1+(skill.intReq/2f))*4));
     }
 
     @Override
@@ -212,7 +213,7 @@ public class Shatter extends Ability
             IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
             lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
             ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
-            System.out.println(lineText.present());
+
         }
 
 

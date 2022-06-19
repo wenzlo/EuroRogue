@@ -165,18 +165,19 @@ import squidpony.squidgrid.mapping.Placement;
 import squidpony.squidgrid.mapping.SectionDungeonGenerator;
 import squidpony.squidmath.Coord;
 import squidpony.squidmath.GWTRNG;
-
+//TODO Scroll Case; Alternate emeny # and ENemy lvl increase each depth
 public class EuroRogue extends ApplicationAdapter {
 
     public MyEngine engine = new MyEngine(this);
-    public MobFactory mobFactory, characterFactory;
+    public MobFactory mobFactory;
     public WeaponFactory weaponFactory;
     public ArmorFactory armorFactory;
     public FoodFactory foodFactory;
+    public ScrollFactory scrollFactory;
     public ObjectFactory objectFactory;
     public CmpMapper cmpMapper = new CmpMapper();
     public Integer globalMenuIndex = 0;
-    public char[] globalMenuSelectionKeys = "1234567890-=qwertuiop[]asdf".toCharArray();
+    public char[] globalMenuSelectionKeys = "1234567890-=qwertuiop[]asdfhjkl;'zx".toCharArray();
     public HashMap<Character, MenuCmp> keyLookup = new HashMap<>();
     public Entity saveBuildWindow, uiBackgrounds, worldMapWindow, shrineWindow, shrineWinBG, gameOverWindow, startWindow, player, dungeonWindow, dungeonOverlayWindow, focusHotBar, targetHotBar, focusManaWindow, inventoryWindow, targetManaWindow, focusStatsWindow, targetStatsWindow, campWindow, campWInBg, ticker, logWindow, currentLevel;
     public  List<Entity> playingWindows, campingWindows, allWindows, uiBgWindows, startWindows, gameOverWindows, shrineWindows, saveBuildWindows;
@@ -271,8 +272,9 @@ public class EuroRogue extends ApplicationAdapter {
         foodFactory = new FoodFactory();
         objectFactory = new ObjectFactory(new GWTRNG(rng.nextInt()));
         mobFactory = new MobFactory(this, rng.nextInt(), weaponFactory, armorFactory);
+        scrollFactory = new ScrollFactory();
 
-        engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory, objectFactory));
+        engine.addSystem(new LevelSys(rng.nextInt(), mobFactory, weaponFactory, armorFactory, objectFactory, scrollFactory));
         dungeonGen = new SectionDungeonGenerator(42, 42, new GWTRNG(rng.nextInt()));
 
         Entity eventEntity = new Entity();
@@ -304,10 +306,6 @@ public class EuroRogue extends ApplicationAdapter {
         WindowCmp windowCmp = new WindowCmp((MySparseLayers)shrineStage.getActors().get(0),shrineStage, true);
         windowCmp.display.font.bottomPadding(1).initBySize();
 
-        //windowCmp.display.font.tweakWidth(14*0.90f).tweakHeight(27*0.90f).initBySize();
-        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
-
-        //windowCmp.display.font.shader=outlineShader;
         shrineWindow.add(new MenuCmp());
         engine.addEntity(shrineWindow);
 
@@ -317,8 +315,6 @@ public class EuroRogue extends ApplicationAdapter {
         Stage uiBgStage = buildStage(0,0,gridWidth/4,gridHeight/4+1,gridWidth/4,gridHeight/4+1, cellWidth*4, cellHeight*4, font, SColor.BLACK.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)uiBgStage.getActors().get(0),uiBgStage, true);
         windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*4 * 1.15f).initBySize();
-        //windowCmp.display.put();
-        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
 
         windowCmp.display.font.shader = outlineShader;
         uiBackgrounds.add(windowCmp);
@@ -331,8 +327,6 @@ public class EuroRogue extends ApplicationAdapter {
         Stage dungeonStage = buildStage(4,4,20,20,42,42,cellWidth*4,cellHeight*4, font, SColor.BLACK.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)dungeonStage.getActors().get(0),dungeonStage, true);
         windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*3+9 * 1.15f).initBySize();
-        //windowCmp.display.put();
-        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
 
         windowCmp.display.font.shader = outlineShader;
         dungeonWindow.add(windowCmp);
@@ -347,8 +341,6 @@ public class EuroRogue extends ApplicationAdapter {
         dungeonOverlayWindow.add(new ParticleEffectsCmp());
         windowCmp.display.addLayer();
         dungeonOverlayWindow.add(new MenuCmp());
-        //windowCmp.display.put();
-        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
 
         windowCmp.display.font.shader = outlineShader;
         dungeonOverlayWindow.add(windowCmp);
@@ -362,8 +354,6 @@ public class EuroRogue extends ApplicationAdapter {
         Stage shrineBgStage = buildStage(20, 44, width, height, width, height ,cellWidth*4,cellHeight*4, font, SColor.WHITE.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)shrineBgStage.getActors().get(0),shrineBgStage, true);
         windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*4 * 1.15f).initBySize();
-        //windowCmp.display.put();
-        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
 
         windowCmp.display.font.shader = outlineShader;
         shrineWinBG.add(windowCmp);
@@ -378,7 +368,6 @@ public class EuroRogue extends ApplicationAdapter {
         saveBuildWindow.add(new MenuCmp());
         engine.addEntity(saveBuildWindow);
 
-
         startWindow = new Entity();
 
         Stage startWinStage = buildStage(17,17,56,30,56,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
@@ -392,7 +381,6 @@ public class EuroRogue extends ApplicationAdapter {
         Stage gameOverStage = buildStage(17,17,60,30,60,30,cellWidth,cellHeight*2, DefaultResources.getStretchableCodeFont(), SColor.WHITE.toFloatBits());
         gameOverWindow.add(new WindowCmp((MySparseLayers)gameOverStage.getActors().get(0),gameOverStage, false));
         ((WindowCmp) CmpMapper.getComp(CmpType.WINDOW, gameOverWindow)).columnIndexes = new int[]{1,25,40};
-        //gameOverWindow.add(new MenuCmp());
         engine.addEntity(gameOverWindow);
 
         campWindow = new Entity();
@@ -411,14 +399,11 @@ public class EuroRogue extends ApplicationAdapter {
         Stage campBgStage = buildStage(4, 4, width, height, width, height ,cellWidth*4,cellHeight*4, font, SColor.WHITE.toFloatBits());
         windowCmp = new WindowCmp((MySparseLayers)campBgStage.getActors().get(0), campBgStage, true);
         windowCmp.display.font.tweakWidth(cellWidth*3+9 * 0.8f).tweakHeight(cellHeight*4 * 1.15f).initBySize();
-        //windowCmp.display.put();
-        //ShaderProgram outlineShader = new ShaderProgram(DefaultResources.vertexShader, DefaultResources.outlineFragmentShader);
 
         windowCmp.display.font.shader = outlineShader;
         campWInBg.add(windowCmp);
         campWInBg.add(new UiBgLightingCmp(windowCmp.display.gridWidth, windowCmp.display.gridHeight));
         engine.addEntity(campWInBg);
-
 
         Stage fmStage = buildStage(3,2,10,10,10,10,cellWidth+3,cellHeight+3, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
 
@@ -429,7 +414,6 @@ public class EuroRogue extends ApplicationAdapter {
         windowCmp.display.font.shader = outlineShader;
 
         focusManaWindow.add(windowCmp);
-        //engine.addEntity(focusManaWindow);
 
         Stage tmStage = buildStage(3,71,10,10,10,10,cellWidth+3,cellHeight+3, DefaultResources.getStretchableSquareFont(), SColor.BLACK.toFloatBits());
 
@@ -544,8 +528,8 @@ public class EuroRogue extends ApplicationAdapter {
         Family daggerEfct = Family.one(DaggerEfct.class).get();
         engine.addEntityListener(daggerEfct, new DaggerListener(this));
 
-        Family qstaffEfct = Family.one(QStaffEfct.class).get();
-        engine.addEntityListener(qstaffEfct, new QStaffEffectListener(this));
+        Family qStaffEfct = Family.one(QStaffEfct.class).get();
+        engine.addEntityListener(qStaffEfct, new QStaffEffectListener(this));
 
         Family staggered = Family.one(Staggered.class).get();
         engine.addEntityListener(staggered, new StaggeredListener(this));
@@ -555,7 +539,6 @@ public class EuroRogue extends ApplicationAdapter {
 
         Family exhausted = Family.one(Exhausted.class).get();
         engine.addEntityListener(exhausted, new ExhaustedListener(this));
-
 
         Family waterWalking = Family.one(WaterWalking.class).get();
         engine.addEntityListener(waterWalking, new WaterWalkingListener(this));
@@ -649,6 +632,7 @@ public class EuroRogue extends ApplicationAdapter {
 
 
         buildStorage = new Storage("EuroRogue");
+        System.out.println("at creation "+buildStorage.get("BuildKeys", "Keys", buildStorage.buildKeys.getClass()));
         ticker = new Entity();
         ticker.add(new TickerCmp());
         currentLevel = new Entity();
@@ -762,22 +746,7 @@ public class EuroRogue extends ApplicationAdapter {
                 else keyLookup.get(key).menuMap.get(key).runPrimaryAction();
                 return;
             }
-            /*for(Character chr : keyLookup.keySet())
-            {
 
-                if(chr == key)
-                {
-
-
-                    keyLookup.get(chr).menuMap.get(chr).runPrimaryAction();
-                    return;
-                }
-                if(getShiftChar(chr)==key)
-                {
-                    keyLookup.get(chr).menuMap.get(chr).runSecondaryAction();
-                    return;
-                }
-            }*/
             if(key=='c'|| key == SquidInput.ESCAPE)
             {
                 shrineInput.setIgnoreInput(true);
@@ -819,10 +788,6 @@ public class EuroRogue extends ApplicationAdapter {
                 Entity gameStateEvtEnt = new Entity();
                 engine.addEntity(gameStateEvtEnt);
                 gameStateEvtEnt.add(new GameStateEvt(GameState.PLAYING));
-
-
-
-
 
                 AISys aiSys = engine.getSystem(AISys.class);
                 aiSys.scheduleRestEvt(getFocus());
@@ -903,9 +868,7 @@ public class EuroRogue extends ApplicationAdapter {
 
                         return;
 
-
             }
-
 
             PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getFocus());
             Coord newAimCoord = aimAbility.getTargetedLocation().translate(direction);
@@ -915,7 +878,6 @@ public class EuroRogue extends ApplicationAdapter {
                 aimAbility.apply(positionCmp.coord, newAimCoord);
             }
         },
-
                 new SquidMouse(cellWidth, cellHeight, gridWidth, gridHeight, 0, 0, new InputAdapter() {}));
 
         input = new SquidInput((key, alt, ctrl, shift) ->
@@ -926,7 +888,6 @@ public class EuroRogue extends ApplicationAdapter {
             LevelCmp levelCmp = (LevelCmp) CmpMapper.getComp(CmpType.LEVEL, currentLevel);
             CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, focus);
             if(!tickerCmp.getScheduledActions(getFocus()).isEmpty()) return;
-            System.out.println(keyLookup.containsKey(key)+" "+keyLookup.containsKey(getUnshiftedChar(key)));
             if(keyLookup.containsKey(key) || keyLookup.containsKey(getUnshiftedChar(key)))
             {
 
@@ -1442,14 +1403,7 @@ public class EuroRogue extends ApplicationAdapter {
         ability.setScroll(true);
         ability.setMap(levelCmp.decoDungeon);
         scroll.add(ability);
-        (CmpMapper.getAbilityComp(skill, scroll)).setScroll(true);
-        StatsCmp statsCmp = new StatsCmp(rng);
-        statsCmp.setStr(skill.strReq);
-        statsCmp.setDex(skill.dexReq);
-        statsCmp.setCon(skill.constReq);
-        statsCmp.setIntel(skill.intReq);
-        statsCmp.setPerc(skill.percReq);
-        scroll.add(statsCmp);
+
         return scroll;
     }
     public Entity generateManaITem(Coord loc, School school)
@@ -1519,7 +1473,6 @@ public class EuroRogue extends ApplicationAdapter {
     }
     public ArrayList<Entity> getAvailableScrolls(Entity actor)
     {
-        CodexCmp codexCmp = (CodexCmp) CmpMapper.getComp(CmpType.CODEX, actor);
         ArrayList<Entity> scrolls = new ArrayList<>();
 
         for(Integer scrollID:getScrollIDs(actor))
@@ -1528,7 +1481,6 @@ public class EuroRogue extends ApplicationAdapter {
             ScrollCmp scrollCmp = (ScrollCmp) CmpMapper.getComp(CmpType.SCROLL,scrollEntity);
             Ability abilityCmp = CmpMapper.getAbilityComp(scrollCmp.skill,scrollEntity);
             if(abilityCmp.isAvailable())scrolls.add(scrollEntity);
-
         }
         return scrolls;
     }

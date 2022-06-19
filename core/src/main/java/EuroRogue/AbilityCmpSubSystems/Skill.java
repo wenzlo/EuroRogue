@@ -30,7 +30,7 @@ public enum Skill
 
     ICE_SHIELD(               "Ice Shield", IceShield.class,         SkillType.REACTION,  School.ICE, new School[]{School.ICE, School.WAR},      new School[]{School.ICE}, null,   null,        StatusEffect.CHILLED,  0, 0, 0, 2, 2),
     CHILL(            "Chill", Chill.class,  SkillType.ACTION,  School.ICE, new School[]{School.ICE},      new School[]{School.ICE}, null,     null,         StatusEffect.CHILLED,  0, 0, 0, 0, 2),
-    CONE_OF_COLD(        "Cone Of Cold", ConeOfCold.class,       SkillType.ACTION,  School.ICE, new School[]{School.ICE},      new School[]{School.ICE}, null,  null,null,  0, 0, 0, 2, 2),
+    CONE_OF_COLD(        "Cone Of Cold", ConeOfCold.class,       SkillType.ACTION,  School.ICE, new School[]{School.ICE},      new School[]{School.ICE}, null,  null,null,  0, 0, 0, 1, 3),
     SHATTER(                 "Shatter", Shatter.class,       SkillType.ACTION,  School.ICE, new School[]{School.ICE, School.ICE, School.ICE},      new School[]{School.ICE, School.ICE, School.ICE}, null,  null,null,  0, 0, 0, 0, 3),
 
     IMMOLATE(                 "Immolate", Immolate.class,        SkillType.ACTION,  School.FIR, new School[]{School.FIR},      new School[]{School.FIR}, null, null,        StatusEffect.CALESCENT,  0, 0, 0, 0, 2),

@@ -60,7 +60,7 @@ public class GameStateSys extends MyEntitySystem
             setWindowVisibility(newGameState);
             setInputProcessor(newGameState);
             ((GameStateEvt)CmpMapper.getComp(CmpType.GAMESTATE_EVT, entity)).setProcessed(true);
-            if(getGame().gameState==GameState.AIMING) getGame().getFocus().remove(AimingCmp.class);
+            //if(getGame().gameState==GameState.AIMING) getGame().getFocus().remove(AimingCmp.class);
             getGame().gameState=newGameState;
         }
 

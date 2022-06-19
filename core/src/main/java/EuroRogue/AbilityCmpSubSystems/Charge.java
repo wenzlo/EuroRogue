@@ -117,7 +117,8 @@ public class Charge extends Ability
         PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, performer);
         StatsCmp statsCmp = (StatsCmp) CmpMapper.getComp(CmpType.STATS, performer);
         aoe.setOrigin(positionCmp.coord);
-        aoe.setMaxRange(1+statsCmp.getStr()/2);
+        int str = Math.max(statsCmp.getStr(), skill.strReq);
+        aoe.setMaxRange(1+str/2);
 
     }
 
@@ -210,7 +211,7 @@ public class Charge extends Ability
             IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
             lineText.append("    "+line, SColor.LIGHT_GRAY);
             ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
-            System.out.println(lineText.present());
+
         }
 
 

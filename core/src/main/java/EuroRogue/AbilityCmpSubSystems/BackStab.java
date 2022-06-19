@@ -134,8 +134,8 @@ public class BackStab extends Ability
     @Override
     public DamageType getDmgType(Entity performer)
     {
-        MeleeAttack meleeAttack = (MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, performer);
-        return meleeAttack.getDmgType(performer);
+        //MeleeAttack meleeAttack = (MeleeAttack) CmpMapper.getAbilityComp(Skill.MELEE_ATTACK, performer);
+        return DamageType.PIERCING;
     }
     @Override
     public int getTTPerform(Entity performer)
@@ -166,7 +166,7 @@ public class BackStab extends Ability
         super.postToLog(performer, game);
         SColor schoolColor = getSkill().school.color;
         List<String> description = StringKit.wrap(
-                "A melee attack dealing " + getDmgType(performer) + " damage equal to 2 * Weapon Damage. Requires an equipped dagger and Stalking status effect"
+                "A melee attack dealing  damage equal to 2 * Weapon Damage. Requires an equipped dagger and Stalking status effect"
                 , 40);
 
         IColoredString.Impl<SColor> desc = new IColoredString.Impl<SColor>();
@@ -178,7 +178,7 @@ public class BackStab extends Ability
             IColoredString.Impl<SColor> lineText = new IColoredString.Impl<SColor>();
             lineText.append("   "+line, SColor.LIGHT_YELLOW_DYE);
             ((LogCmp) CmpMapper.getComp(CmpType.LOG, game.logWindow)).logEntries.add(lineText);
-            System.out.println(lineText.present());
+
         }
 
 

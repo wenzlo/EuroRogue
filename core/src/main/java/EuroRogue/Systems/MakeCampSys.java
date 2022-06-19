@@ -63,7 +63,6 @@ public class MakeCampSys extends MyEntitySystem
             StatsCmp statsCmp = (StatsCmp)CmpMapper.getComp(CmpType.STATS, entity);
             AICmp aiCmp = CmpMapper.getAIComp(statsCmp.mobType.aiType, entity);
             MakeCampEvt makeCampEvt = (MakeCampEvt) CmpMapper.getComp(CmpType.MAKE_CAMP_EVT, entity);
-            System.out.println(tickerCmp.tick);
             if(!aiCmp.visibleEnemies.isEmpty() )
             {
                 InventoryCmp inventoryCmp = (InventoryCmp) CmpMapper.getComp(CmpType.INVENTORY, entity);

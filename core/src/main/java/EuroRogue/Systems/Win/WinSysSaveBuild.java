@@ -83,12 +83,16 @@ public class WinSysSaveBuild extends MyEntitySystem
         }
         display.put(1, 15, "Saved Builds:", SColor.WHITE, SColor.SILVER_GREY);
         int y=16;
-        for(String buildName : getGame().buildStorage.buildKeys)
+        if(getGame().buildStorage.buildKeys != null)
         {
-            display.put(1, y, buildName, SColor.WHITE, SColor.SILVER_GREY);
-            y++;
+            for(String buildName : getGame().buildStorage.buildKeys)
+            {
+                display.put(1, y, buildName, SColor.WHITE, SColor.SILVER_GREY);
+                y++;
 
+            }
         }
+
         getGame().getInput();
 
         stage.getViewport().apply(false);
@@ -115,7 +119,7 @@ public class WinSysSaveBuild extends MyEntitySystem
         };
         MenuCmp menuCmp = (MenuCmp) CmpMapper.getComp(CmpType.MENU, entities.get(0));
 
-
+        if(getGame().buildStorage.buildKeys != null)
 
             {
                 char key = getGame().globalMenuSelectionKeys[getGame().globalMenuIndex];

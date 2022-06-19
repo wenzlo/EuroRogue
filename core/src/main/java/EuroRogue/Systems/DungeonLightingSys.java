@@ -103,6 +103,7 @@ public class DungeonLightingSys extends MyEntitySystem
                 String type = splitName[2];
                 Coord lightMapPos = Coord.get(lightingHandler.lightMapX(glyph), lightingHandler.lightMapY(glyph));
                 Entity owner= getGame().getEntity(ownerID);
+                Light light = lightingHandler.lightList.get(lightID);
 
                 if(owner!=null)
                 {
@@ -114,25 +115,24 @@ public class DungeonLightingSys extends MyEntitySystem
                         lightingHandler.calculateFOV(fovPos.x, fovPos.y);
                         MyFOV.reuseFOV(lightingCmp.resistance3x3, lightingCmp.focusNightVision3x3, fovPos.x, fovPos.y, focusStatsCmp.getPerc()*3);
                     }
-                    if("actor".equals(type))
+                    if("actor".equals(type) && light!=null)
                     {
                         LightCmpTemp lightCmpTemp = (LightCmpTemp) CmpMapper.getComp(CmpType.LIGHT_TEMP, owner);
-                        if(lightCmpTemp!=null)
+                        LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, owner);
+                        if(lightCmpTemp!=null && light!=null)
                         {
-                            lightingHandler.lightList.get(lightID).radiance.range=lightCmpTemp.level;
-                            lightingHandler.lightList.get(lightID).radiance.color = lightCmpTemp.color;
-                            lightingHandler.lightList.get(lightID).radiance.flicker = lightCmpTemp.flicker;
-                            lightingHandler.lightList.get(lightID).radiance.strobe = lightCmpTemp.strobe;
+                            light.radiance.range=lightCmpTemp.level;
+                            light.radiance.color = lightCmpTemp.color;
+                            light.radiance.flicker = lightCmpTemp.flicker;
+                            light.radiance.strobe = lightCmpTemp.strobe;
                         }
 
-                        else
+                        else if(lightCmp!=null && light!=null)
                         {
-                            LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, owner);
-
-                            lightingHandler.lightList.get(lightID).radiance.range=lightCmp.level;
-                            lightingHandler.lightList.get(lightID).radiance.color = lightCmp.color;
-                            lightingHandler.lightList.get(lightID).radiance.flicker = lightCmp.flicker;
-                            lightingHandler.lightList.get(lightID).radiance.strobe = lightCmp.strobe;
+                            light.radiance.range=lightCmp.level;
+                            light.radiance.color = lightCmp.color;
+                            light.radiance.flicker = lightCmp.flicker;
+                            light.radiance.strobe = lightCmp.strobe;
                         }
                         glyph.setColor(SColor.colorFromFloat(getGlyphColor(owner)));
                         CharCmp charCmp =(CharCmp) CmpMapper.getComp(CmpType.CHAR, owner);
@@ -142,15 +142,15 @@ public class DungeonLightingSys extends MyEntitySystem
                     else if ("actorLeft".equals(type))
                     {
                         Integer itemId = inventoryCmp.getSlotEquippedID(EquipmentSlot.LEFT_HAND_WEAP);
-                        if(itemId!=null)
+                        if(itemId!=null && light!=null)
                         {
 
                             Entity itemEntity = getGame().getEntity(itemId);
                             LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, itemEntity);
-                            lightingHandler.lightList.get(lightID).radiance.range=lightCmp.level;
-                            lightingHandler.lightList.get(lightID).radiance.color = lightCmp.color;
-                            lightingHandler.lightList.get(lightID).radiance.flicker = lightCmp.flicker;
-                            lightingHandler.lightList.get(lightID).radiance.strobe = lightCmp.strobe;
+                            light.radiance.range=lightCmp.level;
+                            light.radiance.color = lightCmp.color;
+                            light.radiance.flicker = lightCmp.flicker;
+                            light.radiance.strobe = lightCmp.strobe;
 
                         } else lightingHandler.lightList.get(lightID).radiance.range = 0;
 
@@ -162,16 +162,15 @@ public class DungeonLightingSys extends MyEntitySystem
                         {
                             Entity itemEntity = getGame().getEntity(itemId);
                             LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, itemEntity);
-                            lightingHandler.lightList.get(lightID).radiance.range=lightCmp.level;
-                            lightingHandler.lightList.get(lightID).radiance.color = lightCmp.color;
-                            lightingHandler.lightList.get(lightID).radiance.flicker = lightCmp.flicker;
-                            lightingHandler.lightList.get(lightID).radiance.strobe = lightCmp.strobe;
+                            light.radiance.range=lightCmp.level;
+                            light.radiance.color = lightCmp.color;
+                            light.radiance.flicker = lightCmp.flicker;
+                            light.radiance.strobe = lightCmp.strobe;
 
                         } else lightingHandler.lightList.get(lightID).radiance.range = 0;
 
                     }
                 }
-                Light light = lightingHandler.lightList.get(lightID);
                 if(light!=null)
                     light.position=lightMapPos;
 
@@ -182,10 +181,11 @@ public class DungeonLightingSys extends MyEntitySystem
         {
             Entity owner= getGame().getEntity(id);
             LightCmp lightCmp = (LightCmp) CmpMapper.getComp(CmpType.LIGHT, owner);
-            lightingHandler.lightList.get(id).radiance.range=lightCmp.level;
-            lightingHandler.lightList.get(id).radiance.color = lightCmp.color;
-            lightingHandler.lightList.get(id).radiance.flicker = lightCmp.flicker;
-            lightingHandler.lightList.get(id).radiance.strobe = lightCmp.strobe;
+            Light light = lightingHandler.lightList.get(id);
+            light.radiance.range=lightCmp.level;
+            light.radiance.color = lightCmp.color;
+            light.radiance.flicker = lightCmp.flicker;
+            light.radiance.strobe = lightCmp.strobe;
         }
         lightingCmp.bgLighting = new float[(lightingCmp.ambientBgLighting.length)][lightingCmp.ambientBgLighting[0].length];
         for (int i = 0; i < lightingCmp.ambientBgLighting.length; i++)
@@ -260,9 +260,11 @@ public class DungeonLightingSys extends MyEntitySystem
             if (aimingCmp != null) {
 
                 Ability aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getFocus());
+                System.out.println(aimAbility);
                 if(aimingCmp.scroll) aimAbility = CmpMapper.getAbilityComp(aimingCmp.skill, getGame().getScrollForSkill(aimingCmp.skill, getGame().getFocus()));
-
+                System.out.println(aimAbility);
                 PositionCmp positionCmp = (PositionCmp) CmpMapper.getComp(CmpType.POSITION, getGame().getFocus());
+                aimAbility.setMap(levelCmp.decoDungeon);
                 for(Coord coord : aimAbility.possibleTargets(positionCmp.coord, levelCmp.resistance) )
                 {
                     if(aimAbility.aoe.findArea().keySet().contains(coord) || !levelCmp.floors.contains(coord)) continue;
@@ -273,11 +275,9 @@ public class DungeonLightingSys extends MyEntitySystem
                 }
                 for(Coord coord : aimAbility.aoe.findArea().keySet())
                 {
-                    //if(!levelCmp.floors.contains(coord)) continue;
                     for(int x=0; x<3; x++){
                         for(int y=0; y<3; y++)
                         {
-
                             lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y] = SColor.lerpFloatColors(lightingCmp.bgLighting[(coord.x*3)+x][(coord.y*3)+y], aimingCmp.skill.school.color.toFloatBits(), (float) (aimAbility.aoe.findArea().get(coord)*1f));
                         }
                     }
